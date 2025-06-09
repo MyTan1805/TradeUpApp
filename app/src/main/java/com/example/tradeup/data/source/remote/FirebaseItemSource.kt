@@ -1,15 +1,39 @@
 package com.example.tradeup.data.source.remote
 
+import android.util.Log
+import com.example.tradeup.data.model.Item
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.Query
-import com.example.tradeup.data.model.Item
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class FirebaseItemSource @Inject constructor(private val firestore: FirebaseFirestore) {
+class FirebaseItemSource @Inject constructor(
+    private val firestore: FirebaseFirestore
+) {
+    companion object {
+        private const val TAG = "FirebaseItemSource"
+        private const val ITEMS_COLLECTION = "items" // Đảm bảo tên collection đúng
+    }
 
 
     private val itemsCollection = firestore.collection("items")
+
+    suspend fun getItemsBySellerIdFromSource(sellerId: String): Result<List<Item>> {
+        return try {
+            Log.d(TAG, "DS: Fetching items for sellerId: $sellerId")
+            val snapshot = firestore.collection(ITEMS_COLLECTION)
+                .whereEqualTo("sellerId", sellerId)
+                // .orderBy("createdAt", Query.Direction.DESCENDING) // Tùy chọn
+                .get()
+                .await()
+            val items = snapshot.toObjects(Item::class.java)
+            Log.d(TAG, "DS: Fetched ${items.size} items for sellerId: $sellerId")
+            Result.success(items)
+        } catch (e: Exception) {
+            Log.e(TAG, "DS: Error fetching items for sellerId: $sellerId", e)
+            Result.failure(e)
+        }
+    }
 
     suspend fun addItem(item: Item): Result<String> { // Trả về ID của item mới
         return try {

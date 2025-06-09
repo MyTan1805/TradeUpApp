@@ -4,8 +4,10 @@ import android.content.Context
 import android.net.Uri
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import org.json.JSONObject
 import java.io.File
@@ -15,7 +17,7 @@ import java.io.IOException
 // THAY THẾ CÁC GIÁ TRỊ NÀY BẰNG THÔNG TIN CỦA BẠN
 private val CLOUDINARY_CLOUD_NAME = "dhv2ihonf"
 private val CLOUDINARY_API_KEY = "389774338928861" // API Key, không phải API Secret
-private val CLOUDINARY_UPLOAD_PRESET = "user" // Ví dụ: "tradeup_unsigned_preset"
+private val CLOUDINARY_UPLOAD_PRESET = "tradeup_unsigned_preset" // Ví dụ: "tradeup_unsigned_preset"
 
 suspend fun uploadImageDirectlyToCloudinary(
     context: Context,

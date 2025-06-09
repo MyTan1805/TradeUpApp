@@ -1,9 +1,53 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.TradeUp" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your light theme here. -->
-        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    <style name="Theme.TradeUp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/tradeup_blue_primary</item>
+        <item name="colorPrimaryVariant">@color/tradeup_blue_primary</item> <!-- Hoặc một biến thể đậm/nhạt hơn -->
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/tradeup_teal_secondary</item>
+        <item name="colorSecondaryVariant">@color/tradeup_teal_secondary</item> <!-- Hoặc một biến thể đậm/nhạt hơn -->
+        <item name="colorOnSecondary">@color/black</item> <!-- Hoặc white tùy độ tương phản -->
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        <!-- Customize your theme here. -->
+
+        <!-- Default Font Family for the whole app (có thể không cần nếu bạn định nghĩa chi tiết qua textAppearance) -->
+        <!-- <item name="android:fontFamily">@font/dongle_regular</item> -->
+        <!-- <item name="fontFamily">@font/dongle_regular</item> -->
+
+        <!-- Áp dụng các TextAppearance mặc định -->
+        <item name="textAppearanceHeadline4">@style/TextAppearance.TradeUp.Headline28</item>
+        <item name="textAppearanceHeadline5">@style/TextAppearance.TradeUp.Headline24</item>
+        <item name="textAppearanceHeadline6">@style/TextAppearance.TradeUp.Headline20</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.TradeUp.Headline18</item> <!-- Hoặc 16 -->
+        <!-- <item name="textAppearanceSubtitle2">@style/TextAppearance.TradeUp.Headline14</item> -->
+        <item name="textAppearanceBody1">@style/TextAppearance.TradeUp.Body16</item>
+        <item name="textAppearanceBody2">@style/TextAppearance.TradeUp.Body14</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.TradeUp.Body12</item>
+        <!-- <item name="textAppearanceButton">@style/YourCustomButtonTextStyle</item> -->
+        <!-- <item name="textAppearanceOverline">@style/YourCustomOverlineTextStyle</item> -->
+
+        <!-- Style cho Material Text Fields -->
+        <item name="textInputStyle">@style/Widget.TradeUp.TextInputLayout</item>
+
     </style>
 
-    <style name="Theme.TradeUp" parent="Base.Theme.TradeUp" />
+    <!-- Style cho TextInputLayout để áp dụng font cho hint và text -->
+    <style name="Widget.TradeUp.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="android:fontFamily">@font/dongle_regular</item> <!-- Font cho text khi nhập -->
+        <item name="fontFamily">@font/dongle_regular</item>
+        <item name="hintTextAppearance">@style/TextAppearance.TradeUp.HintText</item> <!-- Style cho hint text -->
+    </style>
+
+    <style name="TextAppearance.TradeUp.HintText" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="android:fontFamily">@font/dongle_regular</item>
+        <item name="fontFamily">@font/dongle_regular</item>
+        <item name="android:textColor">?attr/colorOnSurface</item> <!-- Màu cho hint text -->
+        <item name="android:textSize">16sp</item> <!-- Kích thước hint bằng với text input hoặc nhỏ hơn -->
+    </style>
+
+    <!-- Bạn có thể tạo theme riêng cho Night mode trong themes.xml (night) -->
+    <!-- <style name="Theme.TradeUp.Night" parent="Theme.MaterialComponents.DayNight.NoActionBar"> ... </style> -->
 </resources>

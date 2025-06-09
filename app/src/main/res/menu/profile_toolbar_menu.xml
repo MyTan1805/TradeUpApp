@@ -1,0 +1,17 @@
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/action_edit_profile"
+        android:title="Chỉnh sửa hồ sơ"
+        android:icon="@drawable/ic_edit"
+        app:showAsAction="ifRoom" />
+    <item
+        android:id="@+id/action_settings"
+        android:title="Cài đặt" />
+    <item
+        android:id="@+id/action_report_user"
+        android:title="Báo cáo người dùng" />
+    <item
+        android:id="@+id/action_logout"
+        android:title="Đăng xuất"/>
+</menu>

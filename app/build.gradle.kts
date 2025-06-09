@@ -30,11 +30,11 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
     buildFeatures {
         viewBinding = true
@@ -43,6 +43,8 @@ android {
 
 dependencies {
     implementation(libs.hilt.android)
+    implementation(libs.navigation.fragment.ktx)
+    implementation(libs.navigation.ui)
     kapt(libs.hilt.compiler)
 
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
@@ -53,6 +55,17 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
+
+    // Lifecycle components
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+
+    implementation ("de.hdodenhof:circleimageview:3.1.0")
+    implementation ("com.github.bumptech.glide:glide:4.16.0")
+
+    implementation ("com.github.dhaval2404:imagepicker:2.1")
+    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
     implementation(libs.appcompat)
     implementation(libs.material)

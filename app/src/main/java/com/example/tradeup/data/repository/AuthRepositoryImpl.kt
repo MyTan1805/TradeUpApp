@@ -27,4 +27,8 @@ class AuthRepositoryImpl @Inject constructor(
     override suspend fun sendPasswordResetEmail(email: String): Result<Unit> {
         return firebaseAuthSource.sendPasswordResetEmail(email)
     }
+
+    override suspend fun sendEmailVerification(user: FirebaseUser): Result<Unit> { // << THÊM HÀM NÀY
+        return firebaseAuthSource.sendEmailVerification(user)
+    }
 }

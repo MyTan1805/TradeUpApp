@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Typography - mali Font -->
+    <style name="TextAppearance.TradeUp.Headline28" parent="TextAppearance.MaterialComponents.Headline4"> <!-- Kế thừa từ Material để có sẵn một số thuộc tính -->
+        <item name="fontFamily">@font/mali_bold</item> <!-- Giả sử dùng Bold cho Headline lớn, hoặc Regular/Light tùy ý -->
+        <item name="android:fontFamily">@font/mali_bold</item>
+        <item name="android:textSize">28sp</item>
+        <item name="lineHeight">36sp</item> <!-- Cần API 28+ -->
+        <!-- <item name="lineHeight">36sp</item> Dùng cho Material Components -->
+        <item name="android:letterSpacing">-0.02</item> <!-- -2% -->
+    </style>
+
+    <style name="TextAppearance.TradeUp.Headline24" parent="TextAppearance.MaterialComponents.Headline5">
+        <item name="fontFamily">@font/mali_bold</item>
+        <item name="android:fontFamily">@font/mali_bold</item>
+        <item name="android:textSize">24sp</item>
+        <item name="lineHeight">32sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.Headline20" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="fontFamily">@font/mali_bold</item> <!-- Hoặc mali_regular nếu Medium weight tương ứng với Regular -->
+        <item name="android:fontFamily">@font/mali_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="lineHeight">28sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.Headline18" parent="TextAppearance.MaterialComponents.Subtitle1"> <!-- Hoặc tự định nghĩa -->
+        <item name="fontFamily">@font/mali_regular</item> <!-- Giả sử Medium weight là Regular -->
+        <item name="android:fontFamily">@font/mali_regular</item>
+        <item name="android:textSize">18sp</item>
+        <item name="lineHeight">26sp</item>
+        <item name="android:letterSpacing">-0.02</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.Headline16" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="fontFamily">@font/mali_semibold</item>
+        <item name="android:fontFamily">@font/mali_semibold</item>
+        <item name="android:textSize">16sp</item>
+        <item name="lineHeight">24sp</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.Headline14" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="fontFamily">@font/mali_semibold</item>
+        <item name="android:fontFamily">@font/mali_semibold</item>
+        <item name="android:textSize">14sp</item>
+        <item name="lineHeight">20sp</item>
+        <item name="android:letterSpacing">-0.01</item>
+    </style>
+
+    <style name="TextAppearance.TradeUp.Headline12" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="fontFamily">@font/mali_semibold</item>
+        <item name="android:fontFamily">@font/mali_semibold</item>
+        <item name="android:textSize">12sp</item>
+        <item name="lineHeight">16sp</item>
+        <item name="android:letterSpacing">0</item> <!-- 0% -->
+    </style>
+
+
+    <!-- Body Text -->
+    <style name="TextAppearance.TradeUp.Body16" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/mali_regular</item>
+        <item name="android:fontFamily">@font/mali_regular</item>
+        <item name="android:textSize">16sp</item>
+        <item name="lineHeight">24sp</item>
+        <item name="android:letterSpacing">0.005</item> <!-- 0.5% -->
+    </style>
+
+    <style name="TextAppearance.TradeUp.Body14" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="fontFamily">@font/mali_regular</item>
+        <item name="android:fontFamily">@font/mali_regular</item>
+        <item name="android:textSize">14sp</item>
+        <item name="lineHeight">20sp</item>
+        <item name="android:letterSpacing">0.005</item> <!-- 0.5% -->
+    </style>
+
+    <style name="TextAppearance.TradeUp.Body12" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="fontFamily">@font/mali_regular</item>
+        <item name="android:fontFamily">@font/mali_regular</item>
+        <item name="android:textSize">12sp</item>
+        <item name="lineHeight">16sp</item>
+        <item name="android:letterSpacing">0.01</item> <!-- 1% -->
+    </style>
+
+    <style name="ProfileLinkItem" parent="Widget.AppCompat.TextView"> <!-- Kế thừa từ AppCompat -->
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textAppearance">@style/TextAppearance.TradeUp.Body16</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="android:paddingTop">16dp</item>
+        <item name="android:paddingBottom">16dp</item>
+        <item name="android:paddingStart">@dimen/profile_link_horizontal_padding</item>
+        <item name="android:paddingEnd">@dimen/profile_link_horizontal_padding</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+    </style>
+
+    <style name="ProfileDivider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">@color/divider_color_light</item>
+    </style>
+
+    <style name="ProfileStatItemLayout" parent="">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:orientation">vertical</item>
+        <item name="android:gravity">center</item>
+    </style>
+
+    <style name="ProfileStatValue" parent="TextAppearance.TradeUp.Headline20">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/app_text_primary</item>
+    </style>
+
+    <style name="ProfileStatLabel" parent="TextAppearance.TradeUp.Body12"> <!-- Sử dụng Body12 như bạn đã định nghĩa -->
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@color/text_secondary_light</item>
+    </style>
+
+    <style name="ProfileStatDivider">
+        <item name="android:layout_width">1dp</item>
+        <item name="android:layout_height">match_parent</item>
+        <item name="android:layout_marginTop">8dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:background">@color/divider_color_light</item> <!-- Hoặc màu divider bạn muốn -->
+    </style>
+
+    <!-- Nếu bạn muốn một font sans-serif cho body text -->
+    <!--
+    <style name="TextAppearance.TradeUp.BodySans16" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/roboto_regular</item> // Giả sử bạn thêm Roboto
+        <item name="android:fontFamily">@font/roboto_regular</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:lineHeight">24sp</item>
+    </style>
+    -->
+</resources>

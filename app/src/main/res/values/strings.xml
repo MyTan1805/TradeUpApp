@@ -1,3 +1,89 @@
 <resources>
     <string name="app_name">TradeUp</string>
+    <string name="dddd">Button</string>
+    <string name="logo_ng_d_ng">Logo ứng dụng</string>
+    <string name="nh_p_t_n_ng_nh_p">Nhập tên đăng nhập</string>
+    <string name="nh_p_m_t_kh_u">Nhập mật khẩu</string>
+    <string name="ng_nh_p_b_ng_google">Đăng nhập bằng Google</string>
+    <string name="nh_p_a_ch_email">Nhập địa chỉ email</string>
+    <string name="nh_p_s_i_n_tho_i">Nhập số điện thoại</string>
+    <string name="nh_p_l_i_m_t_kh_u">Nhập lại mật khẩu</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    // Lỗi
+    <string name="error_ten_hien_thi_trong">Tên hiển thị không được để trống</string>
+    <string name="error_email_trong">Email không được để trống</string>
+    <string name="error_email_khong_hop_le">Email không hợp lệ</string>
+    <string name="error_sdt_trong">Số điện thoại không được để trống</string>
+    <string name="error_sdt_khong_hop_le">Số điện thoại không hợp lệ</string>
+    <string name="error_mat_khau_trong">Mật khẩu không được để trống</string>
+    <string name="error_mat_khau_qua_ngan">Mật khẩu phải có ít nhất 6 ký tự</string>
+    <string name="error_nhap_lai_mat_khau_trong">Vui lòng nhập lại mật khẩu</string>
+    <string name="error_mat_khau_khong_khop">Mật khẩu không khớp</string>
+
+    //Login
+    <string name="dang_nhap">Đăng nhập</string>
+    <string name="ghi_nho_dang_nhap">Ghi nhớ đăng nhập</string>
+    <string name="quen_mat_khau">Quên mật khẩu?</string>
+    <string name="hoac_dang_nhap_voi">Hoặc đăng nhập với</string>
+    <string name="chua_co_tai_khoan">Chưa có tài khoản?</string>
+    <string name="dang_ky">Đăng ký</string>
+
+    // Quên mật khẩu
+    <string name="quen_mat_khau_title">Quên Mật Khẩu</string>
+    <string name="nhap_email_de_dat_lai_mat_khau">Nhập email của bạn để đặt lại mật khẩu</string>
+    <string name="gui_email_dat_lai">Gửi Email Đặt Lại</string>
+    <string name="nho_mat_khau_quay_lai_dang_nhap">Nhớ mật khẩu? Quay lại đăng nhập</string>
+    <string name="email_dat_lai_da_duoc_gui">Email hướng dẫn đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.</string>
+    <string name="loi_gui_email_dat_lai">Lỗi khi gửi email đặt lại mật khẩu. Vui lòng thử lại.</string>
+    <string name="email_khong_ton_tai">Địa chỉ email này không tồn tại trong hệ thống.</string>
+
+    // user profile
+    <string name="ho_so_cua_toi">Hồ Sơ Của Tôi</string>
+    <string name="cai_dat">Cài đặt</string>
+    <string name="chinh_sua_ho_so">Chỉnh sửa hồ sơ</string>
+    <string name="danh_gia">Đánh giá</string>
+    <string name="giao_dich">Giao dịch</string>
+    <string name="san_pham_dang">Sản phẩm</string> <!-- Hoặc "Đã đăng" -->
+    <string name="thong_tin_lien_he">Thông Tin Liên Hệ</string>
+    <string name="san_pham_cua_toi">Sản Phẩm Của Tôi</string>
+    <string name="lich_su_giao_dich">Lịch Sử Giao Dịch</string>
+    <string name="san_pham_da_luu">Sản Phẩm Đã Lưu</string>
+    <string name="anh_dai_dien">Ảnh đại diện</string>
+    <string name="nhan_tin">Nhắn tin</string>
+    <string name="san_pham_dang_ban">Sản phẩm đang bán</string>
+    <string name="hinh_anh_san_pham">Hình ảnh sản phẩm</string>
+
+    // edit profile
+    <string name="chinh_sua_ho_so_title">Chỉnh Sửa Hồ Sơ</string>
+    <string name="anh_dai_dien_co_the_thay_doi">Ảnh đại diện (có thể thay đổi)</string>
+    <string name="thay_doi_anh_dai_dien">Thay đổi ảnh đại diện</string>
+    <string name="ten_hien_thi">Tên hiển thị</string>
+    <string name="tieu_su">Tiểu sử</string>
+    <string name="thong_tin_lien_he_chinh_sua">Thông tin liên hệ</string>
+    <string name="so_dien_thoai">Số điện thoại</string>
+    <string name="zalo_lien_ket_hoac_sdt">Zalo (Liên kết hoặc SĐT)</string>
+    <string name="facebook_link_profile">Facebook (Link Profile)</string>
+    <string name="huy_bo">Hủy</string>
+    <string name="luu_thay_doi">Lưu Thay Đổi</string>
+    <string name="cap_nhat_thanh_cong">Cập nhật hồ sơ thành công!</string>
+    <string name="loi_cap_nhat_ho_so">Lỗi khi cập nhật hồ sơ. Vui lòng thử lại.</string>
+    <string name="vui_long_chon_anh">Vui lòng chọn ảnh</string>
+    <string name="loi_tai_anh">Lỗi khi tải ảnh lên</string>
+    <string name="app_name_or_home_title">TradeUp</string>
+    <string name="tat_ca_danh_muc">Tất cả danh mục</string>
+    <string name="sap_xep">Sắp xếp</string>
+    <string name="loc">Lọc</string>
+    <string name="tim_kiem">Tìm Kiếm</string>
+    <string name="khong_co_san_pham">"Không có sản phẩm "</string>
+    <string name="khong_tim_thay_san_pham_phu_hop">Không tìm thấy sản phẩm phù hợp</string>
+    <string name="thu_lai">Thử lại</string>
+
+    <string name="bottom_nav_home">Trang chủ</string>
+    <string name="bottom_nav_messages">Tin nhắn</string>
+    <string name="bottom_nav_post_item">Đăng tin</string>
+    <string name="bottom_nav_notifications">Thông báo</string>
+    <string name="bottom_nav_profile">Hồ sơ</string>
+
 </resources>
