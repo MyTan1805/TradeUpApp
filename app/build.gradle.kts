@@ -47,6 +47,8 @@ dependencies {
     implementation(libs.navigation.ui)
     kapt(libs.hilt.compiler)
 
+    implementation(libs.preference)
+
     implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))

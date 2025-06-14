@@ -85,5 +85,30 @@
     <string name="bottom_nav_post_item">Đăng tin</string>
     <string name="bottom_nav_notifications">Thông báo</string>
     <string name="bottom_nav_profile">Hồ sơ</string>
+    <string name="san_pham_cua_prefix">Sản phẩm\n</string>
+
+    <string name="messages_header">Tin nhắn</string>
+    <string name="sync_header">Đồng bộ</string>
+
+    <!-- Messages Preferences -->
+    <string name="signature_title">Chữ ký của bạn</string>
+    <string name="reply_title">Hành động trả lời mặc định</string>
+
+    <!-- Sync Preferences -->
+    <string name="sync_title">Đồng bộ email định kỳ</string>
+    <string name="attachment_title">Tải xuống tệp đính kèm</string>
+    <string name="attachment_summary_on">Tự động tải xuống các tệp đính kèm cho thư đến</string>
+    <string name="attachment_summary_off">Chỉ tải xuống các tệp đính kèm khi có yêu cầu</string>
+
+    <!-- Reply Entries & Values for ListPreference -->
+    <string-array name="reply_entries">
+        <item>Trả lời</item>
+        <item>Trả lời tất cả</item>
+    </string-array>
+
+    <string-array name="reply_values">
+        <item>reply</item>
+        <item>reply_all</item>
+    </string-array>
 
 </resources>
