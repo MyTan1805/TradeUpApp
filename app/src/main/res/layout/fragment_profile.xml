@@ -1,276 +1,207 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/profile_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app_light"
+    android:background="?attr/colorSurface"
+    android:fitsSystemWindows="true"
     tools:context=".ui.profile.ProfileFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayoutProfile"
-        android:layout_width="match_parent"
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_start"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        app:elevation="4dp">
+        android:orientation="vertical"
+        app:layout_constraintGuide_begin="16dp" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbarProfile"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_arrow_back"
-            app:titleTextAppearance="@style/TextAppearance.TradeUp.Headline20"
-            app:titleTextColor="?attr/colorOnSurface"
-            app:menu="@menu/profile_toolbar_menu" />
-    </com.google.android.material.appbar.AppBarLayout>
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline_end"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintGuide_end="16dp" />
 
-    <androidx.core.widget.NestedScrollView
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:fillViewport="true">
+    <!-- Thông tin cá nhân -->
+    <de.hdodenhof.circleimageview.CircleImageView
+        android:id="@+id/imageViewProfilePicture"
+        android:layout_width="88dp"
+        android:layout_height="88dp"
+        android:layout_marginTop="16dp"
+        app:layout_constraintStart_toStartOf="@+id/guideline_start"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:src="@drawable/ic_person" />
 
-        <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/profile_content_container"
-            android:layout_width="match_parent"
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabChangeProfilePicture"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:contentDescription="Change profile picture"
+        app:backgroundTint="?attr/colorSecondary"
+        app:fabCustomSize="32dp"
+        app:layout_constraintCircle="@id/imageViewProfilePicture"
+        app:layout_constraintCircleAngle="135"
+        app:layout_constraintCircleRadius="44dp"
+        app:maxImageSize="18dp"
+        app:srcCompat="@drawable/ic_photo_camera"
+        app:tint="?attr/colorOnSecondary"
+        tools:ignore="MissingConstraints" />
+
+    <TextView
+        android:id="@+id/textViewUserName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:textAppearance="?attr/textAppearanceHeadline5"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toStartOf="@+id/buttonSettings"
+        app:layout_constraintStart_toEndOf="@+id/imageViewProfilePicture"
+        app:layout_constraintTop_toTopOf="@+id/imageViewProfilePicture"
+        tools:text="Sarah Johnson" />
+
+    <ImageButton
+        android:id="@+id/buttonSettings"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="Settings"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
+        android:src="@drawable/ic_settings"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_end"
+        app:layout_constraintTop_toTopOf="@+id/textViewUserName"
+        app:tint="?android:attr/textColorSecondary" />
+
+    <RatingBar
+        android:id="@+id/ratingBarUser"
+        style="?android:attr/ratingBarStyleSmall"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:isIndicator="true"
+        android:numStars="5"
+        android:stepSize="0.1"
+        app:layout_constraintStart_toStartOf="@+id/textViewUserName"
+        app:layout_constraintTop_toBottomOf="@+id/textViewUserName"
+        tools:rating="4.8" />
+
+    <TextView
+        android:id="@+id/textViewRatingValue"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?android:attr/textColorSecondary"
+        app:layout_constraintBottom_toBottomOf="@+id/ratingBarUser"
+        app:layout_constraintStart_toEndOf="@+id/ratingBarUser"
+        tools:text="4.8" />
+
+    <TextView
+        android:id="@+id/textViewReviewCount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?android:attr/textColorSecondary"
+        app:layout_constraintStart_toStartOf="@+id/ratingBarUser"
+        app:layout_constraintTop_toBottomOf="@+id/ratingBarUser"
+        tools:text="128 Reviews" />
+
+    <!-- Chỉ số -->
+    <LinearLayout
+        android:id="@+id/layoutStats"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="24dp"
+        android:baselineAligned="false"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_end"
+        app:layout_constraintStart_toStartOf="@+id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/textViewReviewCount">
+
+        <LinearLayout style="@style/ProfileStatItemLayout">
+            <TextView android:id="@+id/textStatListings" style="@style/ProfileStatValue" tools:text="23" />
+            <TextView style="@style/ProfileStatLabel" android:text="Active Listings" />
+        </LinearLayout>
+        <View style="@style/ProfileStatDivider" />
+        <LinearLayout style="@style/ProfileStatItemLayout">
+            <TextView android:id="@+id/textStatSold" style="@style/ProfileStatValue" tools:text="156" />
+            <TextView style="@style/ProfileStatLabel" android:text="Items Sold" />
+        </LinearLayout>
+        <View style="@style/ProfileStatDivider" />
+        <LinearLayout style="@style/ProfileStatItemLayout">
+            <TextView android:id="@+id/textStatFollowers" style="@style/ProfileStatValue" tools:text="89" />
+            <TextView style="@style/ProfileStatLabel" android:text="Followers" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <!-- Nút bấm -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonEditProfile"
+        style="?attr/materialButtonStyle"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Edit Profile"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_end"
+        app:layout_constraintStart_toStartOf="@+id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/layoutStats" />
+
+    <LinearLayout
+        android:id="@+id/layoutSecondaryActions"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:orientation="horizontal"
+        app:layout_constraintEnd_toEndOf="@+id/guideline_end"
+        app:layout_constraintStart_toStartOf="@+id/guideline_start"
+        app:layout_constraintTop_toBottomOf="@+id/buttonEditProfile">
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMyWallet"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:padding="16dp">
+            android:layout_weight="1"
+            android:text="My Wallet"
+            app:icon="@drawable/ic_electronics"
+            app:iconPadding="8dp"
+            app:iconSize="20dp"/>
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSavedItems"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:layout_weight="1"
+            android:text="Saved Items"
+            app:icon="@drawable/ic_bookmark_border"
+            app:iconPadding="8dp"
+            app:iconSize="20dp"/>
+    </LinearLayout>
 
-            <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/imageViewProfilePicture"
-                android:layout_width="96dp"
-                android:layout_height="96dp"
-                android:src="@drawable/ic_person"
-                app:civ_border_width="2dp"
-                app:civ_border_color="@color/tradeup_blue_primary"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                android:contentDescription="@string/anh_dai_dien" />
+    <com.google.android.material.tabs.TabLayout
+        android:id="@+id/tabLayoutProfile"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:background="?attr/colorSurface"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/layoutSecondaryActions"
+        app:tabGravity="fill"
+        app:tabIndicatorColor="?attr/colorPrimary"
+        app:tabMode="fixed"
+        app:tabSelectedTextColor="?attr/colorPrimary"
+        app:tabTextColor="?android:attr/textColorSecondary"
+        tools:ignore="SpeakableTextPresentCheck" />
 
-            <TextView
-                android:id="@+id/textViewDisplayName"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:textAppearance="@style/TextAppearance.TradeUp.Headline24"
-                android:textColor="@color/text_primary_light"
-                app:layout_constraintStart_toEndOf="@+id/imageViewProfilePicture"
-                app:layout_constraintTop_toTopOf="@+id/imageViewProfilePicture"
-                app:layout_constraintEnd_toStartOf="@+id/buttonActionTopRight"
-                tools:text="User Display Name" />
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPagerProfileContent"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/tabLayoutProfile" />
 
-            <TextView
-                android:id="@+id/textViewEmail"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginStart="16dp"
-                android:layout_marginTop="4dp"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-                android:textColor="@color/text_secondary_light"
-                android:visibility="gone"
-                tools:text="user@example.com"
-                tools:visibility="visible"
-                app:layout_constraintStart_toEndOf="@+id/imageViewProfilePicture"
-                app:layout_constraintTop_toBottomOf="@+id/textViewDisplayName"
-                app:layout_constraintEnd_toStartOf="@+id/buttonActionTopRight" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonActionTopRight"
-                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-                app:iconGravity="textStart"
-                app:iconPadding="8dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="@+id/textViewDisplayName"
-                app:layout_constraintBottom_toBottomOf="@+id/textViewEmail"
-                android:visibility="gone"
-                tools:visibility="visible"
-                tools:text="Action"
-                tools:icon="@drawable/ic_edit"/>
-
-            <TextView
-                android:id="@+id/textViewBio"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-                android:textColor="@color/text_secondary_light"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewProfilePicture"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                tools:text="User bio description goes here."/>
-
-            <LinearLayout
-                android:id="@+id/layoutStats"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="24dp"
-                android:baselineAligned="false"
-                app:layout_constraintTop_toBottomOf="@+id/textViewBio"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <LinearLayout style="@style/ProfileStatItemLayout">
-                    <TextView
-                        android:id="@+id/textViewAverageRating"
-                        style="@style/ProfileStatValue"
-                        tools:text="4.5 ★"
-                        android:textColor="@color/yellow_star"/>
-                    <TextView
-                        style="@style/ProfileStatLabel"
-                        android:text="@string/danh_gia"/>
-                </LinearLayout>
-                <View style="@style/ProfileStatDivider"/>
-                <LinearLayout style="@style/ProfileStatItemLayout">
-                    <TextView
-                        android:id="@+id/textViewTotalTransactions"
-                        style="@style/ProfileStatValue"
-                        tools:text="120"/>
-                    <TextView
-                        style="@style/ProfileStatLabel"
-                        android:text="@string/giao_dich"/>
-                </LinearLayout>
-                <View style="@style/ProfileStatDivider"/>
-                <LinearLayout style="@style/ProfileStatItemLayout">
-                    <TextView
-                        android:id="@+id/textViewTotalListings"
-                        style="@style/ProfileStatValue"
-                        tools:text="50"/>
-                    <TextView
-                        style="@style/ProfileStatLabel"
-                        android:text="@string/san_pham_dang"/>
-                </LinearLayout>
-            </LinearLayout>
-
-            <TextView
-                android:id="@+id/labelContactInfo"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/thong_tin_lien_he"
-                android:textAppearance="@style/TextAppearance.TradeUp.Headline18"
-                android:textColor="@color/text_primary_light"
-                android:layout_marginTop="24dp"
-                android:visibility="gone"
-                tools:visibility="visible"
-                app:layout_constraintTop_toBottomOf="@+id/layoutStats"
-                app:layout_constraintStart_toStartOf="parent"/>
-
-            <TextView
-                android:id="@+id/textViewPhoneNumber"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-                android:textColor="@color/text_secondary_light"
-                android:layout_marginTop="8dp"
-                app:drawableStartCompat="@drawable/ic_phone"
-                android:drawablePadding="8dp"
-                android:gravity="center_vertical"
-                android:visibility="gone"
-                tools:visibility="visible"
-                tools:text="SĐT: 0909123456"
-                app:layout_constraintTop_toBottomOf="@+id/labelContactInfo"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
-
-            <com.google.android.material.divider.MaterialDivider
-                android:id="@+id/divider1"
-                android:layout_width="0dp"
-                android:layout_height="1dp"
-                android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@+id/textViewPhoneNumber"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
-
-            <LinearLayout
-                android:id="@+id/layoutMyProfileActions"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="vertical"
-                android:visibility="gone"
-                tools:visibility="visible"
-                app:layout_constraintTop_toBottomOf="@+id/divider1"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <TextView
-                    android:id="@+id/textViewMyListingsLink"
-                    style="@style/ProfileLinkItem"
-                    android:text="@string/san_pham_cua_toi"
-                    app:drawableStartCompat="@drawable/ic_grid_view" />
-                <com.google.android.material.divider.MaterialDivider style="@style/ProfileDivider"/>
-                <TextView
-                    android:id="@+id/textViewTransactionHistoryLink"
-                    style="@style/ProfileLinkItem"
-                    android:text="@string/lich_su_giao_dich"
-                    app:drawableStartCompat="@drawable/ic_history" />
-                <com.google.android.material.divider.MaterialDivider style="@style/ProfileDivider"/>
-                <TextView
-                    android:id="@+id/textViewSavedItemsLink"
-                    style="@style/ProfileLinkItem"
-                    android:text="@string/san_pham_da_luu"
-                    app:drawableStartCompat="@drawable/ic_favorite_border" />
-                <com.google.android.material.divider.MaterialDivider style="@style/ProfileDivider"/>
-            </LinearLayout>
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonSendMessage"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:minHeight="56dp"
-                android:layout_marginTop="24dp"
-                android:text="@string/nhan_tin"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                app:icon="@drawable/ic_chat_bubble"
-                android:visibility="gone"
-                tools:visibility="visible"
-                app:layout_constraintTop_toBottomOf="@+id/divider1"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
-
-            <TextView
-                android:id="@+id/textViewUserListingsTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/san_pham_dang_ban"
-                android:textAppearance="@style/TextAppearance.TradeUp.Headline18"
-                android:textColor="@color/text_primary_light"
-                android:layout_marginTop="24dp"
-                android:visibility="gone"
-                tools:visibility="visible"
-                app:layout_constraintTop_toBottomOf="@+id/buttonSendMessage"
-                app:layout_constraintStart_toStartOf="parent"/>
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewUserListings"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:visibility="gone"
-                tools:visibility="visible"
-                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-                app:spanCount="2"
-                app:layout_constraintTop_toBottomOf="@+id/textViewUserListingsTitle"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"/>
-
-            <ProgressBar
-                android:id="@+id/progressBarProfile"
-                style="?android:attr/progressBarStyle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:indeterminateTint="@color/tradeup_blue_primary"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                tools:visibility="visible"/>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
-    </androidx.core.widget.NestedScrollView>
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

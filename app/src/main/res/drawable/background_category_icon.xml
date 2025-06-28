@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval"> <!-- Hình dạng là hình oval (sẽ là hình tròn nếu width=height) -->
+
+    <solid android:color="#F0F0F0" /> <!-- Màu nền xám nhạt (ví dụ) -->
+    <!-- Bạn có thể thay đổi màu này bằng một màu từ colors.xml của bạn, ví dụ:
+         <solid android:color="@color/category_icon_background_color" />
+         Và định nghĩa color/category_icon_background_color trong colors.xml
+    -->
+
+    <!-- (Tùy chọn) Thêm kích thước cố định nếu muốn, nhưng thường ImageView sẽ xử lý kích thước -->
+    <!--
+    <size
+        android:width="40dp"
+        android:height="40dp" />
+    -->
+</shape>

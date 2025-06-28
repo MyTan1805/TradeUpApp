@@ -1,26 +1,19 @@
 package com.example.tradeup.data.source.remote;
 
 import androidx.annotation.NonNull;
-import com.example.tradeup.data.model.Rating; // Model Rating (Java)
-import com.example.tradeup.data.model.Transaction; // Model Transaction (Java) - cần để lấy buyerId/sellerId
-import com.example.tradeup.data.model.User; // Model User (Java) - cần để cập nhật rating
+import com.example.tradeup.data.model.Rating;
 import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.TransactionOptions; // TransactionOptions nếu cần
-import com.google.firebase.firestore.WriteBatch; // Không dùng WriteBatch trong Transaction function của Firestore
-
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import javax.inject.Inject;
 
 public class FirebaseRatingSource {
@@ -38,48 +31,58 @@ public class FirebaseRatingSource {
         this.transactionsCollection = firestore.collection("transactions");
     }
 
+    /**
+     * Gửi đánh giá và cập nhật các thông tin liên quan trong một transaction duy nhất.
+     * 1. Tạo một document Rating mới.
+     * 2. Cập nhật điểm trung bình, tổng số sao và tổng số lượt đánh giá cho người được rated.
+     * 3. Đánh dấu là đã đưa ra đánh giá trong document Transaction tương ứng.
+     * @param rating Đối tượng Rating cần lưu.
+     * @return Task<Void> cho biết transaction thành công hay thất bại.
+     */
     public Task<Void> submitRating(@NonNull Rating rating) {
-        // Firestore Transaction trong Java trả về Task<TResult>
         return firestore.runTransaction(transaction -> {
-            DocumentReference ratingDocRef = ratingsCollection.document(); // Tạo ID mới cho rating
-            // Firestore tự xử lý @ServerTimestamp khi dùng POJO
+            // 1. Tạo một document Rating mới
+            DocumentReference ratingDocRef = ratingsCollection.document();
             transaction.set(ratingDocRef, rating);
 
-            // Cập nhật averageRating cho ratedUserId
+            // 2. Cập nhật thông tin cho người được đánh giá (ratedUserId)
             DocumentReference userDocRef = usersCollection.document(rating.getRatedUserId());
             DocumentSnapshot userSnapshot = transaction.get(userDocRef);
 
+            // Lấy các giá trị hiện tại, nếu không có thì mặc định là 0
             Long currentTotalRatings = userSnapshot.getLong("totalRatingCount");
             if (currentTotalRatings == null) currentTotalRatings = 0L;
 
             Double currentSumOfStars = userSnapshot.getDouble("sumOfStars");
             if (currentSumOfStars == null) currentSumOfStars = 0.0;
 
+            // Tính toán các giá trị mới
             long newTotalRatings = currentTotalRatings + 1;
             double newSumOfStars = currentSumOfStars + rating.getStars();
-            double newAverageRating = (newTotalRatings > 0) ? newSumOfStars / newTotalRatings : 0.0;
+            double newAverageRating = (newTotalRatings > 0) ? (newSumOfStars / newTotalRatings) : 0.0;
 
+            // Tạo map để cập nhật user
             Map<String, Object> userUpdates = new HashMap<>();
             userUpdates.put("averageRating", newAverageRating);
             userUpdates.put("totalRatingCount", newTotalRatings);
             userUpdates.put("sumOfStars", newSumOfStars);
-            userUpdates.put("updatedAt", com.google.firebase.firestore.FieldValue.serverTimestamp());
+            userUpdates.put("updatedAt", FieldValue.serverTimestamp());
             transaction.update(userDocRef, userUpdates);
 
-            // Cập nhật trạng thái đã đánh giá trong transaction
+            // 3. Cập nhật trạng thái đã đánh giá trong document Transaction
             DocumentReference transactionDocRef = transactionsCollection.document(rating.getTransactionId());
-            DocumentSnapshot transactionSnapshot = transaction.get(transactionDocRef); // Lấy transaction document
+            DocumentSnapshot transactionSnapshot = transaction.get(transactionDocRef);
 
-            // Bạn cần có model Transaction.java hoặc lấy field trực tiếp
             String buyerId = transactionSnapshot.getString("buyerId");
-            String sellerId = transactionSnapshot.getString("sellerId");
 
+            // Xác định người đánh giá là người mua hay người bán để cập nhật đúng trường
             if (Objects.equals(rating.getRaterUserId(), buyerId)) {
                 transaction.update(transactionDocRef, "ratingGivenByBuyer", true);
-            } else if (Objects.equals(rating.getRaterUserId(), sellerId)) {
+            } else { // Người đánh giá là người bán
                 transaction.update(transactionDocRef, "ratingGivenBySeller", true);
             }
-            // Transaction function trong Java cần trả về một kết quả (có thể là null)
+
+            // Transaction trong Java cần trả về một giá trị, có thể là null
             return null;
         });
     }

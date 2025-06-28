@@ -1,108 +1,78 @@
+// File: src/main/java/com/example/tradeup/ui/main/MainActivity.java
 package com.example.tradeup.ui.main;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.Toast;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.navigation.NavController;
-import androidx.navigation.NavDestination;
+import androidx.navigation.NavDestination; // Có thể không cần nhưng nên có
 import androidx.navigation.fragment.NavHostFragment;
-import androidx.navigation.ui.NavigationUI; // Dùng cho setupWithNavController
+import androidx.navigation.ui.NavigationUI;
 
-// Import lớp Binding (tên sẽ phụ thuộc vào tên file layout activity_main.xml)
-// Ví dụ: nếu layout là activity_main.xml -> ActivityMainBinding
 import com.example.tradeup.R;
 import com.example.tradeup.databinding.ActivityMainBinding;
-import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+
+import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
 
-    private ActivityMainBinding binding; // Khai báo biến binding
+    private ActivityMainBinding binding;
     private NavController navController;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Khởi tạo ViewBinding
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+        // 1. Lấy NavController một cách an toàn
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_activity_main);
+        navController = Objects.requireNonNull(navHostFragment).getNavController();
 
-        if (navHostFragment != null) {
-            navController = navHostFragment.getNavController();
+        // 2. Tự động kết nối BottomNavigationView với NavController
+        // Dòng này sẽ xử lý việc chuyển fragment và highlight item được chọn
+        NavigationUI.setupWithNavController(binding.bottomNavigationView, navController);
 
-            // Thiết lập BottomNavigationView với NavController
-            // Sử dụng ID của BottomNavigationView từ layout của bạn
-            BottomNavigationView bottomNavigationView = binding.bottomNavigationView; // Hoặc findViewById(R.id.your_bottom_nav_id) nếu không dùng binding ở đây
-            NavigationUI.setupWithNavController(bottomNavigationView, navController);
+        // 3. Xử lý sự kiện nhấn vào nút FAB
+        binding.fabAddItem.setOnClickListener(v -> {
+            // Đảm bảo ID này tồn tại trong main_nav.xml
+            navController.navigate(R.id.addItemFragment);
+        });
 
-            // Lắng nghe sự kiện thay đổi đích đến
-            navController.addOnDestinationChangedListener(new NavController.OnDestinationChangedListener() {
-                @Override
-                public void onDestinationChanged(@NonNull NavController controller,
-                                                 @NonNull NavDestination destination,
-                                                 @Nullable Bundle arguments) {
-                    BottomNavigationView bottomNavigationView = binding.bottomNavigationView;
-                    FloatingActionButton fabPostItem = binding.fabPostItem;
-                    int destinationId = destination.getId(); // Lấy ID một lần
+        // 4. Vô hiệu hóa việc nhấn vào item giữ chỗ để tránh các hành vi lạ
+        binding.bottomNavigationView.findViewById(R.id.navigation_placeholder).setClickable(false);
 
-                    if (destinationId == R.id.navigation_home ||
-                            destinationId == R.id.navigation_messages ||
-                            destinationId == R.id.navigation_notifications ||
-                            destinationId == R.id.navigation_profile) {
-
-                        bottomNavigationView.setVisibility(View.VISIBLE);
-                        if (fabPostItem != null) {
-                            fabPostItem.setVisibility(View.VISIBLE);
-                        }
-                    } else {
-                        bottomNavigationView.setVisibility(View.GONE);
-                        if (fabPostItem != null) {
-                            fabPostItem.setVisibility(View.GONE);
-                        }
-                    }
-                }
-            });
-
-            // Xử lý click cho FloatingActionButton (nếu có)
-            FloatingActionButton fabPostItem = binding.fabPostItem; // Hoặc findViewById(R.id.your_fab_id)
-            if (fabPostItem != null) {
-                fabPostItem.setOnClickListener(new View.OnClickListener() {
-                    @Override
-                    public void onClick(View view) {
-                        // TODO: Điều hướng đến màn hình Đăng tin (AddItemFragment)
-                        // Ví dụ: navController.navigate(R.id.addItemFragment);
-                        // Đảm bảo ID addItemFragment đúng và đã được định nghĩa trong nav_graph
-                        try {
-                            navController.navigate(R.id.addItemFragment);
-                        } catch (Exception e) {
-                            Toast.makeText(MainActivity.this, "Không thể mở màn hình đăng tin.", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                });
-            }
-
-        } else {
-            // Xử lý trường hợp navHostFragment là null nếu cần thiết
-            // (Điều này không nên xảy ra nếu layout của bạn được thiết lập đúng)
-        }
+        // 5. Thiết lập logic ẩn/hiện thanh điều hướng
+        setupBottomBarVisibility();
     }
 
-    // (Tùy chọn) Override để hỗ trợ nút back của Toolbar nếu bạn có Toolbar và thiết lập nó với NavController
-    @Override
-    public boolean onSupportNavigateUp() {
-        if (navController != null) {
-            return navController.navigateUp() || super.onSupportNavigateUp();
+    private void setupBottomBarVisibility() {
+        navController.addOnDestinationChangedListener((controller, destination, arguments) -> {
+            // "Chiêu" tự kiểm tra: Hỏi BottomNavigationView xem màn hình hiện tại
+            // có tương ứng với một item nào trong menu của nó không.
+            boolean shouldShow = binding.bottomNavigationView.getMenu().findItem(destination.getId()) != null;
+
+            toggleBottomBar(shouldShow);
+        });
+    }
+
+    /**
+     * Hàm duy nhất để xử lý việc hiện hoặc ẩn BottomAppBar và FAB một cách mượt mà.
+     * @param show true để hiện, false để ẩn.
+     */
+    private void toggleBottomBar(boolean show) {
+        if (show) {
+            binding.bottomAppBar.setVisibility(View.VISIBLE);
+            binding.fabAddItem.setVisibility(View.VISIBLE);
+        } else {
+            binding.bottomAppBar.setVisibility(View.GONE);
+            binding.fabAddItem.setVisibility(View.GONE);
         }
-        return super.onSupportNavigateUp();
     }
 }

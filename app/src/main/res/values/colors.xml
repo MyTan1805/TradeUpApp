@@ -1,62 +1,30 @@
-<?xml version="1.0" encoding="utf-8"?>
+<!-- res/values/colors.xml -->
 <resources>
-    <!-- Màu Thương hiệu TradeUp -->
-    <color name="tradeup_blue_primary">#3a7ac3</color>
-    <color name="tradeup_teal_secondary">#38c0a8</color>
-    <color name="tradeup_light_green_accent">#8fe1a1</color>
-    <color name="tradeup_dark_purple_accent">#534581</color>
+    <!-- === BẢNG MÀU THƯƠNG HIỆU (PALETTE) === -->
+    <color name="tradeup_blue">#3a7ac3</color>
+    <color name="tradeup_teal">#38c0a8</color>
+    <color name="tradeup_green_light">#8fe1a1</color>
+    <color name="tradeup_purple_dark">#534581</color>
 
-    <!-- Màu Nền Tối (Dark Background) -->
-    <color name="tradeup_dark_background">#1A1D2D</color> <!-- << THÊM MÀU NÀY (Giả sử mã hex từ hình ảnh là #1A1D2D) -->
-    <!-- Hãy thay bằng mã hex chính xác của màu nền tối bạn muốn -->
-
-    <!-- Màu Trung tính (Cho Light Theme) -->
-    <color name="text_primary_light">#202124</color>
-    <color name="text_secondary_light">#5F6368</color>
-    <color name="text_hint_light">#9E9E9E</color>
-    <color name="background_light">#FFFFFF</color>
-    <color name="background_app_light">#F5F5F5</color>
-    <color name="divider_color_light">#DADCE0</color>
-    <color name="border_color_light">#E0E0E0</color>
-
-    <!-- Màu Trung tính (Cho Dark Theme) - Bạn có thể cần điều chỉnh các màu này cho phù hợp với nền tối -->
-    <color name="text_primary_dark">#E8EAED</color> <!-- Ví dụ: màu trắng ngà cho text trên nền tối -->
-    <color name="text_secondary_dark">#BDC1C6</color> <!-- Ví dụ: màu xám nhạt cho text phụ -->
-    <color name="text_hint_dark">#9AA0A6</color>
-    <color name="divider_color_dark">#3C4043</color> <!-- Ví dụ: màu xám đậm hơn cho divider -->
-    <color name="border_color_dark">#5F6368</color>
-
-    <!-- Màu Hệ thống / Trạng thái (Cập nhật) -->
-    <color name="status_error">#D93025</color>
-    <color name="status_warning">#ffb537</color>   <!-- << CẬP NHẬT -->
-    <color name="status_success">#4fcd73</color>   <!-- << CẬP NHẬT -->
-
-    <color name="app_primary">#3949AB</color>
-    <color name="app_accent">#4DB6AC</color>
-    <color name="app_background_main">#FFFFFF</color>
-    <color name="app_text_primary">#205072</color>
-    <color name="app_red_important">#e0555a</color>
-
-    <color name="app_text_primary_light">#757575</color>
-    <color name="yellow_star">#FFC107</color>
-    <color name="app_bottom_nav_background">#FFFFFF</color>
-
-    <color name="app_primary_light_indicator">#205072</color>
-
-    <color name="colorPrimary">@color/app_primary</color>
-    <color name="colorPrimaryVariant">#2E3A8C</color>
-    <color name="colorOnPrimary">#FFFFFF</color>
-
-    <color name="colorSecondary">@color/app_accent</color>
-    <color name="colorSecondaryVariant">#3C9E92</color>
-    <color name="colorOnSecondary">#FFFFFF</color>
-
-    <!-- Màu cơ bản Material Design -->
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
-    <color name="black">#FF000000</color>
+    <!-- === BẢNG MÀU TRUNG TÍNH (NEUTRALS) === -->
     <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+    <color name="grey_100">#F5F5F5</color>
+    <color name="grey_200">#E0E0E0</color>
+    <color name="grey_800">#3C4043</color>
+    <color name="grey_900">#1A1D2D</color>
+    <color name="text_primary_dark_theme">#E8EAED</color>
+    <color name="text_primary_light_theme">#202124</color>
+
+    <color name="yellow_star">#ffb537</color>
+
+    <!-- === BẢNG MÀU NGỮ NGHĨA (SEMANTIC) === -->
+    <color name="status_error">#D93025</color>
+    <color name="status_warning">#ffb537</color>
+    <color name="status_success">#4fcd73</color>
+    <color name="app_text_primary" />
+
+    <color name="status_active_text">#1E88E5</color>
+    <color name="status_active_background">#E3F2FD</color>
+
 </resources>

@@ -2,4 +2,23 @@
 <resources>
     <dimen name="profile_link_horizontal_padding">16dp</dimen>
 
+    <!-- === KÍCH THƯỚC ICON === -->
+    <dimen name="icon_size_small">16dp</dimen>
+    <dimen name="icon_size_standard">24dp</dimen> <!-- Đây chính là cái bạn cần! -->
+    <dimen name="icon_size_large">32dp</dimen>
+
+    <!-- === KÍCH THƯỚC VÙNG CHẠM (TOUCH TARGET) === -->
+    <dimen name="touch_target_size">48dp</dimen>
+
+    <!-- === ĐỘ BO GÓC (CORNER RADIUS) === -->
+    <dimen name="corner_radius_small">8dp</dimen>
+    <dimen name="corner_radius_medium">12dp</dimen>
+    <dimen name="corner_radius_large">16dp</dimen>
+    <dimen name="corner_radius_extra_large">24dp</dimen>
+
+    <!-- === KHOẢNG CÁCH (PADDING & MARGIN) TIÊU CHUẨN === -->
+    <dimen name="spacing_small">4dp</dimen>
+    <dimen name="spacing_medium">8dp</dimen>
+    <dimen name="spacing_large">16dp</dimen>
+    <dimen name="spacing_extra_large">24dp</dimen>
 </resources>

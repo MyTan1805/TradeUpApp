@@ -5,8 +5,8 @@
     android:id="@+id/login_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app_light"
-    tools:context=".ui.auth.LoginFragment"> <!-- Cập nhật context cho preview -->
+    android:background="?android:attr/windowBackground"
+    tools:context=".ui.auth.LoginFragment">
 
     <ImageView
         android:id="@+id/shape_divider_top_login"
@@ -22,32 +22,29 @@
     <androidx.core.widget.NestedScrollView
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintTop_toBottomOf="@+id/shape_divider_top_login"
+        android:fillViewport="true"
         app:layout_constraintBottom_toTopOf="@+id/shape_divider_bottom_login"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:fillViewport="true">
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/shape_divider_top_login">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:id="@+id/login_content_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:paddingStart="24dp"
-            android:paddingEnd="24dp"
-            android:paddingTop="16dp"
-            android:paddingBottom="16dp">
+            android:padding="24dp">
 
             <ImageView
                 android:id="@+id/imageViewLogo"
                 android:layout_width="120dp"
                 android:layout_height="60dp"
                 android:layout_marginTop="16dp"
+                android:contentDescription="@string/logo_ng_d_ng"
                 android:importantForAccessibility="no"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
-                app:srcCompat="@drawable/logo"
-                android:contentDescription="@string/logo_ng_d_ng" />
+                app:srcCompat="@drawable/logo" />
 
             <TextView
                 android:id="@+id/loginTitleText"
@@ -55,26 +52,18 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
                 android:text="@string/dang_nhap"
-                android:textAppearance="@style/TextAppearance.TradeUp.Headline24"
-                android:textColor="@color/app_text_primary"
+                android:textAppearance="?attr/textAppearanceHeadline5"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewLogo"/>
+                app:layout_constraintTop_toBottomOf="@+id/imageViewLogo" />
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEmailLogin"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="?attr/textInputStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:hint="@string/nh_p_a_ch_email"
-                app:boxCornerRadiusBottomEnd="20dp"
-                app:boxCornerRadiusBottomStart="20dp"
-                app:boxCornerRadiusTopEnd="20dp"
-                app:boxCornerRadiusTopStart="20dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/loginTitleText">
@@ -82,28 +71,18 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextEmailLogin"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:inputType="textEmailAddress"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                    android:textColor="@color/text_primary_light" />
+                    android:layout_height="wrap_content"
+                    android:inputType="textEmailAddress"/>
             </com.google.android.material.textfield.TextInputLayout>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPasswordLogin"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="?attr/textInputStyle"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:hint="@string/nh_p_m_t_kh_u"
-                app:boxCornerRadiusBottomEnd="20dp"
-                app:boxCornerRadiusBottomStart="20dp"
-                app:boxCornerRadiusTopEnd="20dp"
-                app:boxCornerRadiusTopStart="20dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
                 app:endIconMode="password_toggle"
-                app:endIconTint="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/tilEmailLogin">
@@ -111,10 +90,8 @@
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextPasswordLogin"
                     android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:inputType="textPassword"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                    android:textColor="@color/text_primary_light" />
+                    android:layout_height="wrap_content"
+                    android:inputType="textPassword" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <CheckBox
@@ -123,9 +100,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="@string/ghi_nho_dang_nhap"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                android:textColor="@color/text_secondary_light"
-                app:buttonTint="@color/tradeup_blue_primary"
+                android:textAppearance="?attr/textAppearanceBody2"
                 app:layout_constraintStart_toStartOf="@+id/tilPasswordLogin"
                 app:layout_constraintTop_toBottomOf="@+id/tilPasswordLogin" />
 
@@ -133,27 +108,24 @@
                 android:id="@+id/textViewForgotPassword"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/quen_mat_khau"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                android:textColor="@color/tradeup_blue_primary"
-                android:textStyle="bold"
                 android:background="?attr/selectableItemBackground"
                 android:padding="8dp"
+                android:text="@string/quen_mat_khau"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
+                app:layout_constraintBottom_toBottomOf="@+id/checkboxRememberMe"
                 app:layout_constraintEnd_toEndOf="@+id/tilPasswordLogin"
-                app:layout_constraintTop_toTopOf="@+id/checkboxRememberMe"
-                app:layout_constraintBottom_toBottomOf="@+id/checkboxRememberMe"/>
+                app:layout_constraintTop_toTopOf="@+id/checkboxRememberMe" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonLogin"
-                android:layout_width="200dp"
+                style="?attr/materialButtonStyle"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:minHeight="56dp"
                 android:layout_marginTop="24dp"
+                android:minHeight="56dp"
                 android:text="@string/dang_nhap"
-
-                android:textColor="@color/white"
-                app:backgroundTint="@color/tradeup_teal_secondary"
-                app:cornerRadius="20dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/checkboxRememberMe" />
@@ -164,8 +136,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="@string/hoac_dang_nhap_voi"
-                android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-                android:textColor="@color/text_secondary_light"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/buttonLogin" />
@@ -179,7 +151,7 @@
                 android:contentDescription="@string/ng_nh_p_b_ng_google"
                 android:padding="12dp"
                 android:scaleType="fitCenter"
-                android:src="@drawable/google"
+                android:src="@drawable/ic_google_logo"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/labelOrLoginWith" />
@@ -190,32 +162,33 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:layout_marginBottom="16dp"
+                android:gravity="center"
                 android:orientation="horizontal"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/buttonGoogleLogin"
-                app:layout_constraintVertical_bias="0.0">
+                app:layout_constraintVertical_bias="1.0">
 
                 <TextView
                     android:id="@+id/labelChuaCoTaiKhoan"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:text="@string/chua_co_tai_khoan"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                    android:textColor="@color/text_secondary_light" />
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary" />
 
                 <TextView
                     android:id="@+id/textViewRegisterLink"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/dang_ky"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body12"
-                    android:textStyle="bold"
-                    android:textColor="@color/tradeup_teal_secondary"
+                    android:layout_marginStart="4dp"
                     android:background="?attr/selectableItemBackground"
-                    android:padding="8dp"/>
+                    android:padding="8dp"
+                    android:text="@string/dang_ky"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?attr/colorSecondary"
+                    android:textStyle="bold" />
             </LinearLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
@@ -239,10 +212,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:visibility="gone"
-        android:indeterminateTint="@color/tradeup_blue_primary"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        tools:visibility="visible"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

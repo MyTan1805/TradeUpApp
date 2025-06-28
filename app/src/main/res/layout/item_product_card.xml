@@ -2,59 +2,108 @@
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    style="?attr/materialCardViewStyle"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="4dp">
+    app:cardCornerRadius="@dimen/corner_radius_medium"> <!-- Sử dụng corner radius medium cho đẹp hơn -->
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
+        <!-- ===== PHẦN ẢNH SẢN PHẨM ===== -->
         <ImageView
             android:id="@+id/imageViewProduct"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:scaleType="centerCrop"
             android:contentDescription="@string/hinh_anh_san_pham"
+            android:scaleType="centerCrop"
             app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:srcCompat="@drawable/ic_placeholder_image" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
+        <!-- FIX: Thêm ràng buộc cho buttonFavorite -->
+        <ImageButton
+            android:id="@+id/buttonFavorite"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_margin="8dp"
+            android:background="@drawable/ic_favorite_border"
+            android:contentDescription="@string/luu_san_pham"
+            android:padding="8dp"
+            android:src="@drawable/ic_favorite_border"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/white" />
+
+        <!-- ===== PHẦN THÔNG TIN BÊN DƯỚI ===== -->
         <TextView
             android:id="@+id/textViewProductName"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="8dp"
-            android:layout_marginEnd="8dp"
-            android:textAppearance="@style/TextAppearance.TradeUp.Headline16"
-            android:textColor="@color/text_primary_light"
-            android:maxLines="2"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="12dp"
             android:ellipsize="end"
-            app:layout_constraintTop_toBottomOf="@+id/imageViewProduct"
-            app:layout_constraintStart_toStartOf="parent"
+            android:maxLines="2"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textStyle="bold"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Tên Sản Phẩm Rất Dài Dài Dài" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageViewProduct"
+            tools:text="Đồng hồ cổ điển Thụy Sĩ siêu đẹp, phiên bản giới hạn không còn sản xuất" />
 
         <TextView
             android:id="@+id/textViewProductPrice"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginStart="8dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginBottom="8dp"
-            android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-            android:textColor="@color/tradeup_dark_purple_accent"
+            android:layout_marginTop="8dp"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:textColor="?attr/colorPrimary"
             android:textStyle="bold"
+            app:layout_constraintStart_toStartOf="@+id/textViewProductName"
             app:layout_constraintTop_toBottomOf="@+id/textViewProductName"
-            app:layout_constraintStart_toStartOf="parent"
+            tools:text="2.500.000đ" />
+
+        <TextView
+            android:id="@+id/textViewProductLocation"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:layout_marginEnd="8dp"
+            android:layout_marginBottom="12dp"
+            android:drawablePadding="4dp"
+            android:ellipsize="end"
+            android:gravity="center_vertical"
+            android:maxLines="1"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="?android:attr/textColorSecondary"
+            app:drawableStartCompat="@drawable/ic_location_on"
+            app:drawableTint="?android:attr/textColorSecondary"
             app:layout_constraintBottom_toBottomOf="parent"
-            tools:text="1.200.000 ₫" />
+            app:layout_constraintEnd_toStartOf="@+id/textViewProductRating"
+            app:layout_constraintStart_toStartOf="@+id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@+id/textViewProductPrice"
+            tools:text="Quận 1, TP. Hồ Chí Minh" />
+
+        <TextView
+            android:id="@+id/textViewProductRating"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:drawablePadding="2dp"
+            android:gravity="center_vertical"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="?android:attr/textColorSecondary"
+            app:drawableStartCompat="@drawable/ic_star_small"
+
+            app:drawableTint="@color/yellow_star"
+            app:layout_constraintBottom_toBottomOf="@+id/textViewProductLocation"
+            app:layout_constraintEnd_toEndOf="@+id/textViewProductName"
+            app:layout_constraintTop_toTopOf="@+id/textViewProductLocation"
+            tools:text="4.8" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </com.google.android.material.card.MaterialCardView>

@@ -2,276 +2,257 @@
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/edit_profile_root_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@color/background_app_light"
+    android:background="?android:attr/windowBackground"
     tools:context=".ui.profile.EditProfileFragment">
 
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayoutEditProfile"
+    <!-- === TOOLBAR === -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/customToolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        app:elevation="4dp">
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbarEditProfile"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:navigationIcon="@drawable/ic_close"
-            app:navigationIconTint="?attr/colorOnSurface"
-            app:title="@string/chinh_sua_ho_so_title"
-            app:titleTextAppearance="@style/TextAppearance.TradeUp.Headline20"
-            app:titleTextColor="?attr/colorOnSurface" />
-    </com.google.android.material.appbar.AppBarLayout>
+        <!-- 1. Icon Back (ImageButton) -->
+        <ImageButton
+            android:id="@+id/buttonBack"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:layout_marginStart="8dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/ic_arrow_back"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="?attr/colorOnSurface"
+            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
 
+        <!-- 2. Title (TextView) -->
+        <TextView
+            android:id="@+id/textViewTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Edit Profile"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            android:textColor="?attr/colorOnSurface"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <!-- 3. Nút Cancel (TextView) -->
+        <TextView
+            android:id="@+id/buttonCancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="16dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:text="Cancel"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textColor="?attr/colorPrimary"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <!-- Đường kẻ phân cách (nếu muốn) -->
+    <View
+        android:id="@+id/toolbarDivider"
+        android:layout_width="0dp"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"
+        app:layout_constraintTop_toBottomOf="@+id/customToolbar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- === NỘI DUNG CUỘN === -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        android:fillViewport="true">
+        android:layout_marginBottom="80dp"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <androidx.constraintlayout.widget.ConstraintLayout
-            android:id="@+id/edit_profile_content_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="24dp">
 
+            <!-- Ảnh đại diện -->
+
             <de.hdodenhof.circleimageview.CircleImageView
-                android:id="@+id/imageViewEditProfilePicture"
+                android:id="@+id/imageViewProfilePicture"
                 android:layout_width="120dp"
+
                 android:layout_height="120dp"
-                android:src="@drawable/ic_person"
-                app:civ_border_width="3dp"
-                app:civ_border_color="@color/tradeup_blue_primary"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="60dp"
+
+                app:civ_border_color="?attr/colorOutline"
+                app:civ_border_width="1dp"
                 app:layout_constraintEnd_toEndOf="parent"
-                android:contentDescription="@string/anh_dai_dien_co_the_thay_doi" />
+                app:layout_constraintHorizontal_bias="0.497"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="NotSibling"
+                tools:src="@drawable/ic_person" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabChangeProfilePicture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/ic_edit"
-                app:tint="@color/white"
-                app:backgroundTint="@color/tradeup_teal_secondary"
-                app:fabSize="mini"
-                android:contentDescription="@string/thay_doi_anh_dai_dien"
-
-                app:layout_constraintBottom_toBottomOf="@+id/imageViewEditProfilePicture"
-                app:layout_constraintEnd_toEndOf="@+id/imageViewEditProfilePicture"
-                app:layout_constraintCircle="@id/imageViewEditProfilePicture"
+                app:backgroundTint="?attr/colorPrimary"
+                app:fabCustomSize="40dp"
+                app:layout_constraintCircle="@id/imageViewProfilePicture"
+                app:layout_constraintCircleAngle="135"
                 app:layout_constraintCircleRadius="60dp"
-                app:layout_constraintCircleAngle="135" />
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEditDisplayName"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:hint="@string/ten_hien_thi"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewEditProfilePicture"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextEditDisplayName"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:inputType="textPersonName"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body16"
-                    android:textColor="@color/text_primary_light" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEditBio"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="@string/tieu_su"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
-                app:counterEnabled="true"
-                app:counterMaxLength="150"
-                app:layout_constraintTop_toBottomOf="@+id/tilEditDisplayName"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextEditBio"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:minLines="3"
-                    android:gravity="top|start"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body14"
-                    android:textColor="@color/text_primary_light" />
-            </com.google.android.material.textfield.TextInputLayout>
+                app:maxImageSize="24dp"
+                app:srcCompat="@drawable/ic_photo_camera"
+                app:tint="?attr/colorOnPrimary"
+                tools:ignore="ContentDescription,MissingConstraints,SpeakableTextPresentCheck"
+                tools:layout_editor_absoluteX="224dp"
+                tools:layout_editor_absoluteY="103dp" />
 
             <TextView
-                android:id="@+id/labelEditContactInfo"
+                android:id="@+id/textChangeProfilePicture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="@string/thong_tin_lien_he_chinh_sua"
-                android:textAppearance="@style/TextAppearance.TradeUp.Headline18"
-                android:textColor="@color/text_primary_light"
-                android:layout_marginTop="24dp"
-                app:layout_constraintTop_toBottomOf="@+id/tilEditBio"
-                app:layout_constraintStart_toStartOf="parent"/>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEditPhoneNumber"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="@string/so_dien_thoai"
-                app:prefixText="+84"
-                app:prefixTextAppearance="@style/TextAppearance.TradeUp.Body16"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
-                app:layout_constraintTop_toBottomOf="@+id/labelEditContactInfo"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextEditPhoneNumber"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:inputType="phone"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body16"
-                    android:textColor="@color/text_primary_light" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEditZalo"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="@string/zalo_lien_ket_hoac_sdt"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
-                app:layout_constraintTop_toBottomOf="@+id/tilEditPhoneNumber"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextEditZalo"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:inputType="text"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body16"
-                    android:textColor="@color/text_primary_light" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilEditFacebook"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:hint="@string/facebook_link_profile"
-                app:boxCornerRadiusBottomEnd="12dp"
-                app:boxCornerRadiusBottomStart="12dp"
-                app:boxCornerRadiusTopEnd="12dp"
-                app:boxCornerRadiusTopStart="12dp"
-                app:boxStrokeColor="@color/tradeup_blue_primary"
-                app:hintTextColor="@color/tradeup_blue_primary"
-                app:errorTextColor="@color/status_error"
-                app:layout_constraintTop_toBottomOf="@+id/tilEditZalo"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/editTextEditFacebook"
-                    android:layout_width="match_parent"
-                    android:layout_height="50dp"
-                    android:inputType="textUri"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Body16"
-                    android:textColor="@color/text_primary_light" />
-            </com.google.android.material.textfield.TextInputLayout>
-
-            <LinearLayout
-                android:id="@+id/layoutActionButtons"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:layout_marginTop="32dp"
-                android:layout_marginBottom="16dp"
-                app:layout_constraintTop_toBottomOf="@+id/tilEditFacebook"
-                app:layout_constraintStart_toStartOf="parent"
+                android:layout_marginTop="12dp"
+                android:background="?attr/selectableItemBackground"
+                android:padding="4dp"
+                android:text="Change Profile Picture"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?attr/colorPrimary"
+                android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintVertical_bias="1.0">
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/imageViewProfilePicture" />
 
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonCancelChanges"
-                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:minHeight="56dp"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/huy_bo"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Headline20"
-                    android:textColor="?attr/colorPrimary"
-                    app:strokeColor="?attr/colorPrimary"
-                    app:cornerRadius="20dp" />
-
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/buttonSaveChanges"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:minHeight="56dp"
-                    android:layout_marginStart="8dp"
-                    android:text="@string/luu_thay_doi"
-                    android:textAppearance="@style/TextAppearance.TradeUp.Headline20"
-                    android:textColor="@color/white"
-                    app:backgroundTint="@color/tradeup_teal_secondary"
-                    app:cornerRadius="20dp" />
-            </LinearLayout>
-
-            <ProgressBar
-                android:id="@+id/progressBarEditProfile"
-                style="?android:attr/progressBarStyle"
+            <!-- Trường Display Name -->
+            <TextView
+                android:id="@+id/labelDisplayName"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:visibility="gone"
-                android:indeterminateTint="@color/tradeup_blue_primary"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent"
+                android:layout_marginTop="32dp"
+                android:text="Display Name"
+                android:textAppearance="?attr/textAppearanceSubtitle2"
+                android:textColor="?android:attr/textColorSecondary"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"/>
+                app:layout_constraintTop_toBottomOf="@+id/textChangeProfilePicture" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilDisplayName"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                app:boxBackgroundColor="?android:attr/windowBackground"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelDisplayName">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editTextDisplayName"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName|textCapWords"
+                    tools:text="Sarah Johnson" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Trường Bio -->
+            <TextView
+                android:id="@+id/labelBio"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Bio"
+                android:textAppearance="?attr/textAppearanceSubtitle2"
+                android:textColor="?android:attr/textColorSecondary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tilDisplayName" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilBio"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                app:boxBackgroundColor="?android:attr/windowBackground"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                app:counterEnabled="true"
+                app:counterMaxLength="150"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelBio">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editTextBio"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:lines="4"
+                    tools:text="Loving life and sharing my gently used items. Always happy to chat about deals!" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Trường Phone Number -->
+            <TextView
+                android:id="@+id/labelPhoneNumber"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Phone Number"
+                android:textAppearance="?attr/textAppearanceSubtitle2"
+                android:textColor="?android:attr/textColorSecondary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tilBio" />
+
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPhoneNumber"
+                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                app:boxBackgroundColor="?android:attr/windowBackground"
+                app:boxStrokeWidth="0dp"
+                app:boxStrokeWidthFocused="0dp"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/labelPhoneNumber">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editTextPhoneNumber"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="phone"
+                    tools:text="+1 (555) 123-4567" />
+            </com.google.android.material.textfield.TextInputLayout>
 
         </androidx.constraintlayout.widget.ConstraintLayout>
+
     </androidx.core.widget.NestedScrollView>
+
+    <!-- === NÚT LƯU THAY ĐỔI (GHIM Ở DƯỚI) === -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSaveChanges"
+        style="?attr/materialButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:minHeight="56dp"
+        android:text="Save Changes" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

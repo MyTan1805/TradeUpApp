@@ -103,7 +103,7 @@
     <style name="ProfileDivider">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">1dp</item>
-        <item name="android:background">@color/divider_color_light</item>
+        <item name="android:background">?attr/colorOutline</item>
     </style>
 
     <style name="ProfileStatItemLayout" parent="">
@@ -123,7 +123,7 @@
     <style name="ProfileStatLabel" parent="TextAppearance.TradeUp.Body12"> <!-- Sử dụng Body12 như bạn đã định nghĩa -->
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:textColor">@color/text_secondary_light</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
 
     <style name="ProfileStatDivider">
@@ -131,7 +131,33 @@
         <item name="android:layout_height">match_parent</item>
         <item name="android:layout_marginTop">8dp</item>
         <item name="android:layout_marginBottom">8dp</item>
-        <item name="android:background">@color/divider_color_light</item> <!-- Hoặc màu divider bạn muốn -->
+        <item name="android:background">?attr/colorOutline</item> <!-- Hoặc màu divider bạn muốn -->
+    </style>
+
+    <style name="Widget.TradeUp.Chip.Status" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="android:textAppearance">?attr/textAppearanceCaption</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="Widget.TradeUp.Chip.Status.Active">
+        <item name="chipBackgroundColor">@color/status_active_background</item>
+        <item name="android:textColor">@color/status_active_text</item>
+    </style>
+
+    <style name="ShapeAppearance.App.Corner.Top" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopRight">16dp</item>
+        <item name="cornerSizeTopLeft">16dp</item>
+    </style>
+
+    <style name="RatingBar" parent="Theme.AppCompat">
+        <item name="colorControlNormal">@color/grey_200</item>
+        <item name="colorControlActivated">@color/yellow_star</item>
+    </style>
+
+    <style name="ShapeAppearance.TradeUp.CornerMedium" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">@dimen/corner_radius_medium</item>
     </style>
 
     <!-- Nếu bạn muốn một font sans-serif cho body text -->

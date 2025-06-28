@@ -176,7 +176,7 @@ public class LoginFragment extends Fragment {
                 if (isAdded()) {
                     try {
                         Log.d(TAG, "Navigating to Home/Main screen.");
-                        NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_homeFragment);
+                        NavHostFragment.findNavController(this).navigate(R.id.action_global_to_main_nav);
                     } catch (Exception e) {
                         Log.e(TAG, "Navigation to Home FAILED", e);
                     }

@@ -4,7 +4,7 @@
 
     <!-- Màu nền cho cụm nút -->
     <solid android:color="?attr/colorSurface" />
-    <!-- Hoặc một màu cụ thể nếu bạn muốn, ví dụ: <solid android:color="@color/white_smoke_background"/> -->
+    <!-- Hoặc một màu cụ thể nếu bạn muốn, ví dụ: <solid android:color="?attr/colorOnPrimary_smoke_background"/> -->
     <!-- Bạn có thể tạo màu white_smoke_background trong colors.xml: <color name="white_smoke_background">#F5F5F5</color> -->
 
     <!-- Độ bo tròn các góc -->

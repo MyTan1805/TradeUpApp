@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root_nav"
+    app:startDestination="@id/auth_nav"> <!-- Bắt đầu với luồng xác thực -->
+
+    <!-- Nhúng luồng xác thực -->
+    <include app:graph="@navigation/auth_nav" />
+
+    <!-- Nhúng luồng chính -->
+    <include app:graph="@navigation/main_nav" />
+
+    <!-- Action toàn cục để chuyển từ bất kỳ đâu trong luồng auth sang luồng main -->
+    <action
+        android:id="@+id/action_global_to_main_nav"
+        app:destination="@id/main_nav"
+        app:popUpTo="@id/auth_nav"
+        app:popUpToInclusive="true" />
+
+</navigation>

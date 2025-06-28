@@ -85,12 +85,9 @@ public class ForgotPasswordFragment extends Fragment {
             Log.d(TAG, "Back to Login link clicked");
             if (isAdded()) {
                 try {
-                    // Giả sử LoginFragment là destination trước đó hoặc có action cụ thể
-                    // NavHostFragment.findNavController(this).popBackStack(R.id.loginFragment, false);
-                    // Hoặc nếu có action từ ForgotPassword về Login:
-                    NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_forgotPasswordFragment);
+                    NavHostFragment.findNavController(this).popBackStack();
                 } catch (Exception e) {
-                    Log.e(TAG, "Navigation to Login FAILED", e);
+                    Log.e(TAG, "Navigation back to Login FAILED", e);
                     Toast.makeText(requireContext(), "Lỗi điều hướng.", Toast.LENGTH_SHORT).show();
                 }
             }

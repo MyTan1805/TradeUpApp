@@ -1,40 +1,47 @@
+// File: src/main/java/com/example/tradeup/data/repository/UserRepositoryImpl.java
 package com.example.tradeup.data.repository;
 
 import androidx.annotation.NonNull;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.User;
-import com.example.tradeup.data.source.remote.FirestoreUserSource;
+import com.google.firebase.firestore.FirebaseFirestore;
+import java.util.Map;
 import javax.inject.Inject;
-import javax.inject.Singleton;
 
-@Singleton
 public class UserRepositoryImpl implements UserRepository {
 
-    private final FirestoreUserSource firestoreUserSource;
+    private final FirebaseFirestore db;
+    private static final String USERS_COLLECTION = "users";
 
     @Inject
-    public UserRepositoryImpl(FirestoreUserSource firestoreUserSource) {
-        this.firestoreUserSource = firestoreUserSource;
+    public UserRepositoryImpl(FirebaseFirestore db) {
+        this.db = db;
     }
 
     @Override
-    public void createUserProfile(@NonNull User user, final Callback<Void> callback) {
-        firestoreUserSource.createUserProfile(user)
+    public void getUserProfile(String uid, @NonNull Callback<User> callback) {
+        db.collection(USERS_COLLECTION).document(uid).get()
+                .addOnSuccessListener(documentSnapshot -> {
+                    if (documentSnapshot.exists()) {
+                        callback.onSuccess(documentSnapshot.toObject(User.class));
+                    } else {
+                        callback.onSuccess(null);
+                    }
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    @Override
+    public void updateUserProfile(String uid, Map<String, Object> updates, @NonNull Callback<Void> callback) {
+        db.collection(USERS_COLLECTION).document(uid)
+                .update(updates)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(callback::onFailure);
     }
 
+    // ... các phương thức khác ...
     @Override
-    public void getUserProfile(String uid, final Callback<User> callback) {
-        firestoreUserSource.getUserProfile(uid)
-                .addOnSuccessListener(callback::onSuccess) // User có thể là null
-                .addOnFailureListener(callback::onFailure);
-    }
-
-    @Override
-    public void updateUserProfile(@NonNull User user, final Callback<Void> callback) {
-        firestoreUserSource.updateUserProfile(user)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+    public void createUserProfile(@NonNull User user, @NonNull Callback<Void> callback) {
+        // ...
     }
 }

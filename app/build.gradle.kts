@@ -1,9 +1,20 @@
+// Đặt ở trên cùng của file
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     id("kotlin-kapt")
     alias(libs.plugins.hilt)
     id("com.google.gms.google-services")
+    id("androidx.navigation.safeargs.kotlin") // Sử dụng phiên bản Kotlin của safe-args
+}
+
+// SỬA LỖI: Đọc file properties bằng cú pháp Kotlin
+val localProperties = Properties()
+val localPropertiesFile = rootProject.file("local.properties")
+if (localPropertiesFile.exists()) {
+    localProperties.load(localPropertiesFile.inputStream())
 }
 
 android {
@@ -18,6 +29,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        resValue(
+            "string", // Loại tài nguyên là string
+            "maps_api_key", // Tên của string resource (viết thường)
+            localProperties.getProperty("MAPS_API_KEY", "DEFAULT_API_KEY_IF_NOT_FOUND") // Lấy giá trị từ local.properties
+        )
     }
 
     buildTypes {
@@ -63,11 +80,15 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.3")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
 
-    implementation ("de.hdodenhof:circleimageview:3.1.0")
-    implementation ("com.github.bumptech.glide:glide:4.16.0")
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 
-    implementation ("com.github.dhaval2404:imagepicker:2.1")
-    implementation ("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    implementation("com.github.dhaval2404:imagepicker:2.1")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    implementation(libs.retrofit.core)
+    implementation(libs.retrofit.converter.gson)
+    implementation(libs.okhttp.logging.interceptor)
 
     implementation(libs.appcompat)
     implementation(libs.material)

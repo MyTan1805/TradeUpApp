@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android"
+    android:shape="oval">
+
+    <!-- Màu của dấu chấm, thường là màu xám nhạt của text phụ -->
+    <solid android:color="@color/grey_200" />
+
+    <!-- Kích thước của dấu chấm -->
+    <size
+        android:width="4dp"
+        android:height="4dp" />
+
+</shape>

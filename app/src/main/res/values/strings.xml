@@ -85,6 +85,8 @@
     <string name="bottom_nav_post_item">Đăng tin</string>
     <string name="bottom_nav_notifications">Thông báo</string>
     <string name="bottom_nav_profile">Hồ sơ</string>
+    <string name="bottom_nav_add_item">Đăng tin mới</string>
+
     <string name="san_pham_cua_prefix">Sản phẩm\n</string>
 
     <string name="messages_header">Tin nhắn</string>
@@ -99,6 +101,15 @@
     <string name="attachment_title">Tải xuống tệp đính kèm</string>
     <string name="attachment_summary_on">Tự động tải xuống các tệp đính kèm cho thư đến</string>
     <string name="attachment_summary_off">Chỉ tải xuống các tệp đính kèm khi có yêu cầu</string>
+
+    <string name="khong_co_san_pham_nao">Không có sản phẩm nào</string>
+    <string name="featured_items">featured items</string>
+    <string name="recent_listings">recent listings</string>
+    <string name="search_items_hint">search items hint</string>
+    <string name="luu_san_pham">"Lưu sản phẩm "</string>
+    <string name="todo">TODO</string>
+    <string name="xoa_anh">Xóa ảnh</string>
+
 
     <!-- Reply Entries & Values for ListPreference -->
     <string-array name="reply_entries">

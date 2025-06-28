@@ -1,54 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".ui.main.MainActivity"> <!-- Thay .ui.main.MainActivity bằng package đúng -->
+    tools:context=".MainActivity"> <!-- Thay .MainActivity bằng tên Activity của bạn -->
 
-    <com.google.android.material.bottomnavigation.BottomNavigationView
-        android:id="@+id/bottom_navigation_view"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="?android:attr/windowBackground"
-        app:itemIconTint="@color/bottom_nav_item_color_selector"
-        app:itemTextColor="@color/bottom_nav_item_color_selector"
-        app:labelVisibilityMode="labeled"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:menu="@menu/bottom_nav_menu"
-        tools:layout="@layout/fragment_home"/>
-
+    <!-- Nơi hiển thị nội dung các Fragment, dùng nav graph gốc -->
     <androidx.fragment.app.FragmentContainerView
         android:id="@+id/nav_host_fragment_activity_main"
         android:name="androidx.navigation.fragment.NavHostFragment"
-        android:layout_width="0dp"
-        android:layout_height="0dp"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
         app:defaultNavHost="true"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation_view"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:navGraph="@navigation/auth_nav"
-        tools:layout="@layout/fragment_home"/>
+        app:navGraph="@navigation/root_nav" /> <!-- Sửa thành root_nav cho đúng -->
 
+    <!-- Thanh bar ở dưới cùng -->
+    <com.google.android.material.bottomappbar.BottomAppBar
+        android:id="@+id/bottom_app_bar"
+        style="@style/Widget.MaterialComponents.BottomAppBar.Colored"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom"
+        app:backgroundTint="?attr/colorSurface"
+        app:fabAlignmentMode="center"
+        app:fabCradleMargin="10dp"
+        app:fabCradleRoundedCornerRadius="20dp"
+        app:fabCradleVerticalOffset="0dp"> <!-- Để 0dp cho FAB nằm gọn hơn -->
 
+        <!-- Thanh điều hướng chứa các icon -->
+        <com.google.android.material.bottomnavigation.BottomNavigationView
+            android:id="@+id/bottom_navigation_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginEnd="16dp"
+            android:background="@android:color/transparent"
+            app:elevation="0dp"
+            app:itemIconTint="@color/bottom_nav_item_color_selector"
+            app:itemTextColor="@color/bottom_nav_item_color_selector"
+            app:menu="@menu/bottom_nav_menu" /> <!-- Sử dụng menu đã tạo -->
+
+    </com.google.android.material.bottomappbar.BottomAppBar>
+
+    <!-- Nút "Đăng tin" nổi (Floating Action Button) -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fab_post_item"
+        android:id="@+id/fab_add_item"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginEnd="4dp"
-        android:layout_marginBottom="12dp"
-        android:contentDescription="@string/bottom_nav_post_item"
+        android:contentDescription="@string/bottom_nav_add_item"
         android:src="@drawable/ic_add_circle"
-        app:elevation="6dp"
-        app:layout_anchor="@id/bottom_navigation_view"
-        app:layout_anchorGravity="top|center_horizontal"
-        app:layout_constraintBottom_toTopOf="@+id/bottom_navigation_view"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:layout="@layout/fragment_home"
-    />
+        app:backgroundTint="?attr/colorSecondary"
+        app:layout_anchor="@id/bottom_app_bar"
+        app:tint="?attr/colorOnSecondary"
+        tools:ignore="ImageContrastCheck" />
 
-
-</androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

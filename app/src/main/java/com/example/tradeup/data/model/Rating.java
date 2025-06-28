@@ -3,7 +3,10 @@ package com.example.tradeup.data.model;
 import androidx.annotation.Nullable;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
+import java.text.SimpleDateFormat;
+import java.util.Locale;
 
 public class Rating {
     @DocumentId
@@ -22,21 +25,7 @@ public class Rating {
     @Nullable
     private Timestamp createdAt;
 
-    // Constructor rỗng cần thiết cho Firestore
-    public Rating() {
-        this.ratingId = "";
-        this.transactionId = "";
-        this.itemId = "";
-        this.ratedUserId = "";
-        this.raterUserId = "";
-        this.raterDisplayName = "";
-        this.raterProfilePictureUrl = null;
-        this.stars = 0;
-        this.feedbackText = null;
-        this.createdAt = null;
-    }
-
-    // Getters and Setters
+    // ... (constructor và các getter/setter hiện có không đổi) ...
     public String getRatingId() { return ratingId; }
     public void setRatingId(String ratingId) { this.ratingId = ratingId; }
 
@@ -69,4 +58,14 @@ public class Rating {
     @Nullable
     public Timestamp getCreatedAt() { return createdAt; }
     public void setCreatedAt(@Nullable Timestamp createdAt) { this.createdAt = createdAt; }
+
+    // === FIX: THÊM HÀM TIỆN ÍCH ĐỂ ĐỊNH DẠNG NGÀY ===
+    @Exclude // Bỏ qua trường này khi đọc/ghi vào Firestore
+    public String getFormattedDate() {
+        if (createdAt == null) {
+            return "";
+        }
+        SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+        return sdf.format(createdAt.toDate());
+    }
 }

@@ -1,60 +1,51 @@
+<!-- res/values-night/themes.xml -->
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme for Dark Mode. -->
+    <!-- =================================================================================== -->
+    <!--  BASE APPLICATION THEME (DARK)                                                      -->
+    <!-- =================================================================================== -->
     <style name="Theme.TradeUp" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- Primary brand color (có thể giữ nguyên hoặc điều chỉnh nhẹ cho dark mode) -->
-        <item name="colorPrimary">@color/tradeup_blue_primary</item>
-        <item name="colorPrimaryVariant">@color/tradeup_blue_primary</item> <!-- Hoặc một biến thể phù hợp cho dark mode -->
-        <item name="colorOnPrimary">@color/white</item> <!-- Text/icon trên màu primary -->
+        <!-- 1. BRAND COLORS -->
+        <item name="colorPrimary">@color/tradeup_blue</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorPrimaryVariant">@color/tradeup_blue</item>
 
-        <!-- Secondary brand color (có thể giữ nguyên hoặc điều chỉnh nhẹ) -->
-        <item name="colorSecondary">@color/tradeup_teal_secondary</item>
-        <item name="colorSecondaryVariant">@color/tradeup_teal_secondary</item>
-        <item name="colorOnSecondary">@color/black</item> <!-- Text/icon trên màu secondary -->
+        <item name="colorSecondary">@color/tradeup_teal</item>
+        <item name="colorOnSecondary">@color/black</item>
+        <item name="colorSecondaryVariant">@color/tradeup_teal</item>
 
-        <!-- Status bar color for Dark Mode -->
-        <item name="android:statusBarColor">@color/tradeup_dark_background</item> <!-- Hoặc một màu tối hơn chút -->
+        <!-- 2. UI & SEMANTIC COLORS (DARK THEME OVERRIDES) -->
+        <item name="android:windowBackground">@color/grey_900</item>
+        <item name="colorSurface">@color/grey_800</item>
+        <item name="colorOnSurface">@color/text_primary_dark_theme</item>
+        <item name="colorOutline">@color/grey_800</item>
 
-        <!-- Background colors for Dark Mode -->
-        <item name="android:colorBackground">@color/tradeup_dark_background</item> <!-- Màu nền chính của các màn hình -->
-        <item name="colorSurface">@color/tradeup_dark_background</item> <!-- Màu nền cho các Card, Dialog, BottomSheet -->
-        <!-- Bạn có thể muốn colorSurface hơi sáng hơn colorBackground một chút -->
-        <!-- ví dụ: <color name="tradeup_dark_surface">#2C2F3E</color> -->
-        <item name="colorOnBackground">@color/text_primary_dark</item> <!-- Text trên nền chính -->
-        <item name="colorOnSurface">@color/text_primary_dark</item> <!-- Text trên nền surface -->
         <item name="colorError">@color/status_error</item>
-        <item name="colorOnError">@color/white</item> <!-- Text trên màu error -->
+        <item name="colorOnError">@color/black</item>
 
+        <!-- Status Bar -->
+        <item name="android:statusBarColor" tools:targetApi="l">?attr/colorPrimaryVariant</item>
+        <item name="android:windowLightStatusBar" tools:targetApi="m">false</item>
 
-        <!-- Default Font Family (nếu chưa set trong theme light) -->
-        <!-- <item name="android:fontFamily">@font/dongle_regular</item> -->
-        <!-- <item name="fontFamily">@font/dongle_regular</item> -->
-
-        <!-- Áp dụng các TextAppearance (giữ nguyên từ theme light hoặc tùy chỉnh nếu cần) -->
+        <!-- 3. TYPOGRAPHY (Kế thừa từ file themes.xml gốc) -->
         <item name="textAppearanceHeadline4">@style/TextAppearance.TradeUp.Headline28</item>
         <item name="textAppearanceHeadline5">@style/TextAppearance.TradeUp.Headline24</item>
         <item name="textAppearanceHeadline6">@style/TextAppearance.TradeUp.Headline20</item>
-        <item name="textAppearanceSubtitle1">@style/TextAppearance.TradeUp.Headline18</item>
+        <item name="textAppearanceSubtitle1">@style/TextAppearance.TradeUp.Headline16</item>
+        <item name="textAppearanceSubtitle2">@style/TextAppearance.TradeUp.Headline14</item>
         <item name="textAppearanceBody1">@style/TextAppearance.TradeUp.Body16</item>
         <item name="textAppearanceBody2">@style/TextAppearance.TradeUp.Body14</item>
         <item name="textAppearanceCaption">@style/TextAppearance.TradeUp.Body12</item>
+        <item name="textAppearanceButton">@style/TextAppearance.TradeUp.Headline14</item>
 
-        <!-- Style cho Material Text Fields (có thể cần điều chỉnh màu sắc cho dark mode) -->
-        <item name="textInputStyle">@style/Widget.TradeUp.TextInputLayout.Dark</item>
-    </style>
+        <!-- 4. SHAPE (Kế thừa từ file themes.xml gốc) -->
+        <item name="shapeAppearanceSmallComponent">@style/ShapeAppearance.TradeUp.SmallComponent</item>
+        <item name="shapeAppearanceMediumComponent">@style/ShapeAppearance.TradeUp.MediumComponent</item>
+        <item name="shapeAppearanceLargeComponent">@style/ShapeAppearance.TradeUp.LargeComponent</item>
 
-    <!-- Style cho TextInputLayout trong Dark Mode -->
-    <style name="Widget.TradeUp.TextInputLayout.Dark" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-        <item name="android:fontFamily">@font/dongle_regular</item>
-        <item name="fontFamily">@font/dongle_regular</item>
-        <item name="hintTextAppearance">@style/TextAppearance.TradeUp.HintText.Dark</item>
-        <item name="boxStrokeColor">@color/text_secondary_dark</item> <!-- Màu viền khi không focus -->
-        <item name="android:textColorHint">@color/text_hint_dark</item>
-    </style>
-
-    <style name="TextAppearance.TradeUp.HintText.Dark" parent="TextAppearance.MaterialComponents.Subtitle1">
-        <item name="android:fontFamily">@font/dongle_regular</item>
-        <item name="fontFamily">@font/dongle_regular</item>
-        <item name="android:textColor">@color/text_hint_dark</item>
-        <item name="android:textSize">16sp</item>
+        <!-- 5. WIDGET STYLES (Kế thừa từ file themes.xml gốc) -->
+        <item name="materialCardViewStyle">@style/Widget.TradeUp.CardView</item>
+        <item name="textInputStyle">@style/Widget.TradeUp.TextInputLayout</item>
+        <item name="materialButtonStyle">@style/Widget.TradeUp.Button</item>
+        <item name="bottomNavigationStyle">@style/Widget.TradeUp.BottomNavigationView</item>
     </style>
 </resources>

@@ -17,8 +17,10 @@ public class User {
     @Nullable
     private String bio;
     @Nullable
-    private ContactInfo contactInfo;
+    private ContactInfo contactInfo; // Giả sử bạn có class ContactInfo
     private double averageRating;
+    private long totalRatingCount;
+    private double sumOfStars;
     private int totalTransactions;
     private int totalListings;
     @Nullable
@@ -34,6 +36,7 @@ public class User {
     private boolean isDeactivated;
     @Nullable
     private Timestamp lastLoginAt;
+    private long reviewCount;
 
     // Constructor rỗng cần thiết cho Firestore
     public User() {
@@ -41,8 +44,11 @@ public class User {
         this.email = "";
         this.displayName = "";
         this.averageRating = 0.0;
+        this.totalRatingCount = 0L;
+        this.sumOfStars = 0.0;
         this.totalTransactions = 0;
         this.totalListings = 0;
+        this.reviewCount = 0L;
         this.isDeactivated = false;
         // Các trường nullable mặc định là null
     }
@@ -72,6 +78,12 @@ public class User {
     public double getAverageRating() { return averageRating; }
     public void setAverageRating(double averageRating) { this.averageRating = averageRating; }
 
+    public long getTotalRatingCount() { return totalRatingCount; }
+    public void setTotalRatingCount(long totalRatingCount) { this.totalRatingCount = totalRatingCount; }
+
+    public double getSumOfStars() { return sumOfStars; }
+    public void setSumOfStars(double sumOfStars) { this.sumOfStars = sumOfStars; }
+
     public int getTotalTransactions() { return totalTransactions; }
     public void setTotalTransactions(int totalTransactions) { this.totalTransactions = totalTransactions; }
 
@@ -100,4 +112,8 @@ public class User {
     @Nullable
     public Timestamp getLastLoginAt() { return lastLoginAt; }
     public void setLastLoginAt(@Nullable Timestamp lastLoginAt) { this.lastLoginAt = lastLoginAt; }
+
+    // === FIX: THÊM GETTER/SETTER CHO reviewCount ===
+    public long getReviewCount() { return reviewCount; }
+    public void setReviewCount(long reviewCount) { this.reviewCount = reviewCount; }
 }

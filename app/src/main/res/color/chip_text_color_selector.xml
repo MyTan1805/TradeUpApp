@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Màu chữ khi chip được chọn (dùng màu chữ trên nền Primary, thường là màu trắng) -->
+    <item android:state_checked="true" android:color="?attr/colorOnPrimary" />
+    <!-- Màu chữ khi không được chọn (dùng màu chữ trên nền thường, thường là màu đen/xám) -->
+    <item android:state_checked="false" android:color="?attr/colorOnSurface" />
+</selector>

@@ -4,20 +4,29 @@
     <item
         android:id="@+id/navigation_home"
         android:icon="@drawable/ic_home"
-    android:title="@string/bottom_nav_home" />
+        android:title="@string/bottom_nav_home" />
 
     <item
         android:id="@+id/navigation_messages"
         android:icon="@drawable/ic_chat_bubble"
-    android:title="@string/bottom_nav_messages" />
+        android:title="@string/bottom_nav_messages" />
+
+    <!-- === MỤC GIỮ CHỖ CHO FAB (THỦ THUẬT) === -->
+    <!-- Item này không có title và không thể nhấn được. -->
+    <!-- Nó chỉ có tác dụng đẩy 2 item còn lại sang phải, tạo ra khoảng trống. -->
+    <item
+        android:id="@+id/navigation_placeholder"
+        android:title=""
+        android:enabled="false" />
+    <!-- ======================================== -->
 
     <item
         android:id="@+id/navigation_notifications"
         android:icon="@drawable/ic_notifications"
-    android:title="@string/bottom_nav_notifications" />
+        android:title="@string/bottom_nav_notifications" />
 
     <item
         android:id="@+id/navigation_profile"
-        android:icon="@drawable/ic_account_circle"
-    android:title="@string/bottom_nav_profile" />
+        android:icon="@drawable/ic_person"
+        android:title="@string/bottom_nav_profile" />
 </menu>
