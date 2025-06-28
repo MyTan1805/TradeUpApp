@@ -160,6 +160,83 @@
         <item name="cornerSize">@dimen/corner_radius_medium</item>
     </style>
 
+    <style name="Widget.TradeUp.Chip.Filter" parent="Widget.MaterialComponents.Chip.Action">
+        <item name="chipBackgroundColor">@color/grey_100</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="chipStrokeColor">?attr/colorOutline</item>
+        <item name="chipIconTint">?attr/colorOnSurface</item>
+        <item name="closeIconTint">?attr/colorOnSurface</item>
+    </style>
+
+    <style name="Widget.TradeUp.Chip.Status.Sold" parent="Widget.TradeUp.Chip.Status">
+        <item name="chipBackgroundColor">@color/status_sold_background</item>
+        <item name="android:textColor">@color/status_sold_text</item>
+    </style>
+
+    <style name="Widget.TradeUp.Chip.Status.Paused" parent="Widget.TradeUp.Chip.Status">
+        <item name="chipBackgroundColor">@color/status_paused_background</item>
+        <item name="android:textColor">@color/status_paused_text</item>
+    </style>
+
+    <style name="Widget.TradeUp.Chip.SubCategory" parent="Widget.MaterialComponents.Chip.Filter">
+        <!-- Style cho chip không được chọn -->
+        <item name="chipBackgroundColor">@color/grey_100</item>
+        <item name="android:textColor">?attr/colorOnSurface</item>
+        <item name="chipStrokeWidth">0dp</item>
+    </style>
+
+    <style name="ThemeOverlay.TradeUp.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
+        <item name="bottomSheetStyle">@style/Widget.TradeUp.BottomSheet.Modal</item>
+    </style>
+
+    <style name="Widget.TradeUp.BottomSheet.Modal" parent="Widget.MaterialComponents.BottomSheet.Modal">
+        <!-- Bo tròn góc trên của BottomSheet -->
+        <item name="shapeAppearance">@style/ShapeAppearance.TradeUp.BottomSheet</item>
+    </style>
+
+    <style name="ShapeAppearance.TradeUp.BottomSheet" parent="">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSizeTopLeft">@dimen/corner_radius_large</item>
+        <item name="cornerSizeTopRight">@dimen/corner_radius_large</item>
+        <item name="cornerSizeBottomLeft">0dp</item>
+        <item name="cornerSizeBottomRight">0dp</item>
+    </style>
+
+    <style name="Widget.TradeUp.Chip.Status.Pending" parent="Widget.TradeUp.Chip.Status">
+        <item name="chipBackgroundColor">@color/status_pending_background</item>
+        <item name="android:textColor">@color/status_pending_text</item>
+    </style>
+    <style name="Widget.TradeUp.Chip.Status.Countered" parent="Widget.TradeUp.Chip.Status">
+        <item name="chipBackgroundColor">@color/status_countered_background</item>
+        <item name="android:textColor">@color/status_countered_text</item>
+    </style>
+
+    <style name="Widget.TradeUp.Chip.Status.Completed" parent="Widget.TradeUp.Chip.Status">
+        <item name="chipBackgroundColor">@color/status_completed_background</item>
+        <item name="android:textColor">@color/status_completed_text</item>
+    </style>
+    <style name="Widget.TradeUp.Chip.Status.Rated" parent="Widget.TradeUp.Chip.Status">
+        <item name="chipBackgroundColor">@color/status_rated_background</item>
+        <item name="android:textColor">@color/status_rated_text</item>
+    </style>
+
+    <style name="Widget.TradeUp.RatingBar" parent="Widget.AppCompat.RatingBar">
+        <item name="android:progressDrawable">@drawable/custom_rating_bar</item>
+        <item name="android:minHeight">48dp</item>
+        <item name="android:maxHeight">48dp</item>
+    </style>
+
+    <style name="Widget.TradeUp.RadioButton" parent="">
+        <item name="android:button">@null</item> <!-- Ẩn nút mặc định -->
+        <item name="android:drawableStart">?android:attr/listChoiceIndicatorSingle</item> <!-- Dùng drawable của hệ thống -->
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:paddingStart">0dp</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+    </style>
+
     <!-- Nếu bạn muốn một font sans-serif cho body text -->
     <!--
     <style name="TextAppearance.TradeUp.BodySans16" parent="TextAppearance.MaterialComponents.Body1">

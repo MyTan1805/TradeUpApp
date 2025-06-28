@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="16dp"
+    android:layout_marginVertical="8dp"
+    app:cardCornerRadius="@dimen/corner_radius_large"
+    app:cardElevation="2dp"
+    app:strokeWidth="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <com.google.android.material.imageview.ShapeableImageView
+            android:id="@+id/imageViewProduct"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
+            android:scaleType="centerCrop"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:srcCompat="@drawable/ic_placeholder_image" />
+
+        <TextView
+            android:id="@+id/textViewProductName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            app:layout_constraintStart_toEndOf="@id/imageViewProduct"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@id/imageViewProduct"
+            tools:text="Nike Air Max 2023" />
+
+        <TextView
+            android:id="@+id/textViewOriginalPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@id/textViewProductName"
+            tools:text="$180" />
+
+        <TextView
+            android:id="@+id/textViewOfferPrice"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@id/textViewOriginalPrice"
+            app:layout_constraintBaseline_toBaselineOf="@id/textViewOriginalPrice"
+            tools:text="$120" />
+
+        <TextView
+            android:id="@+id/textViewUserName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="2dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@id/textViewOriginalPrice"
+            tools:text="John Smith" />
+
+        <com.google.android.material.chip.Chip
+            android:id="@+id/chipStatus"
+            style="@style/Widget.TradeUp.Chip.Status.Pending"
+            android:layout_width="wrap_content"
+            android:layout_height="32dp"
+            android:layout_marginTop="8dp"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintTop_toBottomOf="@id/textViewUserName"
+            tools:text="Pending" />
+
+        <TextView
+            android:id="@+id/textViewTimestamp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="?android:attr/textColorSecondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBaseline_toBaselineOf="@id/chipStatus"
+            tools:text="2 hours ago" />
+
+        <!-- Khu vực nút bấm, chỉ hiển thị cho Received Offers -->
+        <LinearLayout
+            android:id="@+id/layoutActionButtons"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginTop="16dp"
+            android:visibility="visible"
+            app:layout_constraintStart_toStartOf="@id/textViewProductName"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/chipStatus"
+            tools:visibility="visible">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonAccept"
+                style="?attr/materialButtonStyle"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="4dp"
+                android:text="Accept"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonReject"
+                style="@style/Widget.MaterialComponents.Button.UnelevatedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="4dp"
+                android:text="Reject"
+                android:backgroundTint="@color/grey_100"
+                android:textColor="?attr/colorOnSurface"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonCounter"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="4dp"
+                android:text="Counter"
+                android:insetTop="0dp"
+                android:insetBottom="0dp"/>
+        </LinearLayout>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

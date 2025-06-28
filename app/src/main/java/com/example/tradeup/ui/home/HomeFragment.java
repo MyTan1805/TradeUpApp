@@ -170,7 +170,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
         // Action ID của bạn là "action_homeFragment_to_itemDetailFragment"
         if (isAdded() && navController != null) {
             try {
-                navController.navigate(R.id.action_homeFragment_to_itemDetailFragment, args);
+                navController.navigate(R.id.action_global_to_itemDetailFragment, args);
             } catch (Exception e) {
                 // Phòng trường hợp action không được tìm thấy
                 Toast.makeText(getContext(), "Không thể mở chi tiết sản phẩm.", Toast.LENGTH_SHORT).show();

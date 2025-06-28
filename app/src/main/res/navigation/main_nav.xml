@@ -5,56 +5,56 @@
     android:id="@+id/main_nav"
     app:startDestination="@id/navigation_home">
 
+    <!-- ===================================================================== -->
+    <!-- === PHẦN 1: KHAI BÁO TẤT CẢ CÁC ĐIỂM ĐẾN (DESTINATIONS) ================ -->
+    <!-- ===================================================================== -->
+
+    <!-- CÁC TAB CHÍNH CỦA BOTTOM BAR -->
     <fragment
         android:id="@+id/navigation_home"
         android:name="com.example.tradeup.ui.home.HomeFragment"
-        android:label="HomeFragment"
-        tools:layout="@layout/fragment_home">
-        <action
-            android:id="@+id/action_homeFragment_to_profileFragment"
-            app:destination="@id/navigation_profile" />
-        <action
-            android:id="@+id/action_homeFragment_to_itemDetailFragment"
-            app:destination="@id/itemDetailFragment" />
-    </fragment>
-
-    <fragment
-        android:id="@+id/navigation_profile"
-        android:name="com.example.tradeup.ui.profile.ProfileFragment"
-        android:label="ProfileFragment"
-        tools:layout="@layout/fragment_profile">
-        <action
-            android:id="@+id/action_profileFragment_to_editProfileFragment"
-            app:destination="@id/editProfileFragment" />
-        <argument
-            android:name="profileUserId"
-            app:argType="string"
-            app:nullable="true"
-            android:defaultValue="@null" />
-    </fragment>
+        android:label="@string/bottom_nav_home"
+        tools:layout="@layout/fragment_home"/>
 
     <fragment
         android:id="@+id/navigation_messages"
         android:name="com.example.tradeup.ui.messages.MessagesFragment"
-        android:label="MessagesFragment"
+        android:label="@string/bottom_nav_messages"
         tools:layout="@layout/fragment_messages" />
 
     <fragment
         android:id="@+id/navigation_notifications"
         android:name="com.example.tradeup.ui.notifications.NotificationsFragment"
-        android:label="NotificationsFragment"
+        android:label="@string/bottom_nav_notifications"
         tools:layout="@layout/fragment_notifications" />
 
     <fragment
-        android:id="@+id/editProfileFragment"
-        android:name="com.example.tradeup.ui.profile.EditProfileFragment"
-        android:label="EditProfileFragment"
-        tools:layout="@layout/fragment_edit_profile" />
+        android:id="@+id/navigation_profile"
+        android:name="com.example.tradeup.ui.profile.ProfileFragment"
+        android:label="@string/bottom_nav_profile"
+        tools:layout="@layout/fragment_profile"/>
+
+    <!-- CÁC MÀN HÌNH CHỨC NĂNG -->
+    <fragment
+        android:id="@+id/addItemFragment"
+        android:name="com.example.tradeup.ui.listing.AddItemFragment"
+        android:label="Đăng tin mới"
+        tools:layout="@layout/fragment_add_item" />
+
+    <fragment
+        android:id="@+id/editItemFragment"
+        android:name="com.example.tradeup.ui.listing.EditItemFragment"
+        android:label="Chỉnh sửa sản phẩm"
+        tools:layout="@layout/fragment_edit_item">
+        <argument
+            android:name="itemId"
+            app:argType="string" />
+    </fragment>
 
     <fragment
         android:id="@+id/itemDetailFragment"
         android:name="com.example.tradeup.ui.details.ItemDetailFragment"
-        android:label="ItemDetailFragment"
+        android:label="Chi tiết Sản phẩm"
         tools:layout="@layout/fragment_item_detail">
         <argument
             android:name="itemId"
@@ -62,9 +62,128 @@
     </fragment>
 
     <fragment
-        android:id="@+id/addItemFragment"
-        android:name="com.example.tradeup.ui.listing.AddItemFragment"
-        android:label="AddItemFragment"
-        tools:layout="@layout/fragment_add_item" />
+        android:id="@+id/publicProfileFragment"
+        android:name="com.example.tradeup.ui.profile.PublicProfileFragment"
+        android:label="Hồ sơ người bán"
+        tools:layout="@layout/fragment_public_profile">
+        <argument
+            android:name="userId"
+            app:argType="string" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/editProfileFragment"
+        android:name="com.example.tradeup.ui.profile.EditProfileFragment"
+        android:label="Chỉnh sửa Hồ sơ"
+        tools:layout="@layout/fragment_edit_profile" />
+
+    <fragment
+        android:id="@+id/settingsFragment"
+        android:name="com.example.tradeup.ui.settings.SettingsFragment"
+        android:label="Cài đặt"
+        tools:layout="@layout/fragment_settings" />
+
+    <fragment
+        android:id="@+id/myListingsFragment"
+        android:name="com.example.tradeup.ui.listing.MyListingsFragment"
+        android:label="Sản phẩm của tôi"
+        tools:layout="@layout/fragment_my_listings"/>
+
+    <fragment
+        android:id="@+id/transactionHistoryFragment"
+        android:name="com.example.tradeup.ui.profile.TransactionHistoryFragment"
+        android:label="Lịch sử Giao dịch"
+        tools:layout="@layout/fragment_transaction_history" />
+
+    <fragment
+        android:id="@+id/savedItemsFragment"
+        android:name="com.example.tradeup.ui.saved.SavedItemsFragment"
+        android:label="Sản phẩm đã lưu"
+        tools:layout="@layout/fragment_saved_items" />
+
+    <fragment
+        android:id="@+id/categoryListingsFragment"
+        android:name="com.example.tradeup.ui.listing.CategoryListingsFragment"
+        android:label="Danh mục sản phẩm"
+        tools:layout="@layout/fragment_category_listings">
+        <argument
+            android:name="categoryId"
+            app:argType="string" />
+    </fragment>
+
+    <!-- CÁC DIALOG / BOTTOMSHEET -->
+    <dialog
+        android:id="@+id/makeOfferDialogFragment"
+        android:name="com.example.tradeup.ui.offers.MakeOfferDialogFragment"
+        android:label="Trả giá"
+        tools:layout="@layout/dialog_make_offer">
+        <argument
+            android:name="item"
+            app:argType="com.example.tradeup.data.model.Item"/>
+    </dialog>
+
+    <dialog
+        android:id="@+id/reportContentDialogFragment"
+        android:name="com.example.tradeup.ui.report.ReportContentDialogFragment"
+        android:label="Báo cáo"
+        tools:layout="@layout/dialog_report_content">
+        <argument
+            android:name="contentId"
+            app:argType="string" />
+        <argument
+            android:name="contentType"
+            app:argType="string" />
+    </dialog>
+
+
+    <!-- ===================================================================== -->
+    <!-- === PHẦN 2: KHAI BÁO CÁC HÀNH ĐỘNG TOÀN CỤC (GLOBAL ACTIONS) ========= -->
+    <!-- ===================================================================== -->
+
+    <!-- Các action này có thể được gọi từ bất kỳ đâu trong main_nav -->
+
+    <action
+        android:id="@+id/action_global_to_itemDetailFragment"
+        app:destination="@id/itemDetailFragment" />
+
+    <action
+        android:id="@+id/action_global_to_publicProfileFragment"
+        app:destination="@id/publicProfileFragment" />
+
+    <action
+        android:id="@+id/action_global_to_editProfileFragment"
+        app:destination="@id/editProfileFragment" />
+
+    <action
+        android:id="@+id/action_global_to_myListingsFragment"
+        app:destination="@id/myListingsFragment" />
+
+    <action
+        android:id="@+id/action_global_to_editItemFragment"
+        app:destination="@id/editItemFragment" />
+
+    <action
+        android:id="@+id/action_global_to_transactionHistoryFragment"
+        app:destination="@id/transactionHistoryFragment" />
+
+    <action
+        android:id="@+id/action_global_to_settingsFragment"
+        app:destination="@id/settingsFragment" />
+
+    <action
+        android:id="@+id/action_global_to_savedItemsFragment"
+        app:destination="@id/savedItemsFragment" />
+
+    <action
+        android:id="@+id/action_global_to_categoryListingsFragment"
+        app:destination="@id/categoryListingsFragment" />
+
+    <action
+        android:id="@+id/action_global_to_makeOfferDialogFragment"
+        app:destination="@id/makeOfferDialogFragment" />
+
+    <action
+        android:id="@+id/action_global_to_reportContentDialogFragment"
+        app:destination="@id/reportContentDialogFragment" />
 
 </navigation>

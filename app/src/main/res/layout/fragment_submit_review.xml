@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
+    tools:context=".ui.reviews.SubmitReviewFragment">
+
+    <!-- === TOOLBAR === -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar"
+        android:layout_width="0dp"
+        android:layout_height="?attr/actionBarSize"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back_inset"
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:title="Rate Your Experience"
+        app:titleCentered="true"
+        app:titleTextAppearance="?attr/textAppearanceHeadline6">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSkip"
+            style="@style/Widget.MaterialComponents.Button.TextButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginEnd="8dp"
+            android:text="Skip" />
+    </com.google.android.material.appbar.MaterialToolbar>
+
+    <!-- === KHỐI HÀNH ĐỘNG GHIM Ở DƯỚI === -->
+    <LinearLayout
+        android:id="@+id/layout_actions_bottom"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonSubmitReview"
+            style="?attr/materialButtonStyle"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="56dp"
+            android:text="Submit Review" />
+
+        <TextView
+            android:id="@+id/buttonSkipThisStep"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:background="?attr/selectableItemBackground"
+            android:padding="8dp"
+            android:text="Skip this step"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textColor="?android:attr/textColorSecondary" />
+    </LinearLayout>
+
+    <!-- === NỘI DUNG CUỘN === -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:fillViewport="true"
+        app:layout_constraintBottom_toTopOf="@id/layout_actions_bottom"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
+            android:padding="24dp">
+
+            <!-- Thông tin giao dịch -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Rate your transaction with"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <de.hdodenhof.circleimageview.CircleImageView
+                android:id="@+id/imageViewUser"
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:layout_marginTop="8dp"
+                tools:src="@drawable/ic_person" />
+
+            <TextView
+                android:id="@+id/textViewUserName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textStyle="bold"
+                tools:text="Sarah Williams" />
+
+            <TextView
+                android:id="@+id/textViewProductName"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary"
+                tools:text="Vintage Leather Jacket" />
+
+            <!-- Phần đánh giá -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="32dp"
+                android:text="How was your experience?"
+                android:textAppearance="?attr/textAppearanceHeadline5"
+                android:textStyle="bold" />
+
+            <RatingBar
+                android:id="@+id/ratingBar"
+                style="@style/Widget.TradeUp.RatingBar"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:layout_marginTop="16dp"
+                android:numStars="5"
+                android:stepSize="1" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="Tap to rate"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="?android:attr/textColorSecondary" />
+
+            <!-- Phần bình luận -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilReview"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:hint="Share your experience with other users (optional)"
+                app:counterEnabled="true"
+                app:counterMaxLength="500">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/editTextReview"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="top|start"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:lines="5" />
+            </com.google.android.material.textfield.TextInputLayout>
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

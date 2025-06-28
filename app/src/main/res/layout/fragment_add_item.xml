@@ -89,11 +89,12 @@
                 android:id="@+id/recyclerViewImages"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:clipToPadding="false"
+                android:orientation="horizontal"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                tools:layout_height="100dp"
+                tools:ignore="SpeakableTextPresentCheck"
                 tools:itemCount="4"
+                tools:layout_height="100dp"
                 tools:listitem="@layout/item_add_photo_placeholder" />
 
             <!-- Tiêu đề -->

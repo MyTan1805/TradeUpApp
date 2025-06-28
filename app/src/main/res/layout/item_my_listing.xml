@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:padding="16dp">
+
+    <com.google.android.material.imageview.ShapeableImageView
+        android:id="@+id/imageViewProduct"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:scaleType="centerCrop"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:srcCompat="@drawable/ic_placeholder_image" />
+
+    <TextView
+        android:id="@+id/textViewProductName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="8dp"
+        android:textAppearance="?attr/textAppearanceBody1"
+        android:maxLines="1"
+        android:ellipsize="end"
+        android:textStyle="bold"
+        app:layout_constraintStart_toEndOf="@id/imageViewProduct"
+        app:layout_constraintEnd_toStartOf="@id/buttonMenu"
+        app:layout_constraintTop_toTopOf="@id/imageViewProduct"
+        tools:text="Vintage Leather Jacket" />
+
+    <TextView
+        android:id="@+id/textViewProductPrice"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:textAppearance="?attr/textAppearanceBody2"
+        android:textColor="?attr/colorOnSurface"
+        app:layout_constraintStart_toStartOf="@id/textViewProductName"
+        app:layout_constraintTop_toBottomOf="@id/textViewProductName"
+        tools:text="$125.00" />
+
+    <com.google.android.material.chip.Chip
+        android:id="@+id/chipProductStatus"
+        style="@style/Widget.TradeUp.Chip.Status.Active"
+        android:layout_width="wrap_content"
+        android:layout_height="48dp"
+        android:layout_marginTop="8dp"
+        app:layout_constraintStart_toStartOf="@id/textViewProductName"
+        app:layout_constraintTop_toBottomOf="@id/textViewProductPrice"
+        tools:text="Active" />
+
+    <TextView
+        android:id="@+id/textViewViews"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:textColor="?android:attr/textColorSecondary"
+        app:layout_constraintStart_toEndOf="@id/chipProductStatus"
+        app:layout_constraintBaseline_toBaselineOf="@id/chipProductStatus"
+        tools:text="45 views" />
+
+    <ImageButton
+        android:id="@+id/buttonMenu"
+        android:layout_width="@dimen/touch_target_size"
+        android:layout_height="@dimen/touch_target_size"
+        android:padding="12dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@drawable/ic_more_vert"
+        app:tint="?android:attr/textColorSecondary"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textViewProductName"
+        android:contentDescription="Options"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,14 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
     tools:context=".ui.notifications.NotificationsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- === HEADER === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <!-- Toolbar -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:contentInsetStart="16dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Notifications"
+                android:textAppearance="?attr/textAppearanceHeadline4"
+                android:textStyle="bold"
+                android:layout_gravity="start"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonMarkAllRead"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mark all as read"
+                android:layout_gravity="end"/>
+
+        </com.google.android.material.appbar.MaterialToolbar>
+
+        <!-- Filter Chips -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingVertical="8dp"
+            android:paddingHorizontal="12dp"
+            android:clipToPadding="false">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFilters"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true">
+                <!-- Tái sử dụng style chip từ màn hình Category -->
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAll"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All"
+                    android:checkable="true"
+                    android:checked="true"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
+                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+                <!-- Thêm các chip khác (Messages, Offers...) ở đây -->
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- === DANH SÁCH THÔNG BÁO === -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewNotifications"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_notification" />
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

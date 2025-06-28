@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="1dp"
+    app:strokeColor="?attr/colorOutline">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp"
+        android:background="?attr/selectableItemBackground">
+
+        <ImageView
+            android:id="@+id/icon"
+            android:layout_width="@dimen/icon_size_standard"
+            android:layout_height="@dimen/icon_size_standard"
+            app:tint="?attr/colorOnSurface"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:src="@drawable/ic_person"
+            android:contentDescription="Setting Icon"/>
+
+        <TextView
+            android:id="@+id/title"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:textAppearance="?attr/textAppearanceBody1"
+            app:layout_constraintStart_toEndOf="@id/icon"
+            app:layout_constraintEnd_toStartOf="@id/arrow"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            tools:text="Edit Profile" />
+
+        <ImageView
+            android:id="@+id/arrow"
+            android:layout_width="@dimen/icon_size_standard"
+            android:layout_height="@dimen/icon_size_standard"
+            android:src="@drawable/ic_arrow_forward"
+            app:tint="?android:attr/textColorSecondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:contentDescription="Navigate"/>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView>

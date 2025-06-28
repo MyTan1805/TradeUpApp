@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
+    tools:context=".ui.profile.TransactionHistoryFragment">
+
+    <!-- === HEADER === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <!-- 1. Toolbar -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back_inset"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:title="Transaction History"
+            app:titleCentered="true"
+            app:titleTextAppearance="?attr/textAppearanceHeadline6" />
+
+        <!-- 2. Filter Chips -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingVertical="8dp"
+            android:paddingHorizontal="12dp"
+            android:clipToPadding="false">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFilters"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAll"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All"
+                    android:checkable="true"
+                    android:checked="true"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPurchases"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Purchases"
+                    android:checkable="true"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
+
+                <!-- Thêm các chip khác ở đây -->
+
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- === DANH SÁCH GIAO DỊCH === -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewTransactions"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_transaction" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

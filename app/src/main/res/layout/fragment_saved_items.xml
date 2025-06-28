@@ -1,0 +1,104 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
+    tools:context=".ui.saved.SavedItemsFragment">
+
+    <!-- === HEADER === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <!-- 1. Toolbar -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back_inset"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:title="Saved Items"
+            app:titleCentered="true"
+            app:titleTextAppearance="?attr/textAppearanceHeadline6"
+            app:menu="@menu/saved_items_menu" /> <!-- Tạo menu này -->
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
+
+        <!-- 2. Filter Chips -->
+        <HorizontalScrollView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:scrollbars="none"
+            android:paddingVertical="8dp"
+            android:paddingHorizontal="12dp"
+            android:clipToPadding="false">
+
+            <com.google.android.material.chip.ChipGroup
+                android:id="@+id/chipGroupFilters"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                app:singleLine="true"
+                app:singleSelection="true">
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipAllItems"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All Items"
+                    android:checkable="true"
+                    android:checked="true"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
+                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipRecentlySaved"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Recently Saved"
+                    android:checkable="true"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
+                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipPriceLowHigh"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Price: Low to High"
+                    android:checkable="true"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
+                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+
+            </com.google.android.material.chip.ChipGroup>
+        </HorizontalScrollView>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- === DANH SÁCH SẢN PHẨM ĐÃ LƯU === -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSavedItems"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:padding="8dp"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:spanCount="2"
+        tools:listitem="@layout/item_saved_product" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

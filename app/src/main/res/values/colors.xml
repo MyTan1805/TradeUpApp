@@ -27,4 +27,19 @@
     <color name="status_active_text">#1E88E5</color>
     <color name="status_active_background">#E3F2FD</color>
 
+    <color name="status_sold_text">#757575</color>  <!-- Màu xám cho chữ Sold -->
+    <color name="status_sold_background">#F5F5F5</color> <!-- Màu xám rất nhạt cho nền Sold -->
+    <color name="status_paused_text">#FB8C00</color>  <!-- Màu cam cho chữ Paused -->
+    <color name="status_paused_background">#FFF3E0</color> <!-- Màu cam rất nhạt cho nền Paused -->
+
+    <color name="status_pending_text">#FFA000</color>  <!-- Màu vàng đậm cho chữ Pending -->
+    <color name="status_pending_background">#FFF8E1</color> <!-- Màu vàng rất nhạt cho nền Pending -->
+    <color name="status_countered_text">#1976D2</color> <!-- Màu xanh dương đậm cho chữ Countered -->
+    <color name="status_countered_background">#E3F2FD</color> <!-- Màu xanh dương rất nhạt cho nền Countered -->
+
+    <color name="status_completed_text">#2E7D32</color>  <!-- Màu xanh lá đậm -->
+    <color name="status_completed_background">#E8F5E9</color> <!-- Màu xanh lá rất nhạt -->
+    <color name="status_rated_text">#757575</color>  <!-- Màu xám cho chữ Rated -->
+    <color name="status_rated_background">#F5F5F5</color> <!-- Màu xám rất nhạt -->
+
 </resources>

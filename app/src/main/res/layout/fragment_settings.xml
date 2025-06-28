@@ -1,14 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
     tools:context=".ui.settings.SettingsFragment">
 
-    <!-- TODO: Update blank fragment layout -->
-    <TextView
+    <!-- === TOOLBAR === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back_inset"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:title="Settings"
+            app:titleCentered="true"
+            app:titleTextAppearance="?attr/textAppearanceHeadline6" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- === DANH SÁCH CÀI ĐẶT === -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSettings"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:text="@string/hello_blank_fragment" />
+        android:padding="16dp"
+        android:clipToPadding="false"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_setting_navigation" />
 
-</FrameLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

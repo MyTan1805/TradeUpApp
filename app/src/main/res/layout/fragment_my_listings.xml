@@ -1,16 +1,64 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?android:attr/windowBackground"
     tools:context=".ui.listing.MyListingsFragment">
 
-    <!-- TODO: Xây dựng layout danh sách sản phẩm của tôi -->
-    <TextView
+    <!-- === HEADER === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <!-- Toolbar chứa Title và nút FAB nhỏ -->
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:title="My Listings"
+            app:titleTextAppearance="?attr/textAppearanceHeadline5"
+            app:titleTextColor="?attr/colorOnSurface" />
+
+        <!-- Tabs -->
+        <com.google.android.material.tabs.TabLayout
+            android:id="@+id/tabLayout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:tabGravity="fill"
+            app:tabIndicatorColor="?attr/colorPrimary"
+            app:tabMode="fixed"
+            app:tabSelectedTextColor="?attr/colorPrimary"
+            app:tabTextColor="?android:attr/textColorSecondary"
+            tools:ignore="SpeakableTextPresentCheck" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
+
+    </com.google.android.material.appbar.AppBarLayout>
+
+    <!-- Nút FAB nhỏ để thêm sản phẩm -->
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddNew"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Màn hình Sản phẩm của tôi"
-        android:textAppearance="?attr/textAppearanceHeadline6" />
+        android:layout_margin="16dp"
+        app:srcCompat="@drawable/ic_add"
+        app:layout_anchor="@id/appBarLayout"
+        app:layout_anchorGravity="bottom|end" />
 
-</FrameLayout>
+
+    <!-- === NỘI DUNG TABS === -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior" />
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

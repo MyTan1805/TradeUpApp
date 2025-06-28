@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface">
+
+    <!-- Thanh "kéo" -->
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/textViewDialogTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="8dp"
+        android:textAppearance="?attr/textAppearanceHeadline6"
+        android:textStyle="bold"
+        tools:text="Chọn Danh mục" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewSelection"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="16dp"
+        android:clipToPadding="false"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/item_bottom_sheet_selection"
+        tools:itemCount="5" />
+
+</LinearLayout>

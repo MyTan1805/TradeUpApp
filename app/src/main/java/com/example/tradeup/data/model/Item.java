@@ -1,13 +1,19 @@
 package com.example.tradeup.data.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
+
 import androidx.annotation.Nullable;
+
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.ServerTimestamp;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class Item {
+public class Item implements Parcelable {
     @DocumentId
     private String itemId;
     private String sellerId;
@@ -18,15 +24,15 @@ public class Item {
     private String description;
     private double price;
     private boolean isNegotiable;
-    private String category; // ID from appConfig
+    private String category;
     @Nullable
-    private String subCategory; // ID from appConfig
-    private String condition; // ID from appConfig
+    private String subCategory;
+    private String condition;
     private ItemLocation location;
     private List<String> imageUrls;
-    private String status; // "available", "sold", "paused", "deleted"
+    private String status;
     @Nullable
-    private String itemBehavior; // e.g., "pickup_only"
+    private String itemBehavior;
     @Nullable
     private List<String> tags;
     private int viewsCount;
@@ -42,7 +48,7 @@ public class Item {
     @Nullable
     private Timestamp soldAt;
 
-    // Constructor rỗng cần thiết cho Firestore
+    // Constructor rỗng
     public Item() {
         this.itemId = "";
         this.sellerId = "";
@@ -59,7 +65,7 @@ public class Item {
         this.imageUrls = new ArrayList<>();
         this.status = "available";
         this.itemBehavior = null;
-        this.tags = null; // hoặc new ArrayList<>() nếu bạn muốn mặc định là list rỗng
+        this.tags = null;
         this.viewsCount = 0;
         this.offersCount = 0;
         this.createdAt = null;
@@ -121,4 +127,112 @@ public class Item {
     @Nullable
     public Timestamp getSoldAt() { return soldAt; }
     public void setSoldAt(@Nullable Timestamp soldAt) { this.soldAt = soldAt; }
+
+    // Phương thức getId() cho DiffUtil
+    public String getId() {
+        return itemId;
+    }
+
+    // equals() và hashCode()
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        Item item = (Item) o;
+        return Double.compare(item.price, price) == 0 && isNegotiable == item.isNegotiable && viewsCount == item.viewsCount && offersCount == item.offersCount && Objects.equals(itemId, item.itemId) && Objects.equals(sellerId, item.sellerId) && Objects.equals(sellerDisplayName, item.sellerDisplayName) && Objects.equals(sellerProfilePictureUrl, item.sellerProfilePictureUrl) && Objects.equals(title, item.title) && Objects.equals(description, item.description) && Objects.equals(category, item.category) && Objects.equals(subCategory, item.subCategory) && Objects.equals(condition, item.condition) && Objects.equals(location, item.location) && Objects.equals(imageUrls, item.imageUrls) && Objects.equals(status, item.status) && Objects.equals(itemBehavior, item.itemBehavior) && Objects.equals(tags, item.tags) && Objects.equals(createdAt, item.createdAt) && Objects.equals(updatedAt, item.updatedAt) && Objects.equals(soldToUserId, item.soldToUserId) && Objects.equals(soldAt, item.soldAt);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(itemId, sellerId, sellerDisplayName, sellerProfilePictureUrl, title, description, price, isNegotiable, category, subCategory, condition, location, imageUrls, status, itemBehavior, tags, viewsCount, offersCount, createdAt, updatedAt, soldToUserId, soldAt);
+    }
+
+
+    // ==========================================================
+    // === PHẦN PARCELABLE =======================================
+    // ==========================================================
+    protected Item(Parcel in) {
+        itemId = in.readString();
+        sellerId = in.readString();
+        sellerDisplayName = in.readString();
+        sellerProfilePictureUrl = in.readString();
+        title = in.readString();
+        description = in.readString();
+        price = in.readDouble();
+        isNegotiable = in.readByte() != 0;
+        category = in.readString();
+        subCategory = in.readString();
+        condition = in.readString();
+        location = in.readParcelable(ItemLocation.class.getClassLoader());
+        imageUrls = in.createStringArrayList();
+        status = in.readString();
+        itemBehavior = in.readString();
+        tags = in.createStringArrayList();
+        viewsCount = in.readInt();
+        offersCount = in.readInt();
+
+        long secondsCreated = in.readLong();
+        int nanosCreated = in.readInt();
+        createdAt = (secondsCreated != -1) ? new Timestamp(secondsCreated, nanosCreated) : null;
+
+        long secondsUpdated = in.readLong();
+        int nanosUpdated = in.readInt();
+        updatedAt = (secondsUpdated != -1) ? new Timestamp(secondsUpdated, nanosUpdated) : null;
+
+        soldToUserId = in.readString();
+
+        long secondsSold = in.readLong();
+        int nanosSold = in.readInt();
+        soldAt = (secondsSold != -1) ? new Timestamp(secondsSold, nanosSold) : null;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(itemId);
+        dest.writeString(sellerId);
+        dest.writeString(sellerDisplayName);
+        dest.writeString(sellerProfilePictureUrl);
+        dest.writeString(title);
+        dest.writeString(description);
+        dest.writeDouble(price);
+        dest.writeByte((byte) (isNegotiable ? 1 : 0));
+        dest.writeString(category);
+        dest.writeString(subCategory);
+        dest.writeString(condition);
+        dest.writeParcelable(location, flags);
+        dest.writeStringList(imageUrls);
+        dest.writeString(status);
+        dest.writeString(itemBehavior);
+        dest.writeStringList(tags);
+        dest.writeInt(viewsCount);
+        dest.writeInt(offersCount);
+
+        dest.writeLong(createdAt != null ? createdAt.getSeconds() : -1);
+        dest.writeInt(createdAt != null ? createdAt.getNanoseconds() : -1);
+
+        dest.writeLong(updatedAt != null ? updatedAt.getSeconds() : -1);
+        dest.writeInt(updatedAt != null ? updatedAt.getNanoseconds() : -1);
+
+        dest.writeString(soldToUserId);
+
+        dest.writeLong(soldAt != null ? soldAt.getSeconds() : -1);
+        dest.writeInt(soldAt != null ? soldAt.getNanoseconds() : -1);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    public static final Creator<Item> CREATOR = new Creator<Item>() {
+        @Override
+        public Item createFromParcel(Parcel in) {
+            return new Item(in);
+        }
+
+        @Override
+        public Item[] newArray(int size) {
+            return new Item[size];
+        }
+    };
 }

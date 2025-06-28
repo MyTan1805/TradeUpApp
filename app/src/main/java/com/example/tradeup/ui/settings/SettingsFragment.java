@@ -1,66 +1,110 @@
-package com.example.tradeup.ui.settings;
+package com.example.tradeup.ui.settings;// package: com.example.tradeup.ui.settings;
 
 import android.os.Bundle;
-
-import androidx.fragment.app.Fragment;
-
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.navigation.fragment.NavHostFragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.tradeup.R;
+import com.example.tradeup.databinding.FragmentSettingsBinding; // Dùng ViewBinding
+import com.example.tradeup.ui.adapters.SettingsAdapter;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link SettingsFragment#newInstance} factory method to
- * create an instance of this fragment.
- */
-public class SettingsFragment extends Fragment {
+import java.util.ArrayList;
+import java.util.List;
 
-    // TODO: Rename parameter arguments, choose names that match
-    // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-    private static final String ARG_PARAM1 = "param1";
-    private static final String ARG_PARAM2 = "param2";
+import dagger.hilt.android.AndroidEntryPoint;
 
-    // TODO: Rename and change types of parameters
-    private String mParam1;
-    private String mParam2;
+@AndroidEntryPoint
+public class SettingsFragment extends Fragment implements SettingsAdapter.OnSettingItemClickListener {
 
-    public SettingsFragment() {
-        // Required empty public constructor
-    }
+    private FragmentSettingsBinding binding;
+    // TODO: Tạo SettingsViewModel để quản lý logic và trạng thái
 
-    /**
-     * Use this factory method to create a new instance of
-     * this fragment using the provided parameters.
-     *
-     * @param param1 Parameter 1.
-     * @param param2 Parameter 2.
-     * @return A new instance of fragment SettingsFragment.
-     */
-    // TODO: Rename and change types and number of parameters
-    public static SettingsFragment newInstance(String param1, String param2) {
-        SettingsFragment fragment = new SettingsFragment();
-        Bundle args = new Bundle();
-        args.putString(ARG_PARAM1, param1);
-        args.putString(ARG_PARAM2, param2);
-        fragment.setArguments(args);
-        return fragment;
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        binding = FragmentSettingsBinding.inflate(inflater, container, false);
+        return binding.getRoot();
     }
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        if (getArguments() != null) {
-            mParam1 = getArguments().getString(ARG_PARAM1);
-            mParam2 = getArguments().getString(ARG_PARAM2);
-        }
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        setupToolbar();
+        setupRecyclerView();
+    }
+
+    private void setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener(v -> NavHostFragment.findNavController(this).navigateUp());
+    }
+
+    private void setupRecyclerView() {
+        List<SettingItem> settingItems = createSettingItems();
+        SettingsAdapter adapter = new SettingsAdapter(settingItems, this);
+        binding.recyclerViewSettings.setLayoutManager(new LinearLayoutManager(getContext()));
+        binding.recyclerViewSettings.setAdapter(adapter);
+    }
+
+    private List<SettingItem> createSettingItems() {
+        List<SettingItem> items = new ArrayList<>();
+
+        // Nhóm 1: Profile
+        items.add(new SettingItem.Navigation("edit_profile", R.drawable.ic_person, "Edit Profile"));
+        items.add(new SettingItem.Navigation("change_password", R.drawable.ic_lock, "Change Password"));
+
+        // Nhóm 2: Notifications
+        items.add(new SettingItem.GroupHeader("NOTIFICATION PREFERENCES"));
+        items.add(new SettingItem.Switch("switch_messages", "New Messages", true));
+        items.add(new SettingItem.Switch("switch_offers", "Offers", true));
+        items.add(new SettingItem.Switch("switch_updates", "App Updates", false));
+        items.add(new SettingItem.Navigation("location_settings", R.drawable.ic_location_on, "Location Settings"));
+
+        // Nhóm 3: Account Management
+        items.add(new SettingItem.GroupHeader("ACCOUNT MANAGEMENT"));
+        items.add(new SettingItem.Navigation("deactivate_account", 0, "Deactivate Account", R.color.status_warning, R.color.status_warning));
+        items.add(new SettingItem.Navigation("delete_account", 0, "Delete Account", R.color.status_error, R.color.status_error));
+
+        // Nhóm 4: Support
+        items.add(new SettingItem.GroupHeader("SUPPORT"));
+        items.add(new SettingItem.Navigation("help_support", R.drawable.ic_help_outline, "Help & Support"));
+        // TODO: Lấy phiên bản ứng dụng động
+        items.add(new SettingItem.Info(R.drawable.ic_info_outline, "About TradeUp", "v1.0.0"));
+
+        // Nhóm 5: Logout
+        items.add(new SettingItem.Logout());
+
+        return items;
     }
 
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_settings, container, false);
+    public void onDestroyView() {
+        super.onDestroyView();
+        binding = null;
+    }
+
+    // --- Xử lý sự kiện click từ Adapter ---
+    @Override
+    public void onNavigationItemClick(String tag) {
+        Toast.makeText(getContext(), "Clicked: " + tag, Toast.LENGTH_SHORT).show();
+        // TODO: Dùng NavController để điều hướng dựa trên tag
+        // switch (tag) {
+        //    case "edit_profile":
+        //        navController.navigate(...)
+        //        break;
+        // }
+    }
+
+    @Override
+    public void onSwitchItemChanged(String tag, boolean isChecked) {
+        Toast.makeText(getContext(), "Switch " + tag + " is now " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
+        // TODO: Lưu trạng thái mới này vào SharedPreferences hoặc ViewModel
     }
 }

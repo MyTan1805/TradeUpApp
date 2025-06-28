@@ -62,6 +62,7 @@ dependencies {
     implementation(libs.hilt.android)
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui)
+    implementation(libs.google.material)
     kapt(libs.hilt.compiler)
 
     implementation(libs.preference)
@@ -85,6 +86,9 @@ dependencies {
 
     implementation("com.github.dhaval2404:imagepicker:2.1")
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    implementation("com.google.android.libraries.places:places:3.5.0")
+    implementation("com.google.android.gms:play-services-location:21.2.0")
 
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)
