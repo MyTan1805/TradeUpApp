@@ -156,16 +156,19 @@
         app:layout_constraintEnd_toEndOf="@+id/guideline_end"
         app:layout_constraintStart_toStartOf="@+id/guideline_start"
         app:layout_constraintTop_toBottomOf="@+id/buttonEditProfile">
+
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonMyWallet"
+            android:id="@+id/buttonMyOffers"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="My Wallet"
-            app:icon="@drawable/ic_electronics"
+            android:text="My Offers"
+            app:icon="@drawable/ic_local_offer"
             app:iconPadding="8dp"
-            app:iconSize="20dp"/>
+            app:iconSize="26dp"/>
+
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSavedItems"
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"

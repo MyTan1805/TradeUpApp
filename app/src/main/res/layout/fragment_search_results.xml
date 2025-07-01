@@ -8,7 +8,7 @@
     tools:context=".ui.search.SearchResultsFragment"
     android:fitsSystemWindows="true">
 
-    <!-- === HEADER ĐIỀU KHIỂN === -->
+    <!-- === HEADER (APPBAR) CHỨA CÁC ĐIỀU KHIỂN === -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -16,7 +16,7 @@
         android:background="?attr/colorSurface"
         app:elevation="2dp">
 
-        <!-- 1. Thanh tìm kiếm -->
+        <!-- 1. Toolbar chứa nút Back và thanh tìm kiếm -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -25,36 +25,23 @@
             app:navigationIconTint="?attr/colorOnSurface"
             app:title="">
 
-            <com.google.android.material.card.MaterialCardView
-                android:id="@+id/search_bar_container"
+            <androidx.appcompat.widget.SearchView
+                android:id="@+id/searchView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="16dp"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp"
-                app:strokeWidth="1dp"
-                app:strokeColor="?attr/colorOutline">
-
-                <androidx.appcompat.widget.SearchView
-                    android:id="@+id/searchView"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:iconifiedByDefault="false"
-                    app:queryHint="Search products..."
-                    app:searchIcon="@drawable/ic_search" />
-            </com.google.android.material.card.MaterialCardView>
-
+                app:iconifiedByDefault="false"
+                app:queryHint="Search products, brands..."
+                app:searchIcon="@drawable/ic_search" />
         </com.google.android.material.appbar.MaterialToolbar>
 
-        <!-- 2. Các bộ lọc -->
+        <!-- 2. Hàng chứa các bộ lọc -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:scrollbars="none"
-            android:paddingTop="8dp"
-            android:paddingBottom="8dp"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
+            android:paddingVertical="8dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
             android:clipToPadding="false">
 
             <com.google.android.material.chip.ChipGroup
@@ -64,106 +51,98 @@
                 app:singleLine="true">
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSort"
+                    style="@style/Widget.TradeUp.Chip.Filter"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sort"
+                    app:chipIcon="@drawable/ic_sort"/>
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/chipCategory"
                     style="@style/Widget.TradeUp.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Category"
-                    app:chipIcon="@drawable/ic_arrow_drop_down"
-                    app:chipIconVisible="true"
-                    app:iconStartPadding="4dp"
-                    app:textEndPadding="8dp"/>
+                    android:text="Category" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipPrice"
                     style="@style/Widget.TradeUp.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Price"
-                    app:chipIcon="@drawable/ic_arrow_drop_down"
-                    app:chipIconVisible="true"
-                    app:iconStartPadding="4dp"
-                    app:textEndPadding="8dp"/>
+                    android:text="Price" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCondition"
                     style="@style/Widget.TradeUp.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Condition"
-                    app:chipIcon="@drawable/ic_arrow_drop_down"
-                    app:chipIconVisible="true"
-                    app:iconStartPadding="4dp"
-                    app:textEndPadding="8dp"/>
-
-                <!-- Thêm các chip lọc khác nếu cần -->
+                    android:text="Condition" />
 
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
-        <!-- 3. Sắp xếp và chuyển đổi chế độ xem -->
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <View
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingStart="16dp"
-            android:paddingEnd="16dp"
-            android:paddingBottom="12dp">
-
-            <TextView
-                android:id="@+id/textViewSortBy"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Sort by: Relevance"
-                android:textAppearance="?attr/textAppearanceBody2"
-                app:drawableEndCompat="@drawable/ic_arrow_drop_down"
-                android:drawablePadding="4dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent" />
-
-            <com.google.android.material.button.MaterialButtonToggleGroup
-                android:id="@+id/toggleGroupViewMode"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:singleSelection="true"
-                app:selectionRequired="true"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                app:layout_constraintBottom_toBottomOf="parent">
-
-                <Button
-                    android:id="@+id/buttonGridView"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_grid_view"
-                    app:iconPadding="0dp"/>
-
-                <Button
-                    android:id="@+id/buttonListView"
-                    style="?attr/materialButtonOutlinedStyle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    app:icon="@drawable/ic_list_view"
-                    app:iconPadding="0dp"/>
-            </com.google.android.material.button.MaterialButtonToggleGroup>
-
-        </androidx.constraintlayout.widget.ConstraintLayout>
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- === DANH SÁCH KẾT QUẢ === -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewSearchResults"
+    <!-- FRAME LAYOUT ĐỂ CHỨA RECYCLERVIEW VÀ CÁC TRẠNG THÁI KHÁC -->
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"
-        tools:listitem="@layout/item_product_card_v2" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-    <!-- TODO: Thêm trạng thái Loading và Empty State ở đây nếu cần -->
+        <!-- Danh sách kết quả -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewSearchResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"
+            tools:listitem="@layout/item_product_card_v2" />
 
+        <!-- Trạng thái Loading -->
+        <ProgressBar
+            android:id="@+id/progressBarSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <!-- Trạng thái Rỗng/Không tìm thấy kết quả -->
+        <LinearLayout
+            android:id="@+id/layoutEmptyStateSearch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:src="@drawable/ic_search_off"
+                app:tint="?android:attr/textColorHint"
+                android:contentDescription="No results found"/>
+
+            <TextView
+                android:id="@+id/textViewEmptySearch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="No results found"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textColor="?android:attr/textColorSecondary"/>
+
+        </LinearLayout>
+
+    </FrameLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

@@ -9,6 +9,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.Event;
+import com.example.tradeup.data.model.ContactInfo;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.repository.AuthRepository;
 import com.example.tradeup.data.repository.StorageRepository; // Import StorageRepository (phiên bản Cloudinary)
@@ -98,17 +99,31 @@ public class EditProfileViewModel extends AndroidViewModel {
     }
 
     private void updateUserDocument(String displayName, String bio, String phoneNumber, String profilePictureUrl) {
+        // Lấy đối tượng User hiện tại để không làm mất các thông tin khác trong contactInfo (nếu có)
+        User currentUserData = _user.getValue();
+        if (currentUserData == null) return; // Kiểm tra an toàn
+
+        // Tạo hoặc cập nhật đối tượng ContactInfo
+        ContactInfo contactInfo = currentUserData.getContactInfo();
+        if (contactInfo == null) {
+            contactInfo = new ContactInfo();
+        }
+        contactInfo.setPhone(phoneNumber);
+        // Nếu có các trường khác như zalo, facebook, chúng sẽ được giữ nguyên
+
         Map<String, Object> updates = new HashMap<>();
         updates.put("displayName", displayName);
         updates.put("bio", bio);
-        updates.put("profilePictureUrl", profilePictureUrl); // URL này là từ Cloudinary
-        updates.put("contactInfo.phone", phoneNumber);
+        updates.put("profilePictureUrl", profilePictureUrl);
+        updates.put("contactInfo", contactInfo); // << SỬA Ở ĐÂY: Cập nhật cả object
 
         userRepository.updateUserProfile(currentUserId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void result) {
                 _isLoading.postValue(false);
                 _saveSuccessEvent.postValue(new Event<>(true));
+                // Tùy chọn: Tải lại dữ liệu người dùng sau khi cập nhật thành công
+                loadCurrentUser();
             }
 
             @Override

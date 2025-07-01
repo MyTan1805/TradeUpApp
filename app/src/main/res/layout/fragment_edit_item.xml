@@ -7,76 +7,54 @@
     android:background="?attr/colorSurface"
     tools:context=".ui.listing.EditItemFragment">
 
-    <!-- ==================== TOOLBAR ==================== -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/toolbar_container"
+    <!-- === TOOLBAR === -->
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbarEdit"
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        app:navigationIcon="@drawable/ic_arrow_back_inset"
+        app:navigationIconTint="?attr/colorOnSurface"
+        app:title="Edit Listing"
+        app:titleCentered="true"
+        app:titleTextAppearance="?attr/textAppearanceHeadline6"/>
 
-        <!-- Nút Back thay cho Cancel -->
-        <ImageButton
-            android:id="@+id/buttonBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/ic_arrow_back"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:layout_marginStart="8dp"
-            app:tint="?attr/colorOnSurface"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            android:contentDescription="@string/huy_bo" />
-
-        <TextView
-            android:id="@+id/textViewTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Edit Listing"
-            android:textAppearance="?attr/textAppearanceHeadline6"
-            android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-        <!-- Nút Cancel ở bên phải (giống mẫu thiết kế) -->
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonCancel"
-            style="@style/Widget.MaterialComponents.Button.TextButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Cancel"
-            android:layout_marginEnd="8dp"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- ==================== NÚT LƯU THAY ĐỔI ==================== -->
+    <!-- === NÚT LƯU THAY ĐỔI (GHIM Ở DƯỚI) === -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonSaveChanges"
         style="?attr/materialButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="Save Changes"
-        android:backgroundTint="?attr/colorPrimary"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:layout_marginBottom="16dp"
+        android:layout_marginStart="@dimen/spacing_large"
+        android:layout_marginEnd="@dimen/spacing_large"
+        android:layout_marginBottom="@dimen/spacing_large"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- ==================== NỘI DUNG CUỘN ==================== -->
+    <!-- === PROGRESSBAR === -->
+    <ProgressBar
+        android:id="@+id/progressBarEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:elevation="10dp"/>
+
+    <!-- === NỘI DUNG CUỘN === -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollViewEdit"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/toolbar_container"
+        app:layout_constraintTop_toBottomOf="@id/toolbarEdit"
         app:layout_constraintBottom_toTopOf="@id/buttonSaveChanges"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -85,167 +63,93 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="vertical"
-            android:padding="16dp">
+            android:padding="@dimen/spacing_large"
+            android:descendantFocusability="beforeDescendants"
+            android:focusableInTouchMode="true">
 
-            <!-- Khu vực quản lý ảnh -->
+            <!-- Quản lý ảnh -->
             <TextView
-                android:id="@+id/labelPhotos"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Photos"
                 android:textAppearance="?attr/textAppearanceSubtitle1" />
 
             <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerViewImages"
+                android:id="@+id/recyclerViewEditImages"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
+                android:layout_marginTop="@dimen/spacing_medium"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:itemCount="4"
-                tools:layout_height="100dp"
-                tools:listitem="@layout/item_edit_photo" /> <!-- SỬA: Dùng layout cho việc sửa ảnh -->
+                tools:layout_height="110dp"
+                tools:listitem="@layout/item_edit_photo" /> <!-- Sửa layout item cho đúng -->
 
-            <!-- Các trường còn lại giữ nguyên cấu trúc y hệt AddItemFragment -->
             <!-- Tiêu đề -->
-            <TextView
-                android:id="@+id/labelTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Title"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:layout_marginTop="24dp" />
-
+            <TextView style="@style/AddItemLabel" android:text="Title" />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilTitle"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapSentences"
-                    tools:text="Nike Air Max 2023"/>
+                    android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Giá -->
-            <TextView
-                android:id="@+id/labelPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Price"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:layout_marginTop="16dp" />
-
+            <TextView style="@style/AddItemLabel" android:text="Price" />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrice"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
                 app:prefixText="$">
-
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextPrice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"
-                    tools:text="129.99"/>
+                    android:inputType="numberDecimal"/>
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Danh mục (Category) -->
-            <TextView
-                android:id="@+id/labelCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Category"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:layout_marginTop="16dp" />
-
-            <TextView
-                android:id="@+id/fieldCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_clickable_field"
-                android:drawableEnd="@drawable/ic_arrow_forward"
-                android:gravity="center_vertical"
-                android:padding="16dp"
-                android:textAppearance="?attr/textAppearanceBody1"
-                tools:text="Sports utdoors" />
-
-            <!-- Tình trạng (Condition) -->
-            <TextView
-                android:id="@+id/labelCondition"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Condition"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:layout_marginTop="16dp" />
-
-            <TextView
-                android:id="@+id/fieldCondition"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_clickable_field"
-                android:drawableEnd="@drawable/ic_arrow_forward"
-                android:gravity="center_vertical"
-                android:textAppearance="?attr/textAppearanceBody1"
-                tools:text="Like New" />
-
-            <!-- Vị trí (Location) -->
-            <TextView
-                android:id="@+id/labelLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Location"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:layout_marginTop="16dp" />
-
-            <TextView
-                android:id="@+id/fieldLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:background="@drawable/bg_clickable_field"
-                android:drawableEnd="@drawable/ic_arrow_forward"
-                android:drawablePadding="12dp"
-                android:gravity="center_vertical"
-                android:padding="16dp"
-                android:textAppearance="?attr/textAppearanceBody1"
-                app:drawableStartCompat="@drawable/ic_location_on"
-                tools:text="San Francisco, CA" />
-
             <!-- Mô tả -->
-            <TextView
-                android:id="@+id/labelDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Description"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:layout_marginTop="16dp" />
-
+            <TextView style="@style/AddItemLabel" android:text="Description" />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDescription"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
                     android:inputType="textMultiLine|textCapSentences"
-                    android:lines="5"
-                    tools:text="Almost new Nike Air Max 2023. Only worn twice. Original box included. Perfect condition, no scratches or marks." />
+                    android:minLines="5" />
             </com.google.android.material.textfield.TextInputLayout>
+
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="@dimen/spacing_large"
+                android:background="?attr/colorOutline"/>
+
+            <!-- Các trường khác -->
+            <TextView style="@style/AddItemLabel" android:text="Category (cannot be changed)" />
+            <TextView
+                android:id="@+id/fieldCategory"
+                style="@style/AddItemField.ReadOnly"
+                tools:text="Electronics" />
+
+            <TextView style="@style/AddItemLabel" android:text="Condition" />
+            <TextView
+                android:id="@+id/fieldCondition"
+                style="@style/AddItemField"
+                tools:text="Like New" />
+
+            <TextView style="@style/AddItemLabel" android:text="Location" />
+            <TextView
+                android:id="@+id/fieldLocation"
+                style="@style/AddItemField"
+                app:drawableStartCompat="@drawable/ic_location_on"
+                tools:text="San Francisco, CA" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>

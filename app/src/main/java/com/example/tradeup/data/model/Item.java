@@ -1,3 +1,5 @@
+// File: src/main/java/com/example/tradeup/data/model/Item.java
+
 package com.example.tradeup.data.model;
 
 import android.os.Parcel;
@@ -7,6 +9,7 @@ import androidx.annotation.Nullable;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
+import com.google.firebase.firestore.Exclude;
 import com.google.firebase.firestore.ServerTimestamp;
 
 import java.util.ArrayList;
@@ -23,13 +26,14 @@ public class Item implements Parcelable {
     private String title;
     private String description;
     private double price;
-    private boolean isNegotiable;
+    private boolean negotiable;
     private String category;
     @Nullable
     private String subCategory;
     private String condition;
     private ItemLocation location;
     private List<String> imageUrls;
+    private List<String> searchKeywords;
     private String status;
     @Nullable
     private String itemBehavior;
@@ -48,7 +52,6 @@ public class Item implements Parcelable {
     @Nullable
     private Timestamp soldAt;
 
-    // Constructor rỗng
     public Item() {
         this.itemId = "";
         this.sellerId = "";
@@ -57,12 +60,13 @@ public class Item implements Parcelable {
         this.title = "";
         this.description = "";
         this.price = 0.0;
-        this.isNegotiable = false;
+        this.negotiable = false; // Thay đổi giá trị mặc định nếu cần
         this.category = "";
         this.subCategory = null;
         this.condition = "";
         this.location = new ItemLocation();
         this.imageUrls = new ArrayList<>();
+        this.searchKeywords = new ArrayList<>();
         this.status = "available";
         this.itemBehavior = null;
         this.tags = null;
@@ -74,7 +78,18 @@ public class Item implements Parcelable {
         this.soldAt = null;
     }
 
-    // Getters and Setters
+    // --- GETTERS AND SETTERS ---
+
+    // Getter và Setter cho trường boolean
+    public boolean isNegotiable() { // SỬA Ở ĐÂY: Thêm "is"
+        return negotiable;
+    }
+
+    public void setNegotiable(boolean negotiable) {
+        this.negotiable = negotiable;
+    }
+
+    // Các getters và setters còn lại
     public String getItemId() { return itemId; }
     public void setItemId(String itemId) { this.itemId = itemId; }
     public String getSellerId() { return sellerId; }
@@ -90,8 +105,6 @@ public class Item implements Parcelable {
     public void setDescription(String description) { this.description = description; }
     public double getPrice() { return price; }
     public void setPrice(double price) { this.price = price; }
-    public boolean isNegotiable() { return isNegotiable; }
-    public void setNegotiable(boolean negotiable) { isNegotiable = negotiable; }
     public String getCategory() { return category; }
     public void setCategory(String category) { this.category = category; }
     @Nullable
@@ -103,6 +116,8 @@ public class Item implements Parcelable {
     public void setLocation(ItemLocation location) { this.location = location; }
     public List<String> getImageUrls() { return imageUrls; }
     public void setImageUrls(List<String> imageUrls) { this.imageUrls = imageUrls; }
+    public List<String> getSearchKeywords() { return searchKeywords; }
+    public void setSearchKeywords(List<String> searchKeywords) { this.searchKeywords = searchKeywords; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
     @Nullable
@@ -128,29 +143,25 @@ public class Item implements Parcelable {
     public Timestamp getSoldAt() { return soldAt; }
     public void setSoldAt(@Nullable Timestamp soldAt) { this.soldAt = soldAt; }
 
-    // Phương thức getId() cho DiffUtil
+    @Exclude // Dùng @Exclude để DiffUtil không bị ảnh hưởng bởi logic Firestore
     public String getId() {
         return itemId;
     }
 
-    // equals() và hashCode()
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Item item = (Item) o;
-        return Double.compare(item.price, price) == 0 && isNegotiable == item.isNegotiable && viewsCount == item.viewsCount && offersCount == item.offersCount && Objects.equals(itemId, item.itemId) && Objects.equals(sellerId, item.sellerId) && Objects.equals(sellerDisplayName, item.sellerDisplayName) && Objects.equals(sellerProfilePictureUrl, item.sellerProfilePictureUrl) && Objects.equals(title, item.title) && Objects.equals(description, item.description) && Objects.equals(category, item.category) && Objects.equals(subCategory, item.subCategory) && Objects.equals(condition, item.condition) && Objects.equals(location, item.location) && Objects.equals(imageUrls, item.imageUrls) && Objects.equals(status, item.status) && Objects.equals(itemBehavior, item.itemBehavior) && Objects.equals(tags, item.tags) && Objects.equals(createdAt, item.createdAt) && Objects.equals(updatedAt, item.updatedAt) && Objects.equals(soldToUserId, item.soldToUserId) && Objects.equals(soldAt, item.soldAt);
+        return Double.compare(item.price, price) == 0 && negotiable == item.negotiable && viewsCount == item.viewsCount && offersCount == item.offersCount && Objects.equals(itemId, item.itemId) && Objects.equals(sellerId, item.sellerId) && Objects.equals(sellerDisplayName, item.sellerDisplayName) && Objects.equals(sellerProfilePictureUrl, item.sellerProfilePictureUrl) && Objects.equals(title, item.title) && Objects.equals(description, item.description) && Objects.equals(category, item.category) && Objects.equals(subCategory, item.subCategory) && Objects.equals(condition, item.condition) && Objects.equals(location, item.location) && Objects.equals(imageUrls, item.imageUrls) && Objects.equals(searchKeywords, item.searchKeywords) && Objects.equals(status, item.status) && Objects.equals(itemBehavior, item.itemBehavior) && Objects.equals(tags, item.tags) && Objects.equals(createdAt, item.createdAt) && Objects.equals(updatedAt, item.updatedAt) && Objects.equals(soldToUserId, item.soldToUserId) && Objects.equals(soldAt, item.soldAt);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(itemId, sellerId, sellerDisplayName, sellerProfilePictureUrl, title, description, price, isNegotiable, category, subCategory, condition, location, imageUrls, status, itemBehavior, tags, viewsCount, offersCount, createdAt, updatedAt, soldToUserId, soldAt);
+        return Objects.hash(itemId, sellerId, sellerDisplayName, sellerProfilePictureUrl, title, description, price, negotiable, category, subCategory, condition, location, imageUrls, searchKeywords, status, itemBehavior, tags, viewsCount, offersCount, createdAt, updatedAt, soldToUserId, soldAt);
     }
 
-
-    // ==========================================================
-    // === PHẦN PARCELABLE =======================================
-    // ==========================================================
+    // --- PHẦN PARCELABLE ---
     protected Item(Parcel in) {
         itemId = in.readString();
         sellerId = in.readString();
@@ -159,31 +170,22 @@ public class Item implements Parcelable {
         title = in.readString();
         description = in.readString();
         price = in.readDouble();
-        isNegotiable = in.readByte() != 0;
+        negotiable = in.readByte() != 0;
         category = in.readString();
         subCategory = in.readString();
         condition = in.readString();
         location = in.readParcelable(ItemLocation.class.getClassLoader());
         imageUrls = in.createStringArrayList();
+        searchKeywords = in.createStringArrayList();
         status = in.readString();
         itemBehavior = in.readString();
         tags = in.createStringArrayList();
         viewsCount = in.readInt();
         offersCount = in.readInt();
-
-        long secondsCreated = in.readLong();
-        int nanosCreated = in.readInt();
-        createdAt = (secondsCreated != -1) ? new Timestamp(secondsCreated, nanosCreated) : null;
-
-        long secondsUpdated = in.readLong();
-        int nanosUpdated = in.readInt();
-        updatedAt = (secondsUpdated != -1) ? new Timestamp(secondsUpdated, nanosUpdated) : null;
-
+        createdAt = (Timestamp) in.readParcelable(Timestamp.class.getClassLoader());
+        updatedAt = (Timestamp) in.readParcelable(Timestamp.class.getClassLoader());
         soldToUserId = in.readString();
-
-        long secondsSold = in.readLong();
-        int nanosSold = in.readInt();
-        soldAt = (secondsSold != -1) ? new Timestamp(secondsSold, nanosSold) : null;
+        soldAt = (Timestamp) in.readParcelable(Timestamp.class.getClassLoader());
     }
 
     @Override
@@ -195,28 +197,22 @@ public class Item implements Parcelable {
         dest.writeString(title);
         dest.writeString(description);
         dest.writeDouble(price);
-        dest.writeByte((byte) (isNegotiable ? 1 : 0));
+        dest.writeByte((byte) (negotiable ? 1 : 0));
         dest.writeString(category);
         dest.writeString(subCategory);
         dest.writeString(condition);
         dest.writeParcelable(location, flags);
         dest.writeStringList(imageUrls);
+        dest.writeStringList(searchKeywords);
         dest.writeString(status);
         dest.writeString(itemBehavior);
         dest.writeStringList(tags);
         dest.writeInt(viewsCount);
         dest.writeInt(offersCount);
-
-        dest.writeLong(createdAt != null ? createdAt.getSeconds() : -1);
-        dest.writeInt(createdAt != null ? createdAt.getNanoseconds() : -1);
-
-        dest.writeLong(updatedAt != null ? updatedAt.getSeconds() : -1);
-        dest.writeInt(updatedAt != null ? updatedAt.getNanoseconds() : -1);
-
+        dest.writeParcelable(createdAt, flags);
+        dest.writeParcelable(updatedAt, flags);
         dest.writeString(soldToUserId);
-
-        dest.writeLong(soldAt != null ? soldAt.getSeconds() : -1);
-        dest.writeInt(soldAt != null ? soldAt.getNanoseconds() : -1);
+        dest.writeParcelable(soldAt, flags);
     }
 
     @Override
@@ -229,7 +225,6 @@ public class Item implements Parcelable {
         public Item createFromParcel(Parcel in) {
             return new Item(in);
         }
-
         @Override
         public Item[] newArray(int size) {
             return new Item[size];

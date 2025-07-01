@@ -20,6 +20,8 @@ import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.databinding.FragmentEditProfileBinding;
+import com.github.dhaval2404.imagepicker.ImagePicker;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -133,9 +135,14 @@ public class EditProfileFragment extends Fragment {
     }
 
     private void openImagePicker() {
-        Intent intent = new Intent(Intent.ACTION_PICK);
-        intent.setType("image/*");
-        imagePickerLauncher.launch(intent);
+        ImagePicker.with(this)
+                .cropSquare() // Cắt ảnh thành hình vuông cho avatar
+                .compress(1024) // Nén ảnh
+                .maxResultSize(512, 512) // Giới hạn kích thước
+                .createIntent(intent -> {
+                    imagePickerLauncher.launch(intent);
+                    return null; // Bắt buộc phải return null trong lambda này
+                });
     }
 
     private void navigateBack() {

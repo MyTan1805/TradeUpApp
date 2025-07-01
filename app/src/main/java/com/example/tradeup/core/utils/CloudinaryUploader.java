@@ -1,10 +1,13 @@
-package com.example.tradeup.core.utils; // Hoặc package phù hợp
+package com.example.tradeup.core.utils;
 
 import android.content.Context;
 import android.net.Uri;
-import android.util.Log; // Dùng Log của Android
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+
+// Quan trọng: Import R của project để truy cập resource
+import com.example.tradeup.R;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -30,10 +33,7 @@ public class CloudinaryUploader {
 
     private static final String TAG = "CloudinaryUploader";
 
-    // THAY THẾ CÁC GIÁ TRỊ NÀY BẰNG THÔNG TIN CỦA BẠN
-    private static final String CLOUDINARY_CLOUD_NAME = "dhv2ihonf"; // << THAY THẾ
-    private static final String CLOUDINARY_API_KEY = "389774338928861";       // << THAY THẾ (API Key, không phải API Secret)
-    private static final String CLOUDINARY_UPLOAD_PRESET = "tradeup_unsigned_preset"; // << THAY THẾ
+    // Không còn khai báo các hằng số key ở đây nữa.
 
     // ExecutorService để chạy tác vụ mạng trên background thread
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
@@ -49,10 +49,17 @@ public class CloudinaryUploader {
             @NonNull Uri imageUri,
             @NonNull CloudinaryUploadCallback callback) {
 
-        if ("YOUR_CLOUD_NAME".equals(CLOUDINARY_CLOUD_NAME) ||
-                "YOUR_API_KEY".equals(CLOUDINARY_API_KEY) ||
-                "YOUR_UPLOAD_PRESET".equals(CLOUDINARY_UPLOAD_PRESET)) {
-            Log.e(TAG, "Cloudinary credentials not set. Please update constants in CloudinaryUploader.java");
+        // Bước 1: Đọc các key từ string resources (được tạo bởi resValue trong Gradle)
+        final String cloudName = context.getString(R.string.cloudinary_cloud_name);
+        final String apiKey = context.getString(R.string.cloudinary_api_key);
+        final String uploadPreset = context.getString(R.string.cloudinary_upload_preset);
+
+        // Bước 2: Kiểm tra xem các key đã được cấu hình đúng trong local.properties chưa
+        if ("DEFAULT_CLOUD_NAME".equals(cloudName) || cloudName.isEmpty() ||
+                "DEFAULT_API_KEY".equals(apiKey) || apiKey.isEmpty() ||
+                "DEFAULT_UPLOAD_PRESET".equals(uploadPreset) || uploadPreset.isEmpty()) {
+
+            Log.e(TAG, "Cloudinary credentials not set. Please update values in local.properties");
             callback.onFailure(new IllegalStateException("Cloudinary credentials not configured."));
             return;
         }
@@ -60,7 +67,7 @@ public class CloudinaryUploader {
         executorService.execute(() -> {
             File tempFile = null;
             try {
-                // 1. Tạo file tạm từ Uri
+                // Tạo file tạm từ Uri
                 InputStream inputStream = context.getContentResolver().openInputStream(imageUri);
                 if (inputStream == null) {
                     postResult(() -> callback.onFailure(new IOException("Failed to open input stream from Uri.")));
@@ -87,7 +94,7 @@ public class CloudinaryUploader {
                     return;
                 }
 
-                // 2. Upload lên Cloudinary
+                // Upload lên Cloudinary
                 OkHttpClient client = new OkHttpClient();
                 String mimeType = context.getContentResolver().getType(imageUri);
                 if (mimeType == null) {
@@ -99,13 +106,12 @@ public class CloudinaryUploader {
                 MultipartBody requestBody = new MultipartBody.Builder()
                         .setType(MultipartBody.FORM)
                         .addFormDataPart("file", tempFile.getName(), fileBody)
-                        .addFormDataPart("upload_preset", CLOUDINARY_UPLOAD_PRESET)
-                        .addFormDataPart("api_key", CLOUDINARY_API_KEY)
-                        // .addFormDataPart("folder", "your_folder_name") // Tùy chọn
+                        .addFormDataPart("upload_preset", uploadPreset) // Sử dụng biến local
+                        .addFormDataPart("api_key", apiKey)             // Sử dụng biến local
                         .build();
 
                 Request request = new Request.Builder()
-                        .url("https://api.cloudinary.com/v1_1/" + CLOUDINARY_CLOUD_NAME + "/image/upload")
+                        .url("https://api.cloudinary.com/v1_1/" + cloudName + "/image/upload") // Sử dụng biến local
                         .post(requestBody)
                         .build();
 
@@ -139,7 +145,6 @@ public class CloudinaryUploader {
                         String responseBodyString = responseBody.string();
                         JSONObject jsonResponse = new JSONObject(responseBodyString);
                         String imageUrl = jsonResponse.optString("secure_url", null);
-                        // String publicId = jsonResponse.optString("public_id", null);
 
                         if (imageUrl != null && !imageUrl.isEmpty()) {
                             Log.d(TAG, "Cloudinary Upload successful! Image URL: " + imageUrl);
@@ -177,12 +182,8 @@ public class CloudinaryUploader {
         return (extension == null || extension.isEmpty()) ? "jpg" : extension;
     }
 
-    // Hàm tiện ích để đảm bảo callback được gọi trên main thread (nếu cần cho UI updates)
-    // Tuy nhiên, ViewModel sẽ xử lý việc này khi cập nhật LiveData.
-    // Ở đây, chúng ta chỉ đảm bảo callback được gọi.
+    // Hàm tiện ích để đảm bảo callback được gọi.
     private static void postResult(Runnable runnable) {
-        // new android.os.Handler(android.os.Looper.getMainLooper()).post(runnable);
-        // Vì callback này sẽ được xử lý bởi ViewModel, không nhất thiết phải post lên Main thread ở đây
         runnable.run();
     }
 }

@@ -75,4 +75,17 @@
         app:layout_constraintTop_toTopOf="@id/textViewProductName"
         android:contentDescription="Options"/>
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonRateBuyer"
+        style="@style/Widget.MaterialComponents.Button.TextButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rate Buyer"
+        app:icon="@drawable/ic_star_small"
+        android:visibility="gone"
+        tools:visibility="visible"
+        app:layout_constraintStart_toStartOf="@id/chipProductStatus"
+        app:layout_constraintTop_toBottomOf="@id/chipProductStatus"
+        app:layout_constraintBottom_toBottomOf="parent"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>

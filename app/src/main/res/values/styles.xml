@@ -237,6 +237,44 @@
         <item name="android:textAppearance">?attr/textAppearanceBody1</item>
     </style>
 
+    <style name="BottomSheetOption" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">?attr/selectableItemBackground</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:drawablePadding">16dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+        <item name="drawableTint">?attr/colorOnSurface</item> <!-- Sửa lỗi app:drawableTint -->
+    </style>
+
+    <style name="AddItemLabel" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:layout_marginTop">16dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textAppearance">?attr/textAppearanceSubtitle1</item>
+    </style>
+
+    <!-- Style cho các trường có thể click (Category, Condition,...) -->
+    <style name="AddItemField" parent="Widget.AppCompat.TextView">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:padding">16dp</item>
+        <item name="android:background">@drawable/bg_clickable_field</item>
+        <item name="android:drawableEnd">@drawable/ic_arrow_forward</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textAppearance">?attr/textAppearanceBody1</item>
+        <item name="android:drawablePadding">12dp</item>
+    </style>
+
+    <!-- Style cho các trường không thể chỉnh sửa -->
+    <style name="AddItemField.ReadOnly" parent="AddItemField">
+        <item name="android:background">@drawable/bg_readonly_field</item>
+        <item name="android:drawableEnd">@null</item>
+        <item name="android:textColor">?android:attr/textColorSecondary</item>
+    </style>
+
     <!-- Nếu bạn muốn một font sans-serif cho body text -->
     <!--
     <style name="TextAppearance.TradeUp.BodySans16" parent="TextAppearance.MaterialComponents.Body1">

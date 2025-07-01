@@ -35,6 +35,11 @@ android {
             "maps_api_key", // Tên của string resource (viết thường)
             localProperties.getProperty("MAPS_API_KEY", "DEFAULT_API_KEY_IF_NOT_FOUND") // Lấy giá trị từ local.properties
         )
+
+        resValue("string", "maps_api_key", localProperties.getProperty("MAPS_API_KEY", "DEFAULT_API_KEY_IF_NOT_FOUND"))
+        resValue("string", "cloudinary_cloud_name", localProperties.getProperty("CLOUDINARY_CLOUD_NAME", "DEFAULT_CLOUD_NAME"))
+        resValue("string", "cloudinary_api_key", localProperties.getProperty("CLOUDINARY_API_KEY", "DEFAULT_API_KEY"))
+        resValue("string", "cloudinary_upload_preset", localProperties.getProperty("CLOUDINARY_UPLOAD_PRESET", "DEFAULT_UPLOAD_PRESET"))
     }
 
     buildTypes {
@@ -55,6 +60,7 @@ android {
     }
     buildFeatures {
         viewBinding = true
+        buildConfig = true
     }
 }
 

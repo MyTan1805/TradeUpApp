@@ -1,63 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
     android:background="?attr/colorSurface"
     tools:context=".ui.report.ReportContentDialogFragment">
 
-    <!-- Nút Submit ghim ở dưới -->
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonSubmitReport"
-        style="?attr/materialButtonStyle"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:text="Submit Report"
-        android:backgroundTint="?attr/colorError"
-        android:layout_margin="16dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+    <!-- 1. HEADER CỦA BOTTOM SHEET -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
 
-    <!-- Toolbar -->
-    <com.google.android.material.appbar.AppBarLayout
-        android:id="@+id/appBarLayout"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:background="?attr/colorSurface"
-        app:elevation="0dp"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+            android:id="@+id/drag_handle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
 
-        <com.google.android.material.appbar.MaterialToolbar
-            android:id="@+id/toolbar"
-            android:layout_width="match_parent"
-            android:layout_height="?attr/actionBarSize"
-            app:title="Report Content"
-            app:titleCentered="true"
-            app:titleTextAppearance="?attr/textAppearanceHeadline6">
+        <TextView
+            android:id="@+id/textViewDialogTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Report Content"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            app:layout_constraintTop_toBottomOf="@id/drag_handle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" />
 
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/buttonCancel"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Cancel"
-                android:layout_gravity="start"/>
-        </com.google.android.material.appbar.MaterialToolbar>
-    </com.google.android.material.appbar.AppBarLayout>
+        <ImageButton
+            android:id="@+id/buttonClose"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:src="@drawable/ic_close"
+            app:tint="?attr/colorOnSurface"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginEnd="8dp"
+            android:contentDescription="Close"/>
 
-    <!-- Nội dung cuộn -->
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="?attr/colorOutline"/>
+
+
+    <!-- 2. NỘI DUNG CUỘN -->
     <androidx.core.widget.NestedScrollView
-        android:layout_width="0dp"
-        android:layout_height="0dp"
-        android:fillViewport="true"
-        app:layout_constraintTop_toBottomOf="@id/appBarLayout"
-        app:layout_constraintBottom_toTopOf="@id/buttonSubmitReport"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"> <!-- Để ScrollView chiếm phần không gian còn lại -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -65,25 +67,25 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Thông tin sản phẩm bị báo cáo -->
+            <!-- ========================================================= -->
+            <!-- === PHẦN THÔNG TIN SẢN PHẨM/NGƯỜI DÙNG (ĐÃ BỔ SUNG) === -->
+            <!-- ========================================================= -->
             <TextView
                 android:id="@+id/textViewReportingHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
-                tools:text="Reporting Listing: Vintage Camera"/>
-
-            <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
-                android:background="?attr/colorOutline"/>
+                tools:text="You are reporting:"/>
 
             <LinearLayout
+                android:id="@+id/reported_item_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:gravity="center_vertical"
+                android:layout_marginTop="8dp"
+                android:background="@drawable/background_item_report"
+                android:padding="12dp">
 
                 <com.google.android.material.imageview.ShapeableImageView
                     android:id="@+id/imageViewProduct"
@@ -124,31 +126,24 @@
             <View
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
-                android:layout_marginVertical="16dp"
+                android:layout_marginVertical="24dp"
                 android:background="?attr/colorOutline"/>
+            <!-- ========================================================= -->
+
 
             <!-- Lý do báo cáo -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Select a reason for reporting"
-                android:textAppearance="?attr/textAppearanceSubtitle1"/>
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textStyle="bold"/>
 
             <RadioGroup
                 android:id="@+id/radioGroupReasons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="8dp">
-
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Counterfeit or Unauthorized Replica"/>
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Prohibited or Illegal Item"/>
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Misleading Description or Price"/>
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Spam or Scam"/>
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Inappropriate Content"/>
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Harassment or Hate Speech"/>
-                <RadioButton style="@style/Widget.TradeUp.RadioButton" android:text="Other"/>
-
-            </RadioGroup>
+                android:layout_marginTop="8dp"/>
 
             <!-- Chi tiết bổ sung -->
             <TextView
@@ -156,7 +151,8 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
                 android:text="Additional Details (Optional)"
-                android:textAppearance="?attr/textAppearanceSubtitle1" />
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textStyle="bold"/>
 
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilAdditionalDetails"
@@ -176,16 +172,20 @@
                     android:inputType="textMultiLine|textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Ghi chú -->
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Your report will be reviewed by our team. We take all reports seriously and will take appropriate action if needed."
-                android:textAppearance="?attr/textAppearanceCaption"
-                android:textColor="?android:attr/textColorSecondary" />
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <!-- 3. NÚT SUBMIT Ở DƯỚI CÙNG -->
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/buttonSubmitReport"
+        style="?attr/materialButtonStyle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit Report"
+        android:backgroundTint="?attr/colorError"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginBottom="16dp"/>
+
+</LinearLayout>

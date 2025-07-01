@@ -1,12 +1,16 @@
 // File: src/main/java/com/example/tradeup/ui/adapters/ProfileTabsAdapter.java
+
 package com.example.tradeup.ui.adapters;
 
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 import androidx.viewpager2.adapter.FragmentStateAdapter;
+
+// *** THÊM CÁC DÒNG IMPORT CHÍNH XÁC NÀY ***
 import com.example.tradeup.ui.profile.tabs.ProfileListingsFragment;
 import com.example.tradeup.ui.profile.tabs.ProfileReviewsFragment;
 import com.example.tradeup.ui.profile.tabs.ProfileSoldFragment;
+
 
 public class ProfileTabsAdapter extends FragmentStateAdapter {
 
@@ -23,7 +27,7 @@ public class ProfileTabsAdapter extends FragmentStateAdapter {
             case 1:
                 return new ProfileSoldFragment();
             case 2:
-                return new ProfileReviewsFragment();
+                return new ProfileReviewsFragment(); // Lỗi của bạn ở đây
             default: // case 0
                 return new ProfileListingsFragment();
         }

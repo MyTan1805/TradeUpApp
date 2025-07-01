@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="8dp"
+    android:background="?attr/colorSurface">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:id="@+id/option_edit"
+        style="@style/BottomSheetOption"
+        android:text="Edit Listing"
+        app:drawableStartCompat="@drawable/ic_edit" />
+
+    <TextView
+        android:id="@+id/option_mark_sold"
+        style="@style/BottomSheetOption"
+        android:text="Mark as Sold"
+        app:drawableStartCompat="@drawable/ic_check_circle" />
+
+    <!-- === MỤC ĐÃ ĐƯỢC THÊM VÀO / SỬA ĐỔI === -->
+    <TextView
+        android:id="@+id/option_pause_resume"
+        style="@style/BottomSheetOption"
+        android:text="Pause / Resume Listing"
+        app:drawableStartCompat="@drawable/ic_pause" />
+
+    <View style="@style/ProfileDivider" android:layout_marginHorizontal="16dp" android:layout_marginVertical="8dp"/>
+
+    <TextView
+        android:id="@+id/option_delete"
+        style="@style/BottomSheetOption"
+        android:text="Delete Listing"
+        android:textColor="?attr/colorError"
+        app:drawableStartCompat="@drawable/ic_delete"
+        app:drawableTint="?attr/colorError" />
+
+    <TextView
+        android:id="@+id/option_cancel"
+        style="@style/BottomSheetOption"
+        android:text="Cancel"
+        android:textStyle="bold"
+        app:drawableStartCompat="@drawable/ic_close" />
+
+</LinearLayout>

@@ -10,6 +10,8 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
+import androidx.navigation.fragment.NavHostFragment;
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.User;
@@ -25,6 +27,7 @@ public class ProfileFragment extends Fragment {
     private FragmentProfileBinding binding;
     private ProfileViewModel viewModel;
     private ProfileTabsAdapter profileTabsAdapter;
+    private NavController navController;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,11 +45,15 @@ public class ProfileFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupViewPager();
-        setupObservers();
+
+        navController = NavHostFragment.findNavController(this);
+
+        setupViewPagerAndTabs();
+        setupClickListeners();
+        observeViewModel();
     }
 
-    private void setupViewPager() {
+    private void setupViewPagerAndTabs() {
         profileTabsAdapter = new ProfileTabsAdapter(this);
         binding.viewPagerProfileContent.setAdapter(profileTabsAdapter);
 
@@ -55,11 +62,46 @@ public class ProfileFragment extends Fragment {
         ).attach();
     }
 
-    private void setupObservers() {
+    private void setupClickListeners() {
+        binding.buttonEditProfile.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this).navigate(R.id.action_global_to_editProfileFragment);
+        });
+
+        binding.buttonSettings.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this).navigate(R.id.action_global_to_settingsFragment);
+        });
+
+        // Listener cho FAB đổi ảnh
+        binding.fabChangeProfilePicture.setOnClickListener(v -> {
+            NavHostFragment.findNavController(this).navigate(R.id.action_global_to_editProfileFragment);
+        });
+
+        binding.buttonMyOffers.setOnClickListener(v -> {
+            if (isAdded()) {
+                // Sử dụng action vừa tạo trong nav_graph
+                navController.navigate(R.id.action_profileFragment_to_offersFragment);
+            }
+        });
+
+        // *** THÊM LOGIC ĐIỀU HƯỚNG CHO "MY LISTINGS" Ở ĐÂY ***
+        View listingsStatLayout = binding.layoutStats.getChildAt(0);
+        listingsStatLayout.setOnClickListener(v -> {
+            try {
+                // Sử dụng action đã định nghĩa trong nav_graph
+                navController.navigate(R.id.action_profileFragment_to_myListingsFragment);
+            } catch (Exception e) {
+                // Phòng trường hợp action không tồn tại hoặc lỗi khác
+                Toast.makeText(getContext(), "Cannot open My Listings.", Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+    private void observeViewModel() {
         viewModel.getHeaderState().observe(getViewLifecycleOwner(), state -> {
-            if (state instanceof ProfileHeaderState.Loading) {
-                // You can show a loading indicator here if needed
-            } else if (state instanceof ProfileHeaderState.Success) {
+            // Có thể thêm ProgressBar ở đây
+            // binding.progressBar.setVisibility(state instanceof ProfileHeaderState.Loading ? View.VISIBLE : View.GONE);
+
+            if (state instanceof ProfileHeaderState.Success) {
                 bindHeaderData(((ProfileHeaderState.Success) state).user, ((ProfileHeaderState.Success) state).isCurrentUserProfile);
             } else if (state instanceof ProfileHeaderState.Error) {
                 Toast.makeText(getContext(), ((ProfileHeaderState.Error) state).message, Toast.LENGTH_LONG).show();
@@ -76,20 +118,22 @@ public class ProfileFragment extends Fragment {
 
         binding.textViewUserName.setText(user.getDisplayName());
         binding.ratingBarUser.setRating((float) user.getAverageRating());
-        binding.textViewRatingValue.setText(String.format(Locale.getDefault(), "%.1f", user.getAverageRating()));
-        binding.textViewReviewCount.setText(String.format(Locale.getDefault(), "%d Reviews", user.getReviewCount()));
 
-        // Update stats from denormalized fields on User model
+        // Sửa lỗi: Cập nhật totalRatingCount từ model User
+        String reviewCountText = String.format(Locale.getDefault(), "%d Reviews", user.getTotalRatingCount());
+        binding.textViewReviewCount.setText(reviewCountText);
+
+        binding.textViewRatingValue.setText(String.format(Locale.getDefault(), "%.1f", user.getAverageRating()));
+
         binding.textStatListings.setText(String.valueOf(user.getTotalListings()));
         binding.textStatSold.setText(String.valueOf(user.getTotalTransactions()));
-        // binding.textStatFollowers.setText(...); // Add if you have a followersCount field
 
-        // Show/hide buttons based on whether this is the current user's profile
+        // Ẩn/hiện nút dựa trên việc có phải hồ sơ của chính người dùng hay không
         int visibility = isCurrentUserProfile ? View.VISIBLE : View.GONE;
         binding.buttonEditProfile.setVisibility(visibility);
         binding.fabChangeProfilePicture.setVisibility(visibility);
         binding.layoutSecondaryActions.setVisibility(visibility);
-        binding.buttonSettings.setVisibility(isCurrentUserProfile ? View.VISIBLE : View.INVISIBLE); // Keep layout space
+        binding.buttonSettings.setVisibility(isCurrentUserProfile ? View.VISIBLE : View.INVISIBLE);
     }
 
     @Override

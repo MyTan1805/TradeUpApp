@@ -79,7 +79,9 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_collapseMode="pin"
                 app:navigationIcon="@drawable/ic_arrow_back"
-                app:title="Item Details">
+                app:title="Item Details"
+
+                app:menu="@menu/detail_toolbar_menu">
 
                 <ImageButton
                     android:id="@+id/button_bookmark"
@@ -91,15 +93,7 @@
                     android:src="@drawable/ic_bookmark_border"
                     android:contentDescription="@string/luu_san_pham"/>
 
-                <ImageButton
-                    android:id="@+id/button_share"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_gravity="end"
-                    android:background="?attr/selectableItemBackgroundBorderless"
-                    android:padding="12dp"
-                    android:src="@drawable/ic_share"
-                    android:contentDescription="Share"/>
+
 
             </com.google.android.material.appbar.MaterialToolbar>
 
@@ -108,6 +102,7 @@
 
     <!-- NỘI DUNG CUỘN -->
     <androidx.core.widget.NestedScrollView
+        android:id="@+id/nestedScrollView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:clipToPadding="false"
@@ -362,6 +357,7 @@
 
     <!-- THANH HÀNH ĐỘNG CỐ ĐỊNH Ở DƯỚI -->
     <com.google.android.material.card.MaterialCardView
+        android:id="@+id/bottom_action_bar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom"

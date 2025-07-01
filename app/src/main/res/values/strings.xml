@@ -109,6 +109,7 @@
     <string name="luu_san_pham">"Lưu sản phẩm "</string>
     <string name="todo">TODO</string>
     <string name="xoa_anh">Xóa ảnh</string>
+    <string name="bo_luu_san_pham">bỏ lưu sản phẩm</string>
 
 
     <!-- Reply Entries & Values for ListPreference -->

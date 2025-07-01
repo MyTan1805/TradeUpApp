@@ -1,37 +1,51 @@
 // File: src/main/java/com/example/tradeup/ui/details/ItemDetailFragment.java
+
 package com.example.tradeup.ui.details;
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.viewpager2.widget.ViewPager2;
+
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
+import com.example.tradeup.data.model.User;
 import com.example.tradeup.databinding.FragmentItemDetailBinding;
 import com.example.tradeup.ui.adapters.ImageSliderAdapter;
+import com.example.tradeup.ui.offers.MakeOfferDialogFragment;
+import com.example.tradeup.ui.report.ReportContentDialogFragment;
 import com.google.android.material.tabs.TabLayoutMediator;
+
 import java.text.NumberFormat;
+import java.text.SimpleDateFormat;
 import java.util.Locale;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ItemDetailFragment extends Fragment {
 
+    private static final String TAG = "ItemDetailFragment";
     private FragmentItemDetailBinding binding;
     private ItemDetailViewModel viewModel;
+    private NavController navController;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(ItemDetailViewModel.class);
-        // ViewModel sẽ tự động tải dữ liệu trong constructor của nó bằng SavedStateHandle
     }
 
     @Nullable
@@ -44,80 +58,170 @@ public class ItemDetailFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupToolbar();
-        observeViewModel(); // Chỉ cần gọi hàm này
-    }
-
-    private void setupToolbar() {
-        binding.toolbar.setNavigationOnClickListener(v -> NavHostFragment.findNavController(this).navigateUp());
-
-        binding.toolbar.setOnMenuItemClickListener(item -> {
-            // === FIX: ID của menu item được lấy đúng từ R.id ===
-            int menuItemId = item.getItemId();
-            if (menuItemId == R.id.action_share) {
-                Toast.makeText(getContext(), "Share clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            } else if (menuItemId == R.id.action_bookmark) {
-                Toast.makeText(getContext(), "Bookmark clicked", Toast.LENGTH_SHORT).show();
-                return true;
-            }
-            return false;
-        });
+        navController = NavHostFragment.findNavController(this);
+        observeViewModel();
     }
 
     private void observeViewModel() {
-        // === FIX: Quan sát một LiveData duy nhất là getViewState() ===
         viewModel.getViewState().observe(getViewLifecycleOwner(), state -> {
-            // Ẩn tất cả các view trạng thái trước
-            binding.progressBar.setVisibility(View.GONE); // Giả sử bạn có ProgressBar với id này
+            binding.progressBar.setVisibility(View.GONE);
+            setMainContentVisibility(state instanceof ItemDetailViewState.Success);
 
             if (state instanceof ItemDetailViewState.Loading) {
-                // Hiển thị trạng thái đang tải
                 binding.progressBar.setVisibility(View.VISIBLE);
             } else if (state instanceof ItemDetailViewState.Success) {
-                // Lấy dữ liệu từ trạng thái Success
                 ItemDetailViewState.Success successState = (ItemDetailViewState.Success) state;
-                // Gọi hàm populateUi với dữ liệu đã được xử lý
-                populateUi(successState.item, successState.categoryName, successState.conditionName);
+                populateUi(successState.item, successState.seller, successState.categoryName, successState.conditionName);
+                setupClickListeners(successState.item, successState.seller);
+                updateBookmarkButton(successState.isBookmarked);
             } else if (state instanceof ItemDetailViewState.Error) {
-                // Hiển thị lỗi
                 Toast.makeText(getContext(), ((ItemDetailViewState.Error) state).message, Toast.LENGTH_LONG).show();
-                // Quay lại màn hình trước nếu có lỗi nghiêm trọng
-                NavHostFragment.findNavController(this).navigateUp();
+                if (isAdded()) {
+                    navController.navigateUp();
+                }
+            }
+        });
+
+        viewModel.isBookmarked().observe(getViewLifecycleOwner(), this::updateBookmarkButton);
+
+        viewModel.isViewingOwnItem().observe(getViewLifecycleOwner(), isOwnItem -> {
+            if (isOwnItem != null) {
+                binding.bottomActionBar.setVisibility(isOwnItem ? View.GONE : View.VISIBLE);
+            }
+        });
+
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
+            String message = event.getContentIfNotHandled();
+            if (message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
     }
 
-    // === FIX: Sửa lại tham số của hàm này ===
-    private void populateUi(Item item, String categoryName, String conditionName) {
-        // Setup ViewPager2
-        ImageSliderAdapter adapter = new ImageSliderAdapter(item.getImageUrls());
-        binding.viewPagerImages.setAdapter(adapter);
+    private void setMainContentVisibility(boolean visible) {
+        int visibility = visible ? View.VISIBLE : View.GONE;
+        binding.appBarLayout.setVisibility(visibility);
+        binding.nestedScrollView.setVisibility(visibility);
+        binding.bottomActionBar.setVisibility(visibility);
+    }
 
-        // Kết nối ViewPager2 với TabLayout để tạo indicator
-        new TabLayoutMediator(binding.tabLayoutIndicator, binding.viewPagerImages, (tab, position) -> {}).attach();
+    // *** ĐÂY LÀ HÀM ĐÃ ĐƯỢC SỬA ***
+    private void populateUi(@NonNull Item item, @NonNull User seller, @NonNull String categoryName, @NonNull String conditionName) {
+        if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
+            ImageSliderAdapter adapter = new ImageSliderAdapter(item.getImageUrls());
+            binding.viewPagerImages.setAdapter(adapter);
+            new TabLayoutMediator(binding.tabLayoutIndicator, binding.viewPagerImages, (tab, position) -> {}).attach();
+            updateImageCounter(1, item.getImageUrls().size());
+            binding.viewPagerImages.registerOnPageChangeCallback(new ViewPager2.OnPageChangeCallback() {
+                @Override
+                public void onPageSelected(int position) {
+                    super.onPageSelected(position);
+                    updateImageCounter(position + 1, item.getImageUrls().size());
+                }
+            });
+        }
 
-        // Điền thông tin
+        binding.toolbar.setTitle(item.getTitle());
         binding.textItemTitle.setText(item.getTitle());
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("en", "US"));
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         binding.textItemPrice.setText(currencyFormat.format(item.getPrice()));
-
-        // Hiển thị tên tình trạng đã được xử lý từ ViewModel
-        binding.textItemCondition.setText(conditionName);
-
-        // Thông tin người bán
-        Glide.with(this).load(item.getSellerProfilePictureUrl()).into(binding.imageSellerAvatar);
-        binding.textSellerName.setText(item.getSellerDisplayName());
-
-        // Mô tả và chi tiết
+        binding.textItemCondition.setText(conditionName); // Sử dụng tên tình trạng đã được resolve
         binding.textItemDescription.setText(item.getDescription());
 
-        // TODO: Cập nhật các trường khác như Brand, Color, Dimensions từ model Item nếu có
-        // binding.textDetailBrand.setText(item.getBrand());
+        Glide.with(this).load(seller.getProfilePictureUrl()).placeholder(R.drawable.ic_person).into(binding.imageSellerAvatar);
+        binding.textSellerName.setText(seller.getDisplayName());
+        if (item.getLocation() != null) {
+            binding.textSellerLocation.setText(item.getLocation().getAddressString());
+        }
+        if (seller.getCreatedAt() != null) {
+            SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
+            binding.textMemberSince.setText("Thành viên từ " + sdf.format(seller.getCreatedAt().toDate()));
+        }
+
+        binding.ratingBarItem.setRating((float) seller.getAverageRating());
+        binding.textRatingInfo.setText(String.format(Locale.US, "%.1f (%d đánh giá)", seller.getAverageRating(), seller.getTotalRatingCount()));
+    }
+
+    private void updateBookmarkButton(boolean isBookmarked) {
+        if (binding == null) return;
+        if (isBookmarked) {
+            binding.buttonBookmark.setImageResource(R.drawable.ic_bookmark);
+        } else {
+            binding.buttonBookmark.setImageResource(R.drawable.ic_bookmark_border);
+        }
+    }
+
+    private void updateImageCounter(int current, int total) {
+        if (binding == null) return;
+        String counterText = current + "/" + total;
+        binding.imageCounter.setText(counterText);
+    }
+
+    private void setupClickListeners(@NonNull Item item, @NonNull User seller) {
+        // 1. Nút quay lại
+        binding.toolbar.setNavigationOnClickListener(v -> {
+            if (isAdded()) navController.navigateUp();
+        });
+
+        // 2. Xử lý các item trong menu "ba chấm"
+        binding.toolbar.setOnMenuItemClickListener(menuItem -> {
+            int itemIdMenu = menuItem.getItemId();
+
+            if (itemIdMenu == R.id.action_share) {
+                Log.d(TAG, "Share menu item clicked.");
+                // Logic chia sẻ của bạn
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain");
+                String shareBody = "Hãy xem sản phẩm này trên TradeUp: " + item.getTitle() + "\nLink: https://tradeup.app/item/" + item.getItemId();
+                shareIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
+                startActivity(Intent.createChooser(shareIntent, "Chia sẻ qua"));
+                return true; // Đã xử lý sự kiện
+
+            } else if (itemIdMenu == R.id.action_report) {
+                Log.d(TAG, "Report menu item clicked. Opening dialog...");
+                // Logic mở Dialog báo cáo
+                // Truyền cả ID người bán để ViewModel có thể lưu lại
+                ReportContentDialogFragment.newInstance(item.getItemId(), "listing", item.getSellerId())
+                        .show(getParentFragmentManager(), "ReportDialog");
+                return true;
+            }
+
+            return false; // Chưa xử lý, để hệ thống xử lý tiếp (nếu có)
+        });
+
+        // 3. Nút Bookmark (đã là ImageButton riêng)
+        binding.buttonBookmark.setOnClickListener(v -> viewModel.toggleBookmark());
+
+        // 4. Khu vực thông tin người bán
+        binding.sellerInfoContainer.setOnClickListener(v -> {
+            Boolean isOwnItem = viewModel.isViewingOwnItem().getValue();
+            if (isOwnItem != null) {
+                if (isOwnItem) {
+                    navController.navigate(R.id.navigation_profile);
+                } else {
+                    Bundle args = new Bundle();
+                    args.putString("userId", seller.getUid());
+                    navController.navigate(R.id.action_global_to_publicProfileFragment, args);
+                }
+            }
+        });
+
+        // 5. Nút Trả giá
+        binding.buttonMakeOffer.setOnClickListener(v -> {
+            MakeOfferDialogFragment.newInstance(item).show(getParentFragmentManager(), "MakeOfferDialog");
+        });
+
+        // 6. Nút Nhắn tin
+        binding.buttonMessageSeller.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Chức năng Nhắn tin sẽ được làm sau.", Toast.LENGTH_SHORT).show();
+        });
     }
 
     @Override
     public void onDestroyView() {
+        if (binding != null) {
+            binding.viewPagerImages.setAdapter(null);
+        }
         super.onDestroyView();
         binding = null;
     }

@@ -1,7 +1,12 @@
-package com.example.tradeup.ui.adapters;// package: com.example.tradeup.ui.adapters;
+// File: src/main/java/com/example/tradeup/ui/adapters/MyListingAdapter.java
 
+package com.example.tradeup.ui.adapters;
+
+import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.View;
 import android.view.ViewGroup;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
@@ -12,15 +17,19 @@ import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.ItemMyListingBinding;
 
+import java.text.NumberFormat;
+import java.util.Locale;
+
 public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListingViewHolder> {
 
     private final OnItemMenuClickListener listener;
 
     public interface OnItemMenuClickListener {
         void onMenuClick(Item item);
+        void onRateBuyerClick(Item item);
     }
 
-    public MyListingAdapter(OnItemMenuClickListener listener) {
+    public MyListingAdapter(@NonNull OnItemMenuClickListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
     }
@@ -31,50 +40,58 @@ public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListi
         ItemMyListingBinding binding = ItemMyListingBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false
         );
-        return new MyListingViewHolder(binding, listener);
+        return new MyListingViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MyListingViewHolder holder, int position) {
-        holder.bind(getItem(position));
+        Item currentItem = getItem(position);
+        if (currentItem != null) {
+            holder.bind(currentItem, listener);
+        }
     }
 
     static class MyListingViewHolder extends RecyclerView.ViewHolder {
         private final ItemMyListingBinding binding;
-        private final OnItemMenuClickListener listener;
 
-        MyListingViewHolder(ItemMyListingBinding binding, OnItemMenuClickListener listener) {
+        MyListingViewHolder(ItemMyListingBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
-            this.listener = listener;
         }
 
-        void bind(Item item) {
+        void bind(final Item item, final OnItemMenuClickListener listener) {
             binding.textViewProductName.setText(item.getTitle());
-            binding.textViewProductPrice.setText(String.format("$%.2f", item.getPrice())); // Định dạng giá
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            binding.textViewProductPrice.setText(currencyFormat.format(item.getPrice()));
 
-            // Lấy ảnh đầu tiên trong danh sách
             if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
                 Glide.with(itemView.getContext())
                         .load(item.getImageUrls().get(0))
                         .placeholder(R.drawable.ic_placeholder_image)
                         .error(R.drawable.ic_image_not_found)
                         .into(binding.imageViewProduct);
+            } else {
+                binding.imageViewProduct.setImageResource(R.drawable.ic_placeholder_image);
             }
 
-            // TODO: Cập nhật chip trạng thái và số lượt xem
-            // binding.chipProductStatus.setText(item.getStatus());
-            // binding.textViewViews.setText(String.format("%d views", item.getViews()));
+            binding.chipProductStatus.setText(item.getStatus());
+            binding.textViewViews.setText(String.format(Locale.getDefault(), "%d views", item.getViewsCount()));
 
             binding.buttonMenu.setOnClickListener(v -> listener.onMenuClick(item));
+
+            if ("sold".equalsIgnoreCase(item.getStatus())) {
+                binding.buttonRateBuyer.setVisibility(View.VISIBLE);
+                binding.buttonRateBuyer.setOnClickListener(v -> listener.onRateBuyerClick(item));
+            } else {
+                binding.buttonRateBuyer.setVisibility(View.GONE);
+            }
         }
     }
 
-    // DiffUtil giúp RecyclerView cập nhật danh sách hiệu quả
     private static final DiffUtil.ItemCallback<Item> DIFF_CALLBACK = new DiffUtil.ItemCallback<Item>() {
         @Override
         public boolean areItemsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
-            return oldItem.getId().equals(newItem.getId());
+            return oldItem.getItemId().equals(newItem.getItemId());
         }
 
         @Override

@@ -68,7 +68,8 @@
         tools:layout="@layout/fragment_public_profile">
         <argument
             android:name="userId"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="false"/>
     </fragment>
 
     <fragment
@@ -110,6 +111,37 @@
             android:name="categoryId"
             app:argType="string" />
     </fragment>
+
+    <fragment
+        android:id="@+id/offersFragment"
+        android:name="com.example.tradeup.ui.offers.OffersFragment"
+        android:label="Offers"
+        tools:layout="@layout/fragment_offers" />
+
+    <fragment
+        android:id="@+id/searchResultsFragment"
+        android:name="com.example.tradeup.ui.search.SearchResultsFragment"
+        android:label="Search Results"
+        tools:layout="@layout/fragment_search_results" >
+        <!-- Định nghĩa argument mà nó nhận -->
+        <argument
+            android:name="query"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/submitReviewFragment"
+        android:name="com.example.tradeup.ui.reviews.SubmitReviewFragment"
+        android:label="Submit Review"
+        tools:layout="@layout/fragment_submit_review">
+        <!-- Định nghĩa các argument mà nó sẽ nhận -->
+        <argument android:name="transactionId" app:argType="string" />
+        <argument android:name="ratedUserId" app:argType="string" />
+        <argument android:name="itemId" app:argType="string" />
+    </fragment>
+
 
     <!-- CÁC DIALOG / BOTTOMSHEET -->
     <dialog
@@ -185,5 +217,25 @@
     <action
         android:id="@+id/action_global_to_reportContentDialogFragment"
         app:destination="@id/reportContentDialogFragment" />
+
+    <action
+        android:id="@+id/action_myListingsFragment_to_addItemFragment"
+        app:destination="@id/addItemFragment" />
+
+    <action
+        android:id="@+id/action_profileFragment_to_myListingsFragment"
+        app:destination="@id/myListingsFragment" />
+
+    <action
+        android:id="@+id/action_homeFragment_to_searchResultsFragment"
+        app:destination="@id/searchResultsFragment" />
+
+    <action
+        android:id="@+id/action_global_to_submitReviewFragment"
+        app:destination="@id/submitReviewFragment" />
+
+    <action
+        android:id="@+id/action_profileFragment_to_offersFragment"
+        app:destination="@id/offersFragment" />
 
 </navigation>

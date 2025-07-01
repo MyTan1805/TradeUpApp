@@ -10,10 +10,15 @@
         app:showAsAction="ifRoom" />
 
     <!-- Nút Lưu/Bookmark -->
+<!--    <item-->
+<!--        android:id="@+id/action_bookmark"-->
+<!--        android:icon="@drawable/ic_bookmark_border"-->
+<!--        android:title="@string/luu_san_pham"-->
+<!--        app:showAsAction="ifRoom" />-->
+
     <item
-        android:id="@+id/action_bookmark"
-        android:icon="@drawable/ic_bookmark_border"
-        android:title="@string/luu_san_pham"
-        app:showAsAction="ifRoom" />
+        android:id="@+id/action_report"
+        android:title="Report Listing"
+        app:showAsAction="never" />
 
 </menu>

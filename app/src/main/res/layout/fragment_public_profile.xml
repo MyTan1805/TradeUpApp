@@ -1,12 +1,177 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="?attr/colorSurface"
     tools:context=".ui.profile.PublicProfileFragment">
-    <TextView
-        android:layout_width="wrap_content"
+
+    <!-- === TOOLBAR === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:text="Public Profile Screen" />
-</FrameLayout>
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back_inset"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:title="Seller Profile"
+            app:titleCentered="true"
+            app:titleTextAppearance="?attr/textAppearanceHeadline6"
+            app:menu="@menu/public_profile_menu" />
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
+    </com.google.android.material.appbar.AppBarLayout>
+
+
+    <!-- === NỘI DUNG CUỘN === -->
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="16dp">
+
+            <!-- Thông tin cá nhân -->
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <de.hdodenhof.circleimageview.CircleImageView
+                    android:id="@+id/imageViewProfilePicture"
+                    android:layout_width="88dp"
+                    android:layout_height="88dp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toTopOf="parent"
+                    tools:src="@drawable/ic_person" />
+
+                <ImageView
+                    android:id="@+id/imageViewVerified"
+                    android:layout_width="24dp"
+                    android:layout_height="24dp"
+                    android:src="@drawable/ic_verified"
+                    app:layout_constraintBottom_toBottomOf="@+id/imageViewProfilePicture"
+                    app:layout_constraintEnd_toEndOf="@+id/imageViewProfilePicture"
+                    tools:ignore="ContentDescription" />
+
+                <TextView
+                    android:id="@+id/textViewUserName"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:textAppearance="?attr/textAppearanceHeadline5"
+                    android:textStyle="bold"
+                    app:layout_constraintEnd_toEndOf="parent"
+                    app:layout_constraintStart_toEndOf="@+id/imageViewProfilePicture"
+                    app:layout_constraintTop_toTopOf="@+id/imageViewProfilePicture"
+                    tools:text="Sarah Mitchell" />
+
+                <RatingBar
+                    android:id="@+id/ratingBarUser"
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:isIndicator="true"
+                    android:numStars="5"
+                    android:stepSize="0.1"
+                    app:layout_constraintStart_toStartOf="@+id/textViewUserName"
+                    app:layout_constraintTop_toBottomOf="@+id/textViewUserName"
+                    tools:rating="4.8" />
+
+                <TextView
+                    android:id="@+id/textViewRatingAndReviews"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textAppearance="?attr/textAppearanceBody2"
+                    android:textColor="?android:attr/textColorSecondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/ratingBarUser"
+                    app:layout_constraintStart_toEndOf="@+id/ratingBarUser"
+                    tools:text="4.8 (342 reviews)" />
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Chỉ số -->
+            <LinearLayout
+                android:id="@+id/layoutStats"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:orientation="horizontal"
+                android:baselineAligned="false">
+
+                <LinearLayout style="@style/ProfileStatItemLayout">
+                    <TextView android:id="@+id/textStatListings" style="@style/ProfileStatValue" tools:text="156"/>
+                    <TextView style="@style/ProfileStatLabel" android:text="Active Listings"/>
+                </LinearLayout>
+
+                <LinearLayout style="@style/ProfileStatItemLayout">
+                    <TextView android:id="@+id/textStatMemberSince" style="@style/ProfileStatValue" tools:text="March 2023"/>
+                    <TextView style="@style/ProfileStatLabel" android:text="Member Since"/>
+                </LinearLayout>
+            </LinearLayout>
+
+            <!-- Nút bấm -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:orientation="horizontal">
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonMessage"
+                    style="?attr/materialButtonStyle"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="8dp"
+                    android:layout_weight="1"
+                    android:text="Message Sarah" />
+
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/buttonFollow"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:layout_weight="1"
+                    android:text="Follow" />
+            </LinearLayout>
+
+            <!-- Danh sách sản phẩm -->
+            <TextView
+                android:id="@+id/textViewListingsTitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:textAppearance="?attr/textAppearanceHeadline6"
+                android:textStyle="bold"
+                tools:text="Active Listings (156)" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerViewUserListings"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:nestedScrollingEnabled="false"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                app:spanCount="2"
+                tools:itemCount="6"
+                tools:listitem="@layout/item_product_card_simple" />
+
+        </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
