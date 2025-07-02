@@ -1,5 +1,3 @@
-// File: src/main/java/com/example/tradeup/ui/details/ItemDetailFragment.java
-
 package com.example.tradeup.ui.details;
 
 import android.content.Intent;
@@ -64,19 +62,19 @@ public class ItemDetailFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getViewState().observe(getViewLifecycleOwner(), state -> {
-            binding.progressBar.setVisibility(View.GONE);
+            // Luôn ẩn/hiện progressbar dựa trên trạng thái Loading
+            binding.progressBar.setVisibility(state instanceof ItemDetailViewState.Loading ? View.VISIBLE : View.GONE);
+            // Ẩn/hiện nội dung chính
             setMainContentVisibility(state instanceof ItemDetailViewState.Success);
 
-            if (state instanceof ItemDetailViewState.Loading) {
-                binding.progressBar.setVisibility(View.VISIBLE);
-            } else if (state instanceof ItemDetailViewState.Success) {
+            if (state instanceof ItemDetailViewState.Success) {
                 ItemDetailViewState.Success successState = (ItemDetailViewState.Success) state;
                 populateUi(successState.item, successState.seller, successState.categoryName, successState.conditionName);
                 setupClickListeners(successState.item, successState.seller);
-                updateBookmarkButton(successState.isBookmarked);
             } else if (state instanceof ItemDetailViewState.Error) {
                 Toast.makeText(getContext(), ((ItemDetailViewState.Error) state).message, Toast.LENGTH_LONG).show();
                 if (isAdded()) {
+                    // Nếu có lỗi nghiêm trọng (vd: không tìm thấy item), quay lại màn hình trước
                     navController.navigateUp();
                 }
             }
@@ -86,6 +84,7 @@ public class ItemDetailFragment extends Fragment {
 
         viewModel.isViewingOwnItem().observe(getViewLifecycleOwner(), isOwnItem -> {
             if (isOwnItem != null) {
+                // Ẩn thanh hành động dưới cùng nếu người dùng đang xem tin của chính mình
                 binding.bottomActionBar.setVisibility(isOwnItem ? View.GONE : View.VISIBLE);
             }
         });
@@ -102,11 +101,13 @@ public class ItemDetailFragment extends Fragment {
         int visibility = visible ? View.VISIBLE : View.GONE;
         binding.appBarLayout.setVisibility(visibility);
         binding.nestedScrollView.setVisibility(visibility);
-        binding.bottomActionBar.setVisibility(visibility);
+        // Thanh bottom bar sẽ được quản lý bởi isViewingOwnItem observer
     }
 
-    // *** ĐÂY LÀ HÀM ĐÃ ĐƯỢC SỬA ***
     private void populateUi(@NonNull Item item, @NonNull User seller, @NonNull String categoryName, @NonNull String conditionName) {
+        if (binding == null) return; // Đảm bảo view vẫn tồn tại
+
+        // Setup Image Slider
         if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
             ImageSliderAdapter adapter = new ImageSliderAdapter(item.getImageUrls());
             binding.viewPagerImages.setAdapter(adapter);
@@ -121,13 +122,24 @@ public class ItemDetailFragment extends Fragment {
             });
         }
 
+        // Bind Item Info
         binding.toolbar.setTitle(item.getTitle());
         binding.textItemTitle.setText(item.getTitle());
         NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
         binding.textItemPrice.setText(currencyFormat.format(item.getPrice()));
-        binding.textItemCondition.setText(conditionName); // Sử dụng tên tình trạng đã được resolve
+        binding.textItemCondition.setText(conditionName);
         binding.textItemDescription.setText(item.getDescription());
 
+        // << FIX: HIỂN THỊ LƯỢT XEM >>
+        if (item.getViewsCount() != null) {
+            String viewsText = String.format(Locale.getDefault(), "%d views", item.getViewsCount());
+            binding.textItemViews.setText(viewsText);
+            binding.textItemViews.setVisibility(View.VISIBLE);
+        } else {
+            binding.textItemViews.setVisibility(View.GONE);
+        }
+
+        // Bind Seller Info
         Glide.with(this).load(seller.getProfilePictureUrl()).placeholder(R.drawable.ic_person).into(binding.imageSellerAvatar);
         binding.textSellerName.setText(seller.getDisplayName());
         if (item.getLocation() != null) {
@@ -138,23 +150,21 @@ public class ItemDetailFragment extends Fragment {
             binding.textMemberSince.setText("Thành viên từ " + sdf.format(seller.getCreatedAt().toDate()));
         }
 
+        // Bind Rating Info
         binding.ratingBarItem.setRating((float) seller.getAverageRating());
-        binding.textRatingInfo.setText(String.format(Locale.US, "%.1f (%d đánh giá)", seller.getAverageRating(), seller.getTotalRatingCount()));
+        String ratingInfo = String.format(Locale.US, "%.1f (%d đánh giá)", seller.getAverageRating(), seller.getTotalRatingCount());
+        binding.textRatingInfo.setText(ratingInfo);
     }
 
     private void updateBookmarkButton(boolean isBookmarked) {
         if (binding == null) return;
-        if (isBookmarked) {
-            binding.buttonBookmark.setImageResource(R.drawable.ic_bookmark);
-        } else {
-            binding.buttonBookmark.setImageResource(R.drawable.ic_bookmark_border);
-        }
+        int drawableRes = isBookmarked ? R.drawable.ic_bookmark_filled : R.drawable.ic_bookmark_border;
+        binding.buttonBookmark.setImageResource(drawableRes);
     }
 
     private void updateImageCounter(int current, int total) {
         if (binding == null) return;
-        String counterText = current + "/" + total;
-        binding.imageCounter.setText(counterText);
+        binding.imageCounter.setText(String.format(Locale.getDefault(), "%d/%d", current, total));
     }
 
     private void setupClickListeners(@NonNull Item item, @NonNull User seller) {

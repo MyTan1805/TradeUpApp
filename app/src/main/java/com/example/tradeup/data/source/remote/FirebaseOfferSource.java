@@ -92,22 +92,29 @@ public class FirebaseOfferSource {
     }
 
 
-    public Task<Void> updateOfferStatus(String offerId, @NonNull String newStatus,
-                                        @Nullable Double counterPrice, @Nullable String counterMessage) {
+    public Task<Void> updateOfferStatus(
+            @NonNull String offerId,
+            @NonNull String newStatus,
+            @Nullable Double counterPrice,
+            @Nullable String counterMessage) {
+
         DocumentReference offerRef = offersCollection.document(offerId);
         Map<String, Object> updates = new HashMap<>();
         updates.put("status", newStatus);
-        updates.put("updatedAt", FieldValue.serverTimestamp()); // Luôn cập nhật updatedAt
+        updates.put("updatedAt", FieldValue.serverTimestamp()); // Luôn cập nhật thời gian
 
-        if ("countered".equals(newStatus) && counterPrice != null) {
+        // Logic riêng cho "countered"
+        if ("countered".equals(newStatus)) {
+            if (counterPrice == null || counterPrice <= 0) {
+                return Tasks.forException(new IllegalArgumentException("Counter price must be positive."));
+            }
             updates.put("counterOfferPrice", counterPrice);
             if (counterMessage != null) {
                 updates.put("counterOfferMessage", counterMessage);
             }
         }
-        // Thêm logic cho các status khác nếu cần cập nhật field riêng
-        // Ví dụ: khi "accepted", bạn có thể muốn xóa counterOfferPrice và counterOfferMessage
-        else if ("accepted".equals(newStatus) || "rejected".equals(newStatus) || "cancelled_by_buyer".equals(newStatus)) {
+        // Logic khi chấp nhận/từ chối: xóa các trường counter offer cũ (nếu có)
+        else if ("accepted".equals(newStatus) || "rejected".equals(newStatus)) {
             updates.put("counterOfferPrice", FieldValue.delete());
             updates.put("counterOfferMessage", FieldValue.delete());
         }

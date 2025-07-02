@@ -83,6 +83,19 @@ public class ProfileFragment extends Fragment {
             }
         });
 
+        binding.buttonMyTransactions.setOnClickListener(v -> {
+            if (isAdded()) {
+                // Sử dụng action toàn cục đã có
+                navController.navigate(R.id.action_global_to_transactionHistoryFragment);
+            }
+        });
+
+        binding.buttonSavedItems.setOnClickListener(v -> {
+            if (isAdded()) {
+                navController.navigate(R.id.action_global_to_savedItemsFragment);
+            }
+        });
+
         // *** THÊM LOGIC ĐIỀU HƯỚNG CHO "MY LISTINGS" Ở ĐÂY ***
         View listingsStatLayout = binding.layoutStats.getChildAt(0);
         listingsStatLayout.setOnClickListener(v -> {

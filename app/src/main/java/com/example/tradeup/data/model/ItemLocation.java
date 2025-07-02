@@ -28,6 +28,8 @@ public class ItemLocation implements Parcelable {
         this.geohash = geohash;
     }
 
+    
+
 
     // ==========================================================
     // === PHẦN PARCELABLE ĐƯỢC THÊM VÀO ========================

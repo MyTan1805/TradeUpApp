@@ -11,4 +11,5 @@
     android:textAppearance="?attr/textAppearanceSubtitle1"
     android:textColor="?android:attr/textColorSecondary"
     android:textStyle="bold"
+    android:fitsSystemWindows="true"
     tools:text="Today" />

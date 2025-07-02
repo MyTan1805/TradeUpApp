@@ -1,5 +1,8 @@
 <resources>
     <string name="app_name">TradeUp</string>
+
+    <string name="default_web_client_id" translatable="false">960286397695-4l5a86tu0o77gpgvn4hhdpvquefl84du.apps.googleusercontent.com</string>
+
     <string name="dddd">Button</string>
     <string name="logo_ng_d_ng">Logo ứng dụng</string>
     <string name="nh_p_t_n_ng_nh_p">Nhập tên đăng nhập</string>
@@ -110,6 +113,9 @@
     <string name="todo">TODO</string>
     <string name="xoa_anh">Xóa ảnh</string>
     <string name="bo_luu_san_pham">bỏ lưu sản phẩm</string>
+
+    <string name="kiem_tra_hop_thu_cua_ban">Kiểm tra hộp thư của bạn</string>
+    <string name="quay_lai_dang_nhap">Quay lại Đăng nhập</string>
 
 
     <!-- Reply Entries & Values for ListPreference -->

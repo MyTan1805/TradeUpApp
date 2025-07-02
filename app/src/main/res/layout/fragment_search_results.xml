@@ -59,6 +59,15 @@
                     app:chipIcon="@drawable/ic_sort"/>
 
                 <com.google.android.material.chip.Chip
+                    android:id="@+id/chipNearby"
+                    style="@style/Widget.TradeUp.Chip.Filter"
+                    android:text="Nearby"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:checkable="true"
+                    app:chipIcon="@drawable/ic_near_me" />
+
+                <com.google.android.material.chip.Chip
                     android:id="@+id/chipCategory"
                     style="@style/Widget.TradeUp.Chip.Filter"
                     android:layout_width="wrap_content"

@@ -1,216 +1,201 @@
 package com.example.tradeup.ui.auth;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
-import android.util.Patterns;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewKt;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.tradeup.R;
-import com.example.tradeup.core.utils.SessionManager;
+import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.databinding.FragmentLoginBinding;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.common.api.ApiException;
+import com.google.android.gms.tasks.Task;
 
-import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class LoginFragment extends Fragment {
 
-    private FragmentLoginBinding binding;
-    private AuthViewModel authViewModel;
-
-    @Inject
-    SessionManager sessionManager;
-
     private static final String TAG = "LoginFragment";
+
+    private FragmentLoginBinding binding;
+    private AuthViewModel viewModel; // << CHỈ CẦN MỘT BIẾN VIEWMODEL
+
+    private ActivityResultLauncher<Intent> googleSignInLauncher;
+    private GoogleSignInClient googleSignInClient;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
-        Log.d(TAG, "onCreate called");
+
+        // Khởi tạo ViewModel
+        viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+
+        // Cấu hình Google Sign-In
+        configureGoogleSignIn();
+
+        // Khởi tạo ActivityResultLauncher
+        setupGoogleSignInLauncher();
     }
 
     @Nullable
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         binding = FragmentLoginBinding.inflate(inflater, container, false);
-        Log.d(TAG, "onCreateView called");
         return binding.getRoot();
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(TAG, "onViewCreated called");
-
-        loadRememberedCredentials();
-        setupClickListeners();
+        setupUI();
+        setupListeners();
         setupObservers();
     }
 
-    private void loadRememberedCredentials() {
-        if (sessionManager != null) {
-            if (sessionManager.shouldRememberMe()) {
-                if (binding.editTextEmailLogin.getText() != null) {
-                    binding.editTextEmailLogin.setText(sessionManager.getEmail());
-                }
-                binding.checkboxRememberMe.setChecked(true);
-                Log.d(TAG, "Loaded remembered email: " + sessionManager.getEmail());
-            } else {
-                binding.checkboxRememberMe.setChecked(false);
-                Log.d(TAG, "Remember me was false.");
-            }
+    // << TÁCH HÀM: Di chuyển logic khởi tạo UI ra riêng >>
+    private void setupUI() {
+        // Tự động điền email và check "Remember me"
+        String rememberedEmail = viewModel.getRememberedEmail();
+        if (rememberedEmail != null) {
+            binding.editTextEmailLogin.setText(rememberedEmail);
+            binding.checkboxRememberMe.setChecked(true);
         } else {
-            Log.e(TAG, "SessionManager is null in loadRememberedCredentials.");
+            binding.checkboxRememberMe.setChecked(false);
         }
+
+        // Kích hoạt TextWatcher để kiểm tra trạng thái ban đầu của các trường
+        String emailInput = binding.editTextEmailLogin.getText().toString();
+        String passwordInput = binding.editTextPasswordLogin.getText().toString();
+        binding.buttonLogin.setEnabled(!emailInput.isEmpty() && !passwordInput.isEmpty());
     }
 
-    private void setupClickListeners() {
-        Log.d(TAG, "setupClickListeners called");
-
+    // << FIX: Gộp tất cả listener vào một hàm duy nhất >>
+    private void setupListeners() {
+        // 1. Listener cho nút Login
         binding.buttonLogin.setOnClickListener(v -> {
-            Log.d(TAG, "Login button clicked");
-            String email = binding.editTextEmailLogin.getText() != null ? binding.editTextEmailLogin.getText().toString().trim() : "";
-            String password = binding.editTextPasswordLogin.getText() != null ? binding.editTextPasswordLogin.getText().toString() : "";
+            String email = binding.editTextEmailLogin.getText().toString().trim();
+            String password = binding.editTextPasswordLogin.getText().toString().trim();
             boolean rememberMe = binding.checkboxRememberMe.isChecked();
-
-            if (validateInput(email, password)) {
-                Log.d(TAG, "Input validated. Calling ViewModel loginUser.");
-                if (sessionManager != null) {
-                    sessionManager.setRememberMe(rememberMe);
-                    if (rememberMe) {
-                        sessionManager.saveEmail(email);
-                        Log.d(TAG, "Saved email for remember me: " + email);
-                    } else {
-                        sessionManager.clearEmail();
-                        Log.d(TAG, "Cleared email for remember me.");
-                    }
-                } else {
-                    Log.e(TAG, "SessionManager is null in login button click. Cannot save preferences.");
-                }
-                authViewModel.loginUser(email, password);
-            } else {
-                Log.d(TAG, "Input validation FAILED.");
-            }
+            viewModel.loginUser(email, password, rememberMe); // << Sửa: Thêm rememberMe
         });
 
-        binding.textViewForgotPassword.setOnClickListener(v -> {
-            Log.d(TAG, "Forgot Password link clicked");
-            if (isAdded()) {
-                try {
-                    NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_forgotPasswordFragment);
-                } catch (Exception e) {
-                    Log.e(TAG, "Navigation to ForgotPassword FAILED", e);
-                }
-            }
-        });
-
-        binding.textViewRegisterLink.setOnClickListener(v -> {
-            Log.d(TAG, "Register link clicked");
-            if (isAdded()) {
-                try {
-                    NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_registerFragment);
-                } catch (Exception e) {
-                    Log.e(TAG, "Navigation to Register FAILED", e);
-                }
-            }
-        });
-
+        // 2. Listener cho nút Google Login
         binding.buttonGoogleLogin.setOnClickListener(v -> {
-            Log.d(TAG, "Google Login button clicked");
-            Toast.makeText(requireContext(), "Chức năng đăng nhập bằng Google sắp ra mắt!", Toast.LENGTH_SHORT).show();
+            Intent signInIntent = googleSignInClient.getSignInIntent();
+            googleSignInLauncher.launch(signInIntent);
         });
+
+        // 3. Listener cho các nút điều hướng khác
+        binding.textViewForgotPassword.setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
+        );
+
+        binding.layoutRegisterLink.setOnClickListener(v ->
+                NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_registerFragment)
+        );
+
+        // 4. TextWatcher để bật/tắt nút Login
+        TextWatcher loginTextWatcher = new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                String emailInput = binding.editTextEmailLogin.getText().toString().trim();
+                String passwordInput = binding.editTextPasswordLogin.getText().toString().trim();
+                binding.buttonLogin.setEnabled(!emailInput.isEmpty() && !passwordInput.isEmpty());
+            }
+
+            @Override
+            public void afterTextChanged(Editable s) {}
+        };
+        binding.editTextEmailLogin.addTextChangedListener(loginTextWatcher);
+        binding.editTextPasswordLogin.addTextChangedListener(loginTextWatcher);
     }
 
-    private boolean validateInput(String email, String pass) {
-        boolean isValid = true;
-        if (email.isEmpty()) {
-            binding.tilEmailLogin.setError(getString(R.string.error_email_trong));
-            isValid = false;
-        } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmailLogin.setError(getString(R.string.error_email_khong_hop_le));
-            isValid = false;
-        } else {
-            binding.tilEmailLogin.setError(null);
-        }
-
-        if (pass.isEmpty()) {
-            binding.tilPasswordLogin.setError(getString(R.string.error_mat_khau_trong));
-            isValid = false;
-        } else {
-            binding.tilPasswordLogin.setError(null);
-        }
-        return isValid;
-    }
-
+    // << FIX: Cập nhật hàm observe theo ViewModel đã sửa >>
     private void setupObservers() {
-        Log.d(TAG, "setupObservers called");
-        // Sử dụng getter để lấy LiveData
-        authViewModel.getAuthState().observe(getViewLifecycleOwner(), state -> {
-            if (state == null) return; // Kiểm tra null
-            Log.d(TAG, "AuthState observed: " + state.getClass().getSimpleName());
+        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.progressBarLogin.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            binding.buttonLogin.setEnabled(!isLoading);
+            binding.buttonGoogleLogin.setEnabled(!isLoading);
+        });
 
-            if (state instanceof AuthState.Loading) {
-                binding.progressBarLogin.setVisibility(View.VISIBLE);
-            } else {
-                binding.progressBarLogin.setVisibility(View.GONE);
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
+            String message = event.getContentIfNotHandled();
+            if (message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
             }
-            binding.buttonLogin.setEnabled(!(state instanceof AuthState.Loading));
+        });
 
-            if (state instanceof AuthState.Success) {
-                AuthState.Success successState = (AuthState.Success) state;
-                String message = successState.message != null ? successState.message : "Đăng nhập thành công!";
-                Log.d(TAG, "AuthState.Success: " + message);
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
-                if (isAdded()) {
-                    try {
-                        Log.d(TAG, "Navigating to Home/Main screen.");
-                        NavHostFragment.findNavController(this).navigate(R.id.action_global_to_main_nav);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Navigation to Home FAILED", e);
+        viewModel.getNavigationEvent().observe(getViewLifecycleOwner(), event -> {
+            if (event.getContentIfNotHandled() != null) {
+                NavHostFragment.findNavController(this).navigate(R.id.action_global_to_main_nav);
+            }
+        });
+    }
+
+    private void configureGoogleSignIn() {
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+        googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso);
+    }
+
+    private void setupGoogleSignInLauncher() {
+        googleSignInLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(result.getData());
+                        handleGoogleSignInResult(task);
+                    } else {
+                        Log.w(TAG, "Google Sign-In cancelled by user.");
                     }
-                }
-                authViewModel.resetAuthStateToIdle();
-            } else if (state instanceof AuthState.Error) {
-                AuthState.Error errorState = (AuthState.Error) state;
-                Log.e(TAG, "AuthState.Error: " + errorState.message);
-                Toast.makeText(requireContext(), "Lỗi: " + errorState.message, Toast.LENGTH_LONG).show();
-            } else if (state instanceof AuthState.Idle) {
-                Log.d(TAG, "AuthState.Idle");
-            } else if (state instanceof AuthState.Loading) {
-                Log.d(TAG, "AuthState.Loading");
-            }
-        });
+                });
+    }
 
-        // Sử dụng getter để lấy LiveData
-        authViewModel.getLogoutState().observe(getViewLifecycleOwner(), isLoggedOut -> {
-            if (isLoggedOut != null && isLoggedOut) {
-                Log.d(TAG, "Logout state observed as true.");
-                authViewModel.onLogoutCompleted();
+    private void handleGoogleSignInResult(Task<GoogleSignInAccount> completedTask) {
+        try {
+            GoogleSignInAccount account = completedTask.getResult(ApiException.class);
+            if (account != null && account.getIdToken() != null) {
+                Log.d(TAG, "Google Sign-In successful, got ID Token.");
+                viewModel.loginWithGoogle(account.getIdToken());
+            } else {
+                String errorMessage = "Google Sign-In failed: ID Token is null.";
+                Log.e(TAG, errorMessage);
+                Toast.makeText(getContext(), errorMessage, Toast.LENGTH_SHORT).show();
             }
-        });
+        } catch (ApiException e) {
+            String errorMessage = "Google Sign-In failed with code: " + e.getStatusCode();
+            Log.e(TAG, errorMessage, e);
+            Toast.makeText(getContext(), "Google Sign-In failed. Please try again.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(TAG, "onDestroyView called");
-        // Sử dụng getter để lấy giá trị LiveData
-        AuthState currentState = authViewModel.getAuthState().getValue();
-        if (currentState instanceof AuthState.Success || currentState instanceof AuthState.Error) {
-            authViewModel.resetAuthStateToIdle();
-        }
-        binding = null;
+        binding = null; // Quan trọng để tránh rò rỉ bộ nhớ
     }
 }

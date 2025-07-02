@@ -1,12 +1,13 @@
 package com.example.tradeup.ui.auth;
 
-import androidx.annotation.NonNull; // Thêm import này
+import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
 import com.example.tradeup.core.utils.Callback;
-import com.example.tradeup.data.model.ContactInfo;
+import com.example.tradeup.core.utils.Event; // Sử dụng Event wrapper
+import com.example.tradeup.core.utils.SessionManager; // Import SessionManager
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.repository.AuthRepository;
 import com.example.tradeup.data.repository.UserRepository;
@@ -20,160 +21,179 @@ public class AuthViewModel extends ViewModel {
 
     private final AuthRepository authRepository;
     private final UserRepository userRepository;
+    private final SessionManager sessionManager; // << THÊM SessionManager
 
-    private final MutableLiveData<AuthState> _authState = new MutableLiveData<>(new AuthState.Idle());
-    // Getter public cho LiveData
-    public LiveData<AuthState> getAuthState() {
-        return _authState;
+    // << SỬ DỤNG Event<String> cho các thông báo chỉ hiển thị một lần >>
+    private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
+    public LiveData<Event<String>> getToastMessage() {
+        return _toastMessage;
     }
 
-    private final MutableLiveData<User> _userProfile = new MutableLiveData<>();
-    public LiveData<User> getUserProfile() {
-        return _userProfile;
-    }
+    private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
+    public LiveData<Boolean> isLoading() { return _isLoading; }
 
-    private final MutableLiveData<Boolean> _logoutState = new MutableLiveData<>(false);
-    public LiveData<Boolean> getLogoutState() {
-        return _logoutState;
-    }
+    // LiveData để báo hiệu điều hướng thành công
+    private final MutableLiveData<Event<FirebaseUser>> _navigationEvent = new MutableLiveData<>();
+    public LiveData<Event<FirebaseUser>> getNavigationEvent() { return _navigationEvent; }
+
 
     @Inject
-    public AuthViewModel(AuthRepository authRepository, UserRepository userRepository) {
+    public AuthViewModel(AuthRepository authRepository, UserRepository userRepository, SessionManager sessionManager) {
         this.authRepository = authRepository;
         this.userRepository = userRepository;
-        checkCurrentUser();
+        this.sessionManager = sessionManager; // << Khởi tạo
     }
 
-    private void checkCurrentUser() {
-        FirebaseUser currentUser = authRepository.getCurrentUser();
-        if (currentUser != null) {
-            if (currentUser.isEmailVerified()) {
-                fetchUserProfile(currentUser.getUid());
-            } else {
-                _authState.setValue(new AuthState.Error("Vui lòng xác thực email của bạn."));
-            }
-        }
-    }
-
-    public FirebaseUser getCurrentFirebaseUser() {
-        return authRepository.getCurrentUser();
-    }
-
-    public void registerUser(String email, String password, String displayName, String phoneNumber) {
-        _authState.setValue(new AuthState.Loading());
+    // << FIX: Cải tiến logic đăng ký, làm phẳng "Callback Hell" >>
+    public void registerUser(String email, String password, String displayName) {
+        _isLoading.setValue(true);
         authRepository.registerUser(email, password, new Callback<FirebaseUser>() {
             @Override
             public void onSuccess(FirebaseUser firebaseUser) {
-                authRepository.sendEmailVerification(firebaseUser, new Callback<Void>() {
-                    @Override
-                    public void onSuccess(Void resultVerification) {
-                        ContactInfo contactInfo = new ContactInfo();
-                        contactInfo.setPhone(phoneNumber); // Giả sử có setter
-
-                        User newUserProfile = new User();
-                        newUserProfile.setUid(firebaseUser.getUid());
-                        newUserProfile.setDisplayName(displayName);
-                        String userEmail = firebaseUser.getEmail();
-                        newUserProfile.setEmail(userEmail != null ? userEmail : "");
-                        newUserProfile.setContactInfo(contactInfo);
-
-                        userRepository.createUserProfile(newUserProfile, new Callback<Void>() {
-                            @Override
-                            public void onSuccess(Void profileResult) {
-                                _authState.postValue(new AuthState.Success(firebaseUser, "Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản."));
-                            }
-
-                            @Override
-                            public void onFailure(Exception profileException) {
-                                _authState.postValue(new AuthState.Error("Đăng ký Auth thành công nhưng tạo hồ sơ thất bại: " + profileException.getMessage()));
-                            }
-                        });
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Exception verificationEmailException) {
-                        _authState.postValue(new AuthState.Error("Đăng ký thành công nhưng gửi email xác thực thất bại: " + verificationEmailException.getMessage()));
-                    }
-                });
+                // Sau khi Auth thành công, tạo User document
+                createNewUserProfile(firebaseUser, displayName);
             }
 
             @Override
-            public void onFailure(@NonNull Exception authException) {
-                String message = authException.getMessage() != null ? authException.getMessage() : "Lỗi đăng ký không xác định.";
-                _authState.postValue(new AuthState.Error(message));
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>(e.getMessage()));
             }
         });
     }
 
-    public void loginUser(String email, String password) {
-        _authState.setValue(new AuthState.Loading());
+    private void createNewUserProfile(FirebaseUser firebaseUser, String displayName) {
+        User newUser = new User();
+        newUser.setUid(firebaseUser.getUid());
+        newUser.setEmail(firebaseUser.getEmail());
+        newUser.setDisplayName(displayName);
+        // Khởi tạo các giá trị mặc định khác nếu cần
+
+        userRepository.createUserProfile(newUser, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                // Sau khi tạo profile thành công, gửi email xác thực
+                sendVerificationEmail(firebaseUser);
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>("Tạo hồ sơ thất bại: " + e.getMessage()));
+            }
+        });
+    }
+
+    private void sendVerificationEmail(FirebaseUser user) {
+        authRepository.sendEmailVerification(user, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>("Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản."));
+                // Logout để buộc người dùng phải đăng nhập lại sau khi xác thực
+                authRepository.logoutUser();
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>("Gửi email xác thực thất bại: " + e.getMessage()));
+            }
+        });
+    }
+
+    // << FIX: Cải tiến logic login >>
+    public void loginUser(String email, String password, boolean rememberMe) {
+        _isLoading.setValue(true);
         authRepository.loginUser(email, password, new Callback<FirebaseUser>() {
             @Override
             public void onSuccess(FirebaseUser firebaseUser) {
+                _isLoading.setValue(false);
                 if (firebaseUser.isEmailVerified()) {
-                    fetchUserProfile(firebaseUser.getUid());
-                    _authState.postValue(new AuthState.Success(firebaseUser, "Đăng nhập thành công."));
+                    // Lưu trạng thái remember me
+                    sessionManager.setRememberMe(rememberMe);
+                    if (rememberMe) {
+                        sessionManager.saveEmail(email);
+                    } else {
+                        sessionManager.saveEmail(null);
+                    }
+                    _navigationEvent.setValue(new Event<>(firebaseUser));
                 } else {
+                    _toastMessage.setValue(new Event<>("Vui lòng xác thực email. Email mới đã được gửi."));
                     authRepository.sendEmailVerification(firebaseUser, new Callback<Void>() {
-                        @Override public void onSuccess(Void result) {}
-                        @Override public void onFailure(Exception e) {}
+                        @Override public void onSuccess(Void data) {}
+                        @Override public void onFailure(@NonNull Exception e) {}
                     });
-                    _authState.postValue(new AuthState.Error("Vui lòng xác thực email của bạn. Email xác thực đã được gửi lại."));
                     authRepository.logoutUser();
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Exception exception) {
-                String message = exception.getMessage() != null ? exception.getMessage() : "Email hoặc mật khẩu không đúng.";
-                _authState.postValue(new AuthState.Error(message));
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>(e.getMessage()));
             }
         });
     }
 
-    public void fetchUserProfile(String uid) {
-        userRepository.getUserProfile(uid, new Callback<User>() {
+    // << FIX: Cải tiến logic login Google >>
+    public void loginWithGoogle(String idToken) {
+        _isLoading.setValue(true);
+        authRepository.loginWithGoogle(idToken, new Callback<FirebaseUser>() {
             @Override
-            public void onSuccess(User profile) {
-                _userProfile.postValue(profile);
+            public void onSuccess(FirebaseUser firebaseUser) {
+                // Kiểm tra xem user đã có trong Firestore chưa
+                userRepository.getUserProfile(firebaseUser.getUid(), new Callback<User>() {
+                    @Override
+                    public void onSuccess(User userProfile) {
+                        if (userProfile == null) {
+                            // User mới, tạo profile cho họ
+                            createNewUserProfile(firebaseUser, firebaseUser.getDisplayName());
+                        } else {
+                            // User đã tồn tại, cho phép đăng nhập
+                            _isLoading.setValue(false);
+                            _navigationEvent.setValue(new Event<>(firebaseUser));
+                        }
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        _isLoading.setValue(false);
+                        _toastMessage.setValue(new Event<>("Không thể kiểm tra hồ sơ người dùng: " + e.getMessage()));
+                    }
+                });
             }
 
             @Override
             public void onFailure(@NonNull Exception e) {
-                _userProfile.postValue(null);
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>(e.getMessage()));
             }
         });
     }
 
     public void sendPasswordResetEmail(String email) {
-        _authState.setValue(new AuthState.Loading());
+        _isLoading.setValue(true);
         authRepository.sendPasswordResetEmail(email, new Callback<Void>() {
             @Override
-            public void onSuccess(Void result) {
-                FirebaseUser currentUser = authRepository.getCurrentUser(); // Có thể null
-                _authState.postValue(new AuthState.Success(currentUser, "Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư của bạn."));
+            public void onSuccess(Void data) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>("Đã gửi email đặt lại mật khẩu. Vui lòng kiểm tra hộp thư."));
             }
 
             @Override
-            public void onFailure(@NonNull Exception exception) {
-                String message = exception.getMessage() != null ? exception.getMessage() : "Lỗi gửi email đặt lại mật khẩu.";
-                _authState.postValue(new AuthState.Error(message));
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>(e.getMessage()));
             }
         });
     }
 
-    public void logoutUser() {
-        authRepository.logoutUser();
-        _userProfile.setValue(null);
-        _authState.setValue(new AuthState.Idle());
-        _logoutState.setValue(true);
-    }
-
-    public void onLogoutCompleted() {
-        _logoutState.setValue(false);
-    }
-
-    public void resetAuthStateToIdle() {
-        _authState.setValue(new AuthState.Idle());
+    // Hàm để lấy thông tin cho checkbox "Remember me"
+    public String getRememberedEmail() {
+        if (sessionManager.shouldRememberMe()) {
+            return sessionManager.getEmail();
+        }
+        return null;
     }
 }

@@ -43,7 +43,7 @@
 
     <fragment
         android:id="@+id/editItemFragment"
-        android:name="com.example.tradeup.ui.listing.EditItemFragment"
+        android:name="com.example.tradeup.ui.edit.EditItemFragment"
         android:label="Chỉnh sửa sản phẩm"
         tools:layout="@layout/fragment_edit_item">
         <argument
@@ -237,5 +237,7 @@
     <action
         android:id="@+id/action_profileFragment_to_offersFragment"
         app:destination="@id/offersFragment" />
+
+
 
 </navigation>

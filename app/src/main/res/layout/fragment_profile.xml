@@ -168,6 +168,16 @@
             app:iconPadding="8dp"
             app:iconSize="26dp"/>
 
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/buttonMyTransactions"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            app:icon="@drawable/ic_receipt_long"
+            android:text="History" />
+
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSavedItems"

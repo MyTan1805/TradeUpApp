@@ -1,8 +1,9 @@
-// File: src/main/java/com/example/tradeup/ui/search/SearchResultsFragment.java
-
 package com.example.tradeup.ui.search;
 
+import static android.content.ContentValues.TAG;
+
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,7 +29,10 @@ import com.example.tradeup.ui.dialogs.ListSelectionDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
+import com.example.tradeup.ui.search.SearchViewModel.SortOrder;
+
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.stream.Collectors;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -70,8 +74,8 @@ public class SearchResultsFragment extends Fragment {
         if (getArguments() != null) {
             String initialQuery = SearchResultsFragmentArgs.fromBundle(getArguments()).getQuery();
             if (initialQuery != null && !initialQuery.isEmpty()) {
-                binding.searchView.setQuery(initialQuery, false);
-                viewModel.setKeywordAndSearch(initialQuery);
+                binding.searchView.setQuery(initialQuery, false); // false = không submit
+                viewModel.submitKeyword(initialQuery); // Gửi tới ViewModel để tìm kiếm ngay
             }
         }
     }
@@ -97,107 +101,87 @@ public class SearchResultsFragment extends Fragment {
         binding.searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
-                viewModel.setKeywordAndSearch(query);
+                viewModel.submitKeyword(query);
                 binding.searchView.clearFocus();
                 return true;
             }
+
             @Override
-            public boolean onQueryTextChange(String newText) { return false; }
-        });
-
-        binding.chipCategory.setOnClickListener(v -> {
-            if (viewModel.getAppConfig().getValue() != null) {
-                ArrayList<String> categoryNames = (ArrayList<String>) viewModel.getAppConfig().getValue()
-                        .getDisplayCategories().stream()
-                        .map(DisplayCategoryConfig::getName)
-                        .collect(Collectors.toList());
-                categoryNames.add(0, "All Categories");
-
-                ListSelectionDialogFragment.newInstance("Select a Category", categoryNames, REQUEST_KEY_CATEGORY)
-                        .show(getParentFragmentManager(), "CategorySearchDialog");
+            public boolean onQueryTextChange(String newText) {
+                viewModel.setKeyword(newText);
+                return true;
             }
         });
 
-        binding.chipCondition.setOnClickListener(v -> {
-            if (viewModel.getAppConfig().getValue() != null) {
-                ArrayList<String> conditionNames = (ArrayList<String>) viewModel.getAppConfig().getValue()
-                        .getItemConditions().stream()
-                        .map(ItemConditionConfig::getName)
-                        .collect(Collectors.toList());
-                conditionNames.add(0, "All Conditions");
-
-                ListSelectionDialogFragment.newInstance("Select Condition", conditionNames, REQUEST_KEY_CONDITION)
-                        .show(getParentFragmentManager(), "ConditionDialog");
-            }
-        });
-
-        binding.chipPrice.setOnClickListener(v -> {
-            View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_price_filter, null);
-            TextInputEditText minPriceInput = dialogView.findViewById(R.id.editTextMinPrice);
-            TextInputEditText maxPriceInput = dialogView.findViewById(R.id.editTextMaxPrice);
-
-            new MaterialAlertDialogBuilder(requireContext())
-                    .setTitle("Set Price Range")
-                    .setView(dialogView)
-                    .setPositiveButton("Apply", (dialog, which) -> {
-                        String minPriceStr = minPriceInput.getText() != null ? minPriceInput.getText().toString() : "";
-                        String maxPriceStr = maxPriceInput.getText() != null ? maxPriceInput.getText().toString() : "";
-                        Double minPrice = minPriceStr.isEmpty() ? null : Double.parseDouble(minPriceStr);
-                        Double maxPrice = maxPriceStr.isEmpty() ? null : Double.parseDouble(maxPriceStr);
-                        viewModel.setPriceRangeAndSearch(minPrice, maxPrice);
-                    })
-                    .setNegativeButton("Cancel", null)
-                    .setNeutralButton("Clear", (dialog, which) -> viewModel.setPriceRangeAndSearch(null, null))
-                    .show();
-        });
-    }
-
-    private void setupFragmentResultListeners() {
-        FragmentManager fragmentManager = getParentFragmentManager();
-
-        fragmentManager.setFragmentResultListener(REQUEST_KEY_CATEGORY, this, (requestKey, bundle) -> {
-            int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
-            if (index != -1 && viewModel.getAppConfig().getValue() != null) {
-                if (index == 0) {
-                    viewModel.setCategoryAndSearch(null);
-                } else {
-                    DisplayCategoryConfig selected = viewModel.getAppConfig().getValue().getDisplayCategories().get(index - 1);
-                    viewModel.setCategoryAndSearch(selected.getId());
-                }
-            }
-        });
-
-        fragmentManager.setFragmentResultListener(REQUEST_KEY_CONDITION, this, (requestKey, bundle) -> {
-            int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
-            if (index != -1 && viewModel.getAppConfig().getValue() != null) {
-                if (index == 0) {
-                    viewModel.setConditionAndSearch(null);
-                } else {
-                    ItemConditionConfig selected = viewModel.getAppConfig().getValue().getItemConditions().get(index - 1);
-                    viewModel.setConditionAndSearch(selected.getId());
-                }
-            }
-        });
+        binding.chipSort.setOnClickListener(v -> showSortDialog());
+        binding.chipCategory.setOnClickListener(v -> showCategoryDialog());
+        binding.chipCondition.setOnClickListener(v -> showConditionDialog());
+        binding.chipPrice.setOnClickListener(v -> showPriceDialog());
+        binding.chipNearby.setOnClickListener(v -> showNearbyRadiusDialog());
     }
 
     private void observeViewModel() {
+
+        viewModel.getScreenState().observe(getViewLifecycleOwner(), state -> {
+            // Ẩn tất cả các view trạng thái trước
+            binding.progressBarSearch.setVisibility(View.GONE);
+            binding.recyclerViewSearchResults.setVisibility(View.GONE);
+            binding.layoutEmptyStateSearch.setVisibility(View.GONE);
+
+            if (state instanceof SearchScreenState.Loading) {
+                binding.progressBarSearch.setVisibility(View.VISIBLE);
+            } else if (state instanceof SearchScreenState.Success) {
+                binding.recyclerViewSearchResults.setVisibility(View.VISIBLE);
+                searchResultsAdapter.submitList(((SearchScreenState.Success) state).items);
+            } else if (state instanceof SearchScreenState.Empty) {
+                binding.layoutEmptyStateSearch.setVisibility(View.VISIBLE);
+                searchResultsAdapter.submitList(Collections.emptyList()); // Xóa list cũ
+            } else if (state instanceof SearchScreenState.Error) {
+                // Có thể hiển thị một UI lỗi riêng thay vì Toast
+                Toast.makeText(getContext(), ((SearchScreenState.Error) state).message, Toast.LENGTH_LONG).show();
+                binding.layoutEmptyStateSearch.setVisibility(View.VISIBLE); // Hoặc UI lỗi
+            }
+        });
+
+        viewModel.getSortOrder().observe(getViewLifecycleOwner(), sortOrder -> {
+            if (sortOrder != null) {
+                binding.chipSort.setText(sortOrder.displayName);
+            }
+        });
+
+        viewModel.getErrorToast().observe(getViewLifecycleOwner(), event -> {
+            String error = event.getContentIfNotHandled();
+            if (error != null) {
+                Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             binding.progressBarSearch.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            if (isLoading) {
+                binding.recyclerViewSearchResults.setVisibility(View.GONE);
+                binding.layoutEmptyStateSearch.setVisibility(View.GONE);
+            }
         });
 
         viewModel.getSearchResults().observe(getViewLifecycleOwner(), items -> {
-            boolean isEmpty = (items == null || items.isEmpty());
             if (viewModel.isLoading().getValue() != null && !viewModel.isLoading().getValue()) {
+                boolean isEmpty = (items == null || items.isEmpty());
                 binding.recyclerViewSearchResults.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
                 binding.layoutEmptyStateSearch.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                searchResultsAdapter.submitList(items);
             }
-            searchResultsAdapter.submitList(items);
         });
 
         viewModel.getError().observe(getViewLifecycleOwner(), event -> {
             String error = event.getContentIfNotHandled();
             if (error != null) {
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        viewModel.getSortOrder().observe(getViewLifecycleOwner(), sortOrder -> {
+            if (sortOrder != null) {
+                binding.chipSort.setText(sortOrder.displayName);
             }
         });
 
@@ -214,39 +198,128 @@ public class SearchResultsFragment extends Fragment {
             }
         });
 
-        viewModel.getSelectedConditionId().observe(getViewLifecycleOwner(), conditionId -> {
-            if (conditionId == null || conditionId.isEmpty()) {
-                binding.chipCondition.setText("Condition");
-            } else {
-                if (viewModel.getAppConfig().getValue() != null) {
-                    viewModel.getAppConfig().getValue().getItemConditions().stream()
-                            .filter(c -> c.getId().equals(conditionId))
-                            .findFirst()
-                            .ifPresent(c -> binding.chipCondition.setText(c.getName()));
+        // Tương tự cho condition và price...
+    }
+
+    private void setupFragmentResultListeners() {
+        FragmentManager fragmentManager = getParentFragmentManager();
+
+        // Lắng nghe kết quả từ dialog chọn Category
+        fragmentManager.setFragmentResultListener(REQUEST_KEY_CATEGORY, this, (requestKey, bundle) -> {
+            int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
+            if (index != -1 && viewModel.getAppConfig().getValue() != null) {
+                if (index == 0) { // "All Categories"
+                    viewModel.setCategoryAndSearch(null);
+                } else {
+                    DisplayCategoryConfig selected = viewModel.getAppConfig().getValue().getDisplayCategories().get(index - 1);
+                    viewModel.setCategoryAndSearch(selected.getId());
                 }
             }
         });
 
-        viewModel.getMinPrice().observe(getViewLifecycleOwner(), minPrice -> {
-            if (minPrice == null && viewModel.getMaxPrice().getValue() == null) {
-                binding.chipPrice.setText("Price");
-            } else {
-                String priceText = (minPrice != null ? "$" + minPrice : "Any") + " - " +
-                        (viewModel.getMaxPrice().getValue() != null ? "$" + viewModel.getMaxPrice().getValue() : "Any");
-                binding.chipPrice.setText(priceText);
-            }
-        });
-
-        viewModel.getMaxPrice().observe(getViewLifecycleOwner(), maxPrice -> {
-            if (maxPrice == null && viewModel.getMinPrice().getValue() == null) {
-                binding.chipPrice.setText("Price");
-            } else {
-                String priceText = (viewModel.getMinPrice().getValue() != null ? "$" + viewModel.getMinPrice().getValue() : "Any") + " - " +
-                        (maxPrice != null ? "$" + maxPrice : "Any");
-                binding.chipPrice.setText(priceText);
+        // Lắng nghe kết quả từ dialog chọn Condition
+        fragmentManager.setFragmentResultListener(REQUEST_KEY_CONDITION, this, (requestKey, bundle) -> {
+            int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
+            if (index != -1 && viewModel.getAppConfig().getValue() != null) {
+                if (index == 0) { // "All Conditions"
+                    viewModel.setConditionAndSearch(null);
+                } else {
+                    ItemConditionConfig selected = viewModel.getAppConfig().getValue().getItemConditions().get(index - 1);
+                    viewModel.setConditionAndSearch(selected.getId());
+                }
             }
         });
     }
+
+    private void showSortDialog() {
+        SearchViewModel.SortOrder[] options = SearchViewModel.SortOrder.values();
+        String[] displayItems = new String[options.length];
+        for (int i = 0; i < options.length; i++) {
+            displayItems[i] = options[i].displayName;
+        }
+
+        SearchViewModel.SortOrder currentOrder = viewModel.getSortOrder().getValue();
+        int checkedItem = (currentOrder != null) ? currentOrder.ordinal() : 0;
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Sort By")
+                .setSingleChoiceItems(displayItems, checkedItem, (dialog, which) -> {
+                    viewModel.setSortOrderAndSearch(options[which]);
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
+    private void showCategoryDialog() {
+        if (viewModel.getAppConfig().getValue() == null) return;
+        ArrayList<String> names = (ArrayList<String>) viewModel.getAppConfig().getValue()
+                .getDisplayCategories().stream()
+                .map(DisplayCategoryConfig::getName)
+                .collect(Collectors.toList());
+        names.add(0, "All Categories");
+        ListSelectionDialogFragment.newInstance("Select a Category", names, REQUEST_KEY_CATEGORY)
+                .show(getParentFragmentManager(), "CategorySearchDialog");
+    }
+
+    private void showConditionDialog() {
+        if (viewModel.getAppConfig().getValue() == null) return;
+        ArrayList<String> names = (ArrayList<String>) viewModel.getAppConfig().getValue()
+                .getItemConditions().stream()
+                .map(ItemConditionConfig::getName)
+                .collect(Collectors.toList());
+        names.add(0, "All Conditions");
+        ListSelectionDialogFragment.newInstance("Select Condition", names, REQUEST_KEY_CONDITION)
+                .show(getParentFragmentManager(), "ConditionDialog");
+    }
+
+    private void showPriceDialog() {
+        View dialogView = LayoutInflater.from(getContext()).inflate(R.layout.dialog_price_filter, null);
+        TextInputEditText minPriceInput = dialogView.findViewById(R.id.editTextMinPrice);
+        TextInputEditText maxPriceInput = dialogView.findViewById(R.id.editTextMaxPrice);
+
+        // Hiển thị giá trị hiện tại
+        if(viewModel.getMinPrice().getValue() != null) minPriceInput.setText(String.valueOf(viewModel.getMinPrice().getValue()));
+        if(viewModel.getMaxPrice().getValue() != null) maxPriceInput.setText(String.valueOf(viewModel.getMaxPrice().getValue()));
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Set Price Range")
+                .setView(dialogView)
+                .setPositiveButton("Apply", (dialog, which) -> {
+                    String minStr = minPriceInput.getText() != null ? minPriceInput.getText().toString() : "";
+                    String maxStr = maxPriceInput.getText() != null ? maxPriceInput.getText().toString() : "";
+                    Double min = minStr.isEmpty() ? null : Double.parseDouble(minStr);
+                    Double max = maxStr.isEmpty() ? null : Double.parseDouble(maxStr);
+                    viewModel.setPriceRangeAndSearch(min, max);
+                })
+                .setNegativeButton("Cancel", null)
+                .setNeutralButton("Clear", (dialog, which) -> viewModel.setPriceRangeAndSearch(null, null))
+                .show();
+    }
+
+    private void showNearbyRadiusDialog() {
+        // Các tùy chọn bán kính, đơn vị là km để hiển thị cho người dùng
+        final String[] displayOptions = {"5 km", "10 km", "25 km", "50 km", "Clear filter"};
+        // Giá trị bán kính tương ứng, đơn vị là mét để truyền cho ViewModel/GeoFire
+        final double[] radiusOptionsInMeters = {5000, 10000, 25000, 50000, -1}; // -1 để xóa filter
+
+        // TODO: Lấy bán kính hiện tại từ ViewModel để biết mục nào đang được chọn
+        int checkedItem = -1;
+        // ... (logic để tìm index của bán kính đang được chọn)
+
+        new MaterialAlertDialogBuilder(requireContext())
+                .setTitle("Search within")
+                .setSingleChoiceItems(displayOptions, checkedItem, (dialog, which) -> {
+                    double selectedRadius = radiusOptionsInMeters[which];
+
+                    // Tạm thời chỉ log ra
+                    Log.d(TAG, "Selected radius: " + selectedRadius + " meters.");
+                    Toast.makeText(getContext(), "Nearby search logic not fully implemented yet.", Toast.LENGTH_SHORT).show();
+
+                    dialog.dismiss();
+                })
+                .show();
+    }
+
 
     @Override
     public void onDestroyView() {

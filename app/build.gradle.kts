@@ -10,13 +10,12 @@ plugins {
     id("androidx.navigation.safeargs.kotlin") // Sử dụng phiên bản Kotlin của safe-args
 }
 
-// SỬA LỖI: Đọc file properties bằng cú pháp Kotlin
-val localProperties = Properties()
-val localPropertiesFile = rootProject.file("local.properties")
-if (localPropertiesFile.exists()) {
-    localProperties.load(localPropertiesFile.inputStream())
+val localProperties = Properties().apply {
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localPropertiesFile.inputStream().use { fis -> load(fis) }
+    }
 }
-
 android {
     namespace = "com.example.tradeup"
     compileSdk = 35
@@ -29,6 +28,10 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        fun getProperty(key: String, defaultValue: String = ""): String {
+            return localProperties.getProperty(key, defaultValue)
+        }
 
         resValue(
             "string", // Loại tài nguyên là string
@@ -95,6 +98,9 @@ dependencies {
 
     implementation("com.google.android.libraries.places:places:3.5.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
+
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
 
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)

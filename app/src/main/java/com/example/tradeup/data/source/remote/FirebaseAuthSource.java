@@ -2,10 +2,14 @@ package com.example.tradeup.data.source.remote;
 
 import androidx.annotation.NonNull;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.AuthCredential;
 import com.google.firebase.auth.AuthResult;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.android.gms.tasks.Tasks; // Cho Tasks.forException
+import com.google.firebase.auth.GoogleAuthProvider;
+
 import javax.inject.Inject;
 
 public class FirebaseAuthSource {
@@ -40,4 +44,25 @@ public class FirebaseAuthSource {
         // FirebaseUser.sendEmailVerification() đã trả về Task<Void>
         return user.sendEmailVerification();
     }
+
+    public Task<AuthResult> loginWithGoogle(String idToken) {
+        AuthCredential credential = GoogleAuthProvider.getCredential(idToken, null);
+        return firebaseAuth.signInWithCredential(credential);
+    }
+
+    public Task<Void> reauthenticateAndDeleteCurrentUser(String password) {
+        final FirebaseUser user = firebaseAuth.getCurrentUser();
+
+        if (user == null || user.getEmail() == null) {
+            return Tasks.forException(new Exception("User is not logged in or has no email to re-authenticate."));
+        }
+
+        AuthCredential credential = EmailAuthProvider.getCredential(user.getEmail(), password);
+
+
+        return user.reauthenticate(credential).onSuccessTask(aVoid -> {
+            return user.delete();
+        });
+    }
+
 }

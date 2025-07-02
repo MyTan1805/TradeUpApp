@@ -70,20 +70,25 @@ public class ItemDetailViewModel extends ViewModel {
         this.currentUserId = (user != null) ? user.getUid() : null;
 
         String itemId = savedStateHandle.get("itemId");
-        loadInitialData(itemId);
 
         _viewState.addSource(_item, item -> combineData());
         _viewState.addSource(_seller, seller -> combineData());
         _viewState.addSource(_appConfig, appConfig -> combineData());
         _viewState.addSource(_isBookmarked, isBookmarked -> combineData());
+
+        loadInitialData(itemId);
     }
 
     private void loadInitialData(String itemId) {
         if (itemId == null || itemId.trim().isEmpty()) {
-            _viewState.postValue(new ItemDetailViewState.Error("ID sản phẩm không hợp lệ."));
+            _viewState.postValue(new ItemDetailViewState.Error("Invalid product ID."));
             return;
         }
+
         _viewState.setValue(new ItemDetailViewState.Loading());
+
+        itemRepository.incrementItemViews(itemId);
+
         loadAppConfigFromRepo();
         loadItemFromRepo(itemId);
         checkIfItemIsSaved(itemId);

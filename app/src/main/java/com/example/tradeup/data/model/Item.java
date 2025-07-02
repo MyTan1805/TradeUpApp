@@ -6,6 +6,7 @@ import android.os.Parcel;
 import android.os.Parcelable;
 
 import androidx.annotation.Nullable;
+import androidx.annotation.NonNull;
 
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
@@ -32,6 +33,7 @@ public class Item implements Parcelable {
     private String subCategory;
     private String condition;
     private ItemLocation location;
+    private String geohash;
     private List<String> imageUrls;
     private List<String> searchKeywords;
     private String status;
@@ -39,7 +41,7 @@ public class Item implements Parcelable {
     private String itemBehavior;
     @Nullable
     private List<String> tags;
-    private int viewsCount;
+    private Integer viewsCount;
     private int offersCount;
     @ServerTimestamp
     @Nullable
@@ -70,12 +72,14 @@ public class Item implements Parcelable {
         this.status = "available";
         this.itemBehavior = null;
         this.tags = null;
+        this.tags = new ArrayList<>();
         this.viewsCount = 0;
         this.offersCount = 0;
         this.createdAt = null;
         this.updatedAt = null;
         this.soldToUserId = null;
         this.soldAt = null;
+        this.geohash = null;
     }
 
     // --- GETTERS AND SETTERS ---
@@ -120,14 +124,23 @@ public class Item implements Parcelable {
     public void setSearchKeywords(List<String> searchKeywords) { this.searchKeywords = searchKeywords; }
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    @Nullable
+    public String getGeohash() {
+        return geohash;
+    }
+
+    public void setGeohash(@Nullable String geohash) {
+        this.geohash = geohash;
+    }
     @Nullable
     public String getItemBehavior() { return itemBehavior; }
     public void setItemBehavior(@Nullable String itemBehavior) { this.itemBehavior = itemBehavior; }
     @Nullable
     public List<String> getTags() { return tags; }
     public void setTags(@Nullable List<String> tags) { this.tags = tags; }
-    public int getViewsCount() { return viewsCount; }
-    public void setViewsCount(int viewsCount) { this.viewsCount = viewsCount; }
+    public Integer getViewsCount() { return viewsCount; }
+    public void setViewsCount(Integer viewsCount) { this.viewsCount = viewsCount; }
     public int getOffersCount() { return offersCount; }
     public void setOffersCount(int offersCount) { this.offersCount = offersCount; }
     @Nullable

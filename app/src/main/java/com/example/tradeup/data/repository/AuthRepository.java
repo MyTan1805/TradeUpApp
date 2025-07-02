@@ -15,7 +15,11 @@ public interface AuthRepository {
 
     void logoutUser(); // Đồng bộ
 
+    void loginWithGoogle(String idToken, Callback<FirebaseUser> callback);
+
     void sendPasswordResetEmail(String email, Callback<Void> callback); // Thay Result bằng Callback
 
     void sendEmailVerification(@NonNull FirebaseUser user, Callback<Void> callback); // Thay Result bằng Callback
+
+    void reauthenticateAndDeleteCurrentUser(String password, Callback<Void> callback);
 }

@@ -275,6 +275,20 @@
         <item name="android:textColor">?android:attr/textColorSecondary</item>
     </style>
 
+    <style name="Divider">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1dp</item>
+        <item name="android:background">?attr/colorOutline</item>
+    </style>
+
+    <style name="Theme.TradeUp.ImagePicker" parent="Theme.Material3.DayNight.NoActionBar">
+        <item name="android:windowDrawsSystemBarBackgrounds">false</item>
+
+        <item name="colorPrimary">?attr/colorSurface</item>
+        <item name="colorPrimaryVariant">?attr/colorSurface</item>
+        <item name="colorOnPrimary">?attr/colorOnSurface</item>
+    </style>
+
     <!-- Nếu bạn muốn một font sans-serif cho body text -->
     <!--
     <style name="TextAppearance.TradeUp.BodySans16" parent="TextAppearance.MaterialComponents.Body1">

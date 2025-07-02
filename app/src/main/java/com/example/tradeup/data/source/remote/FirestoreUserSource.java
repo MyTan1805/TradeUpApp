@@ -74,4 +74,17 @@ public class FirestoreUserSource {
         updates.put("updatedAt", FieldValue.serverTimestamp());
         return usersCollection.document(uid).update(updates);
     }
+
+    public Task<Void> deactivateUser(String uid) {
+        // Chỉ cần cập nhật một trường isDeactivated = true
+        return usersCollection.document(uid).update("isDeactivated", true);
+    }
+
+    // << THÊM HÀM NÀY >>
+    public Task<Void> deleteUser(String uid) {
+        // Xóa document của user trên Firestore
+        return usersCollection.document(uid).delete();
+    }
+
+
 }

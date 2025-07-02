@@ -17,4 +17,10 @@
         app:popUpTo="@id/auth_nav"
         app:popUpToInclusive="true" />
 
+    <action
+        android:id="@+id/action_global_to_auth_nav"
+        app:destination="@id/auth_nav"
+        app:popUpTo="@id/main_nav"
+        app:popUpToInclusive="true" />
+
 </navigation>

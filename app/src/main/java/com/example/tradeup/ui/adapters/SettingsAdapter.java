@@ -2,11 +2,14 @@ package com.example.tradeup.ui.adapters;
 
 import android.content.Context;
 import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
@@ -44,9 +47,9 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         if (item instanceof SettingItem.GroupHeader) return TYPE_GROUP_HEADER;
         if (item instanceof SettingItem.Navigation) return TYPE_NAVIGATION;
         if (item instanceof SettingItem.Switch) return TYPE_SWITCH;
-        if (item instanceof SettingItem.Info) return TYPE_INFO; // Tạm thời dùng layout navigation
+        if (item instanceof SettingItem.Info) return TYPE_INFO;
         if (item instanceof SettingItem.Logout) return TYPE_LOGOUT;
-        return -1;
+        return -1; // Trường hợp không xác định
     }
 
     @NonNull
@@ -63,8 +66,8 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             case TYPE_LOGOUT:
                 View logoutView = inflater.inflate(R.layout.item_setting_logout, parent, false);
                 return new LogoutViewHolder(logoutView, listener);
+            case TYPE_INFO:
             case TYPE_NAVIGATION:
-            case TYPE_INFO: // Tạm thời Info và Navigation dùng chung layout
             default:
                 View navView = inflater.inflate(R.layout.item_setting_navigation, parent, false);
                 return new NavigationViewHolder(navView, listener);
@@ -85,11 +88,10 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 ((SwitchViewHolder) holder).bind((SettingItem.Switch) item);
                 break;
             case TYPE_INFO:
-                // Xử lý cho Info, tương tự Navigation nhưng có thể ẩn mũi tên và hiện text value
                 ((NavigationViewHolder) holder).bindInfo((SettingItem.Info) item);
                 break;
             case TYPE_LOGOUT:
-                // Không cần bind gì cả
+                // Không cần bind gì cả, listener đã được gán trong onCreateViewHolder
                 break;
         }
     }
@@ -115,9 +117,13 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
     static class NavigationViewHolder extends RecyclerView.ViewHolder {
         ImageView icon;
         TextView title;
+        TextView value;
         ImageView arrow;
         OnSettingItemClickListener listener;
         Context context;
+        private final int defaultTextColor;
+        private final int defaultIconColor;
+
 
         NavigationViewHolder(@NonNull View itemView, OnSettingItemClickListener listener) {
             super(itemView);
@@ -125,31 +131,71 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             this.listener = listener;
             icon = itemView.findViewById(R.id.icon);
             title = itemView.findViewById(R.id.title);
+            value = itemView.findViewById(R.id.value);
             arrow = itemView.findViewById(R.id.arrow);
+
+            // Lấy màu mặc định từ theme để reset
+            defaultTextColor = getThemeColor(context, android.R.attr.textColorPrimary);
+            defaultIconColor = getThemeColor(context, android.R.attr.textColorSecondary);
         }
 
         void bind(SettingItem.Navigation item) {
-            icon.setImageResource(item.iconResId);
+            // Thiết lập trạng thái ban đầu cho item điều hướng
             title.setText(item.title);
+            value.setVisibility(View.GONE);
             arrow.setVisibility(View.VISIBLE);
+            itemView.setClickable(true);
+            itemView.setOnClickListener(v -> listener.onNavigationItemClick(item.tag));
 
+            // Xử lý icon
+            if (item.iconResId != 0) {
+                icon.setImageResource(item.iconResId);
+                icon.setVisibility(View.VISIBLE);
+            } else {
+                icon.setVisibility(View.GONE);
+            }
+
+            // Xử lý màu chữ (reset về mặc định nếu không có màu đặc biệt)
             if (item.textColor != 0) {
                 title.setTextColor(ContextCompat.getColor(context, item.textColor));
-            }
-            if (item.iconTint != 0) {
-                icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(context, item.iconTint)));
+            } else {
+                title.setTextColor(defaultTextColor);
             }
 
-            itemView.setOnClickListener(v -> listener.onNavigationItemClick(item.tag));
+            // Xử lý màu icon (reset về mặc định nếu không có màu đặc biệt)
+            if (item.iconTint != 0) {
+                icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(context, item.iconTint)));
+            } else {
+                icon.setImageTintList(ColorStateList.valueOf(defaultIconColor));
+            }
         }
 
         void bindInfo(SettingItem.Info item) {
-            icon.setImageResource(item.iconResId);
+            // Thiết lập trạng thái cho item thông tin
             title.setText(item.title);
-            arrow.setVisibility(View.GONE); // Ẩn mũi tên
+            value.setText(item.value);
+            value.setVisibility(View.VISIBLE);
+            arrow.setVisibility(View.GONE);
+            itemView.setClickable(false);
+            itemView.setOnClickListener(null);
 
-            // Tạo một TextView mới để hiển thị giá trị, hoặc thêm TextView vào layout
-            // Tạm thời bỏ qua để đơn giản
+            if (item.iconResId != 0) {
+                icon.setImageResource(item.iconResId);
+                icon.setVisibility(View.VISIBLE);
+            } else {
+                icon.setVisibility(View.GONE);
+            }
+
+            // Reset màu sắc về mặc định
+            title.setTextColor(defaultTextColor);
+            icon.setImageTintList(ColorStateList.valueOf(defaultIconColor));
+        }
+
+        // Hàm tiện ích để lấy màu từ theme attribute
+        private int getThemeColor(Context context, @AttrRes int attr) {
+            TypedValue typedValue = new TypedValue();
+            context.getTheme().resolveAttribute(attr, typedValue, true);
+            return typedValue.data;
         }
     }
 
@@ -167,11 +213,16 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
 
         void bind(SettingItem.Switch item) {
             title.setText(item.title);
-            switchCompat.setOnCheckedChangeListener(null); // Gỡ listener cũ
+            // Gỡ listener cũ để tránh trigger vòng lặp vô hạn khi bind
+            switchCompat.setOnCheckedChangeListener(null);
             switchCompat.setChecked(item.isEnabled);
+            // Gán lại listener mới
             switchCompat.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                item.isEnabled = isChecked; // Cập nhật trạng thái trong model
-                listener.onSwitchItemChanged(item.tag, isChecked);
+                // Chỉ gọi listener nếu trạng thái thực sự thay đổi bởi người dùng
+                if (buttonView.isPressed()) {
+                    item.isEnabled = isChecked; // Cập nhật trạng thái trong model
+                    listener.onSwitchItemChanged(item.tag, isChecked);
+                }
             });
         }
     }

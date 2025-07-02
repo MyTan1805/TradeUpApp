@@ -1,6 +1,8 @@
 package com.example.tradeup.ui.auth;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.util.Patterns;
 import android.view.LayoutInflater;
@@ -10,36 +12,34 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.core.view.ViewKt;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.tradeup.R;
-import com.example.tradeup.databinding.RegisterFragmentBinding;
+import com.example.tradeup.databinding.RegisterFragmentBinding; // Sửa tên binding cho nhất quán
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class RegisterFragment extends Fragment {
 
-    private RegisterFragmentBinding binding;
-    private AuthViewModel authViewModel;
-
     private static final String TAG = "RegisterFragment";
+
+    private RegisterFragmentBinding binding;
+    private AuthViewModel viewModel; // Đổi tên authViewModel thành viewModel cho nhất quán
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        authViewModel = new ViewModelProvider(this).get(AuthViewModel.class);
-        Log.d(TAG, "onCreate called");
+        viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
+        // << FIX: Xóa toàn bộ logic Google Sign-In không cần thiết ở đây >>
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
-        Log.d(TAG, "onCreateView called");
         binding = RegisterFragmentBinding.inflate(inflater, container, false);
         return binding.getRoot();
     }
@@ -47,53 +47,41 @@ public class RegisterFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        Log.d(TAG, "onViewCreated called");
+        setupListeners();
         setupObservers();
-        setupClickListeners();
     }
 
-    private void setupClickListeners() {
-        Log.d(TAG, "setupClickListeners called");
+    private void setupListeners() {
+        // 1. Listener cho nút Đăng Ký
         binding.btnDangKy.setOnClickListener(v -> {
-            Log.d(TAG, "BTN_DANG_KY CLICKED!");
-            String displayName = binding.txtTenDN.getText() != null ? binding.txtTenDN.getText().toString().trim() : "";
-            String email = binding.txtEmail.getText() != null ? binding.txtEmail.getText().toString().trim() : "";
-            String phoneNumber = binding.txtSoDT.getText() != null ? binding.txtSoDT.getText().toString().trim() : "";
-            String password = binding.txtMatKhau.getText() != null ? binding.txtMatKhau.getText().toString() : "";
-            String confirmPassword = binding.txtNhapLaiMatKhau.getText() != null ? binding.txtNhapLaiMatKhau.getText().toString() : "";
+            String displayName = binding.txtTenDN.getText().toString().trim();
+            String email = binding.txtEmail.getText().toString().trim();
+            // String phoneNumber = binding.txtSoDT.getText().toString().trim(); // ViewModel mới không cần sđt
+            String password = binding.txtMatKhau.getText().toString();
+            String confirmPassword = binding.txtNhapLaiMatKhau.getText().toString();
 
-            if (validateInput(displayName, email, phoneNumber, password, confirmPassword)) {
-                authViewModel.registerUser(email, password, displayName, phoneNumber);
+            if (validateInput(displayName, email, password, confirmPassword)) {
+                // Chỉ truyền những thông tin cần thiết
+                viewModel.registerUser(email, password, displayName);
             }
         });
 
-        binding.txtDangNhap.setOnClickListener(v -> {
-            Log.d(TAG, "txtDangNhap clicked");
+        // 2. Listener cho link "Đăng nhập"
+        binding.layoutSignInLink.setOnClickListener(v -> { // << Sử dụng ID của LinearLayout cha
             if (isAdded()) {
-                try {
-                    NavHostFragment.findNavController(this).navigate(R.id.action_registerFragment_to_loginFragment);
-                } catch (Exception e) {
-                    Log.e(TAG, "Navigation to Login FAILED", e);
-                    Toast.makeText(requireContext(), "Lỗi điều hướng.", Toast.LENGTH_SHORT).show();
-                }
+                NavHostFragment.findNavController(this).popBackStack();
             }
         });
 
+        // 3. Listener cho nút Đăng ký bằng Google (nếu bạn muốn giữ lại)
         binding.btnGoogleRegister.setOnClickListener(v -> {
-            Log.d(TAG, "btnGoogleRegister clicked");
-            Toast.makeText(requireContext(), "Chức năng đăng ký bằng Google sắp ra mắt!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getContext(), "Vui lòng đăng nhập bằng Google ở màn hình Đăng nhập.", Toast.LENGTH_LONG).show();
         });
     }
 
-    private boolean validateInput(
-            String displayName,
-            String email,
-            String phoneNumber,
-            String pass,
-            String confirmPass
-    ) {
+    private boolean validateInput(String displayName, String email, String pass, String confirmPass) {
         boolean isValid = true;
-
+        // Logic validate của bạn đã rất tốt, giữ nguyên và chỉ sửa lỗi nhỏ
         if (displayName.isEmpty()) {
             binding.tilTenDN.setError(getString(R.string.error_ten_hien_thi_trong));
             isValid = false;
@@ -109,16 +97,6 @@ public class RegisterFragment extends Fragment {
             isValid = false;
         } else {
             binding.tilEmail.setError(null);
-        }
-
-        if (phoneNumber.isEmpty()) {
-            binding.tilSoDT.setError(getString(R.string.error_sdt_trong));
-            isValid = false;
-        } else if (phoneNumber.length() < 10) {
-            binding.tilSoDT.setError(getString(R.string.error_sdt_khong_hop_le));
-            isValid = false;
-        } else {
-            binding.tilSoDT.setError(null);
         }
 
         if (pass.isEmpty()) {
@@ -141,44 +119,27 @@ public class RegisterFragment extends Fragment {
             binding.tilNhapLaiMatKhau.setError(null);
         }
 
+        // Không cần validate sđt ở đây nữa nếu nó không bắt buộc
         return isValid;
     }
 
     private void setupObservers() {
-        Log.d(TAG, "setupObservers called");
-        // Sử dụng getter để lấy LiveData
-        authViewModel.getAuthState().observe(getViewLifecycleOwner(), state -> {
-            // Log tên lớp của state để debug
-            Log.d(TAG, "AuthState observed: " + state.getClass().getSimpleName());
+        // << FIX: Tách ra thành các observer riêng biệt >>
+        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.progressBarRegister.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            binding.btnDangKy.setEnabled(!isLoading);
+        });
 
-            if (state instanceof AuthState.Loading) {
-                binding.progressBarRegister.setVisibility(View.VISIBLE);
-            } else {
-                binding.progressBarRegister.setVisibility(View.GONE);
-            }
-            binding.btnDangKy.setEnabled(!(state instanceof AuthState.Loading));
-
-            if (state instanceof AuthState.Success) {
-                AuthState.Success successState = (AuthState.Success) state; // Ép kiểu
-                String message = successState.message != null ? successState.message : "Đăng ký thành công!";
-                Toast.makeText(requireContext(), message, Toast.LENGTH_LONG).show();
-                Log.d(TAG, "AuthState.Success: " + message);
-                if (isAdded()) {
-                    try {
-                        NavHostFragment.findNavController(this).navigate(R.id.action_registerFragment_to_loginFragment);
-                    } catch (Exception e) {
-                        Log.e(TAG, "Navigation after registration FAILED", e);
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
+            String message = event.getContentIfNotHandled();
+            if (message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+                // Nếu đăng ký thành công, quay lại màn hình Login
+                if (message.contains("Đăng ký thành công")) {
+                    if (isAdded()) {
+                        NavHostFragment.findNavController(this).popBackStack();
                     }
                 }
-                authViewModel.resetAuthStateToIdle();
-            } else if (state instanceof AuthState.Error) {
-                AuthState.Error errorState = (AuthState.Error) state; // Ép kiểu
-                Log.e(TAG, "AuthState.Error: " + errorState.message);
-                Toast.makeText(requireContext(), "Lỗi: " + errorState.message, Toast.LENGTH_LONG).show();
-            } else if (state instanceof AuthState.Idle) {
-                Log.d(TAG, "AuthState.Idle");
-            } else if (state instanceof AuthState.Loading) {
-                Log.d(TAG, "AuthState.Loading");
             }
         });
     }
@@ -186,12 +147,6 @@ public class RegisterFragment extends Fragment {
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        Log.d(TAG, "onDestroyView called");
-        // Sử dụng getter để lấy giá trị LiveData
-        AuthState currentState = authViewModel.getAuthState().getValue();
-        if (currentState instanceof AuthState.Success || currentState instanceof AuthState.Error) {
-            authViewModel.resetAuthStateToIdle();
-        }
-        binding = null;
+        binding = null; // Tránh rò rỉ bộ nhớ
     }
 }

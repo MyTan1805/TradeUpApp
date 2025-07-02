@@ -3,10 +3,14 @@ package com.example.tradeup.data.repository;
 import androidx.annotation.NonNull;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.source.remote.FirebaseAuthSource;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.auth.AuthCredential;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.auth.EmailAuthProvider;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.AuthResult;
 
@@ -91,4 +95,38 @@ public class AuthRepositoryImpl implements AuthRepository {
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(callback::onFailure);
     }
+
+    @Override
+    public void loginWithGoogle(String idToken, Callback<FirebaseUser> callback) {
+        firebaseAuthSource.loginWithGoogle(idToken)
+                .addOnSuccessListener(authResult -> {
+                    FirebaseUser user = authResult.getUser();
+                    if (user != null) {
+                        callback.onSuccess(user);
+                    } else {
+                        callback.onFailure(new Exception("Google login successful but user is null."));
+                    }
+                })
+                .addOnFailureListener(callback::onFailure);
+    }
+    @Override
+    public void reauthenticateAndDeleteCurrentUser(String password, Callback<Void> callback) {
+        // Gọi đến phương thức của DataSource (nơi thực sự làm việc với Firebase)
+        // Giả sử hàm này trong `firebaseAuthSource` trả về một Task<Void>
+        firebaseAuthSource.reauthenticateAndDeleteCurrentUser(password)
+                .addOnSuccessListener(aVoid -> {
+                    // Khi Task thành công, gọi callback.onSuccess
+                    callback.onSuccess(null);
+                })
+                .addOnFailureListener(e -> {
+                    // Khi Task thất bại, xử lý lỗi và gọi callback.onFailure
+                    if (e instanceof FirebaseAuthInvalidCredentialsException) {
+                        callback.onFailure(new Exception("Mật khẩu không đúng. Vui lòng thử lại."));
+                    } else {
+                        String errorMessage = e.getMessage() != null ? e.getMessage() : "An unknown error occurred";
+                        callback.onFailure(new Exception("Lỗi xóa tài khoản: " + errorMessage));
+                    }
+                });
+    }
+
 }

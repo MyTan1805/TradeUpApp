@@ -5,7 +5,8 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="?attr/colorSurface"
-    tools:context=".ui.listing.EditItemFragment">
+    android:fitsSystemWindows="true"
+    tools:context=".ui.edit.EditItemFragment">
 
     <!-- === TOOLBAR === -->
     <com.google.android.material.appbar.MaterialToolbar
@@ -18,8 +19,7 @@
         app:navigationIcon="@drawable/ic_arrow_back_inset"
         app:navigationIconTint="?attr/colorOnSurface"
         app:title="Edit Listing"
-        app:titleCentered="true"
-        app:titleTextAppearance="?attr/textAppearanceHeadline6"/>
+        app:titleCentered="true" />
 
     <!-- === NÚT LƯU THAY ĐỔI (GHIM Ở DƯỚI) === -->
     <com.google.android.material.button.MaterialButton
@@ -84,18 +84,22 @@
                 app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:itemCount="4"
                 tools:layout_height="110dp"
-                tools:listitem="@layout/item_edit_photo" /> <!-- Sửa layout item cho đúng -->
+                tools:listitem="@layout/item_edit_photo" />
 
             <!-- Tiêu đề -->
             <TextView style="@style/AddItemLabel" android:text="Title" />
             <com.google.android.material.textfield.TextInputLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:id="@+id/tilTitle"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="textCapSentences" />
+                    android:inputType="textCapSentences"
+                    tools:ignore="SpeakableTextPresentCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Giá -->
@@ -103,33 +107,39 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrice"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 app:prefixText="$">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextPrice"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="numberDecimal"/>
+                    android:inputType="numberDecimal"
+                    tools:ignore="SpeakableTextPresentCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Mô tả -->
             <TextView style="@style/AddItemLabel" android:text="Description" />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDescription"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
                     android:inputType="textMultiLine|textCapSentences"
-                    android:minLines="5" />
+                    android:minLines="5"
+                    tools:ignore="SpeakableTextPresentCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginTop="@dimen/spacing_large"
-                android:background="?attr/colorOutline"/>
+                style="@style/Divider"
+                android:layout_marginTop="@dimen/spacing_large"/>
 
             <!-- Các trường khác -->
             <TextView style="@style/AddItemLabel" android:text="Category (cannot be changed)" />

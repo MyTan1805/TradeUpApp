@@ -37,6 +37,9 @@ public class OffersViewModel extends ViewModel {
 
     private final String currentUserId;
 
+    private final MutableLiveData<Event<Offer>> _openCounterOfferDialogEvent = new MutableLiveData<>();
+    public LiveData<Event<Offer>> getOpenCounterOfferDialogEvent() { return _openCounterOfferDialogEvent; }
+
     private final MutableLiveData<List<Offer>> _receivedOffers = new MutableLiveData<>();
     public LiveData<List<Offer>> getReceivedOffers() { return _receivedOffers; }
 
@@ -116,13 +119,11 @@ public class OffersViewModel extends ViewModel {
      */
     public void acceptOffer(Offer offer) {
         _isLoading.setValue(true);
-        Log.d(TAG, "Step 1: Marking item as sold...");
-        // BƯỚC 1: Đánh dấu Item là "sold"
+        Log.d("ACCEPT_FLOW", "Step 1: Marking item as sold... Item ID: " + offer.getItemId());
         itemRepository.updateItemStatus(offer.getItemId(), "sold", new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
-                Log.d(TAG, "Step 1 SUCCESS. Step 2: Updating offer to accepted...");
-                // BƯỚC 2: Khi Item đã được bán, cập nhật Offer
+                Log.d("ACCEPT_FLOW", "Step 1 SUCCESS. Starting Step 2: Updating offer to accepted...");
                 updateOfferToAccepted(offer);
             }
 
@@ -130,7 +131,7 @@ public class OffersViewModel extends ViewModel {
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
                 _toastMessage.postValue(new Event<>("Error: Could not mark item as sold. " + e.getMessage()));
-                Log.e(TAG, "Step 1 FAILED.", e);
+                Log.e("ACCEPT_FLOW", "Step 1 FAILED: Could not mark item as sold.", e);
             }
         });
     }
@@ -139,38 +140,48 @@ public class OffersViewModel extends ViewModel {
         offerRepository.updateOfferStatus(offer.getOfferId(), "accepted", null, null, new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
-                Log.d(TAG, "Step 2 SUCCESS. Step 3: Creating transaction record...");
-                // BƯỚC 3: Khi Offer đã được cập nhật, tạo bản ghi Transaction
+                Log.d("ACCEPT_FLOW", "Step 2 SUCCESS. Starting Step 3: Creating transaction record...");
                 createTransactionRecord(offer);
             }
 
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
-                // Lỗi này không quá nghiêm trọng, chỉ là trạng thái offer chưa được cập nhật
                 _toastMessage.postValue(new Event<>("Item sold, but failed to update offer status."));
-                Log.w(TAG, "Step 2 FAILED, but continuing.", e);
-                loadAllOffers(); // Vẫn tải lại để UI cập nhật trạng thái của Item
+                Log.e("ACCEPT_FLOW", "Step 2 FAILED: Could not update offer status.", e);
+                loadAllOffers();
             }
         });
     }
 
     private void createTransactionRecord(Offer acceptedOffer) {
+        Log.d("ACCEPT_FLOW", "Step 3.1: Fetching full item details for transaction...");
         itemRepository.getItemById(acceptedOffer.getItemId(), new Callback<Item>() {
             @Override
             public void onSuccess(Item item) {
                 if (item == null) {
                     _isLoading.postValue(false);
                     _toastMessage.postValue(new Event<>("Critical Error: Item sold, but could not find item to create transaction."));
-                    Log.e(TAG, "Step 3 FAILED: Item " + acceptedOffer.getItemId() + " not found after being sold.");
+                    Log.e("ACCEPT_FLOW", "Step 3 FAILED: Item " + acceptedOffer.getItemId() + " not found after being sold.");
                     loadAllOffers();
                     return;
                 }
 
+                // <<< THÊM LOG DEBUG Ở ĐÂY >>>
+                Log.d("TRANSACTION_DEBUG", "Creating Transaction with aAcceptedOffer.buyerId = " + acceptedOffer.getBuyerId());
+                Log.d("TRANSACTION_DEBUG", "Creating Transaction with item.sellerId = " + item.getSellerId());
+                Log.d("TRANSACTION_DEBUG", "Creating Transaction with item.title = " + item.getTitle());
+                Log.d("TRANSACTION_DEBUG", "Creating Transaction with acceptedOffer.price = " + acceptedOffer.getOfferedPrice());
+
+                // <<< KẾT THÚC LOG DEBUG >>>
+
+
                 Transaction newTransaction = new Transaction();
                 newTransaction.setItemId(item.getItemId());
                 newTransaction.setItemTitle(item.getTitle());
-                newTransaction.setItemImageUrl(item.getImageUrls() != null && !item.getImageUrls().isEmpty() ? item.getImageUrls().get(0) : null);
+                newTransaction.setItemImageUrl(
+                        (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) ? item.getImageUrls().get(0) : null
+                );
                 newTransaction.setSellerId(item.getSellerId());
                 newTransaction.setBuyerId(acceptedOffer.getBuyerId());
                 newTransaction.setPriceSold(acceptedOffer.getOfferedPrice());
@@ -180,15 +191,15 @@ public class OffersViewModel extends ViewModel {
                     public void onSuccess(String transactionId) {
                         _isLoading.postValue(false);
                         _toastMessage.postValue(new Event<>("Offer accepted! Transaction completed."));
-                        Log.d(TAG, "Step 3 SUCCESS. Transaction created with ID: " + transactionId);
-                        loadAllOffers(); // Tải lại toàn bộ để cập nhật giao diện
+                        Log.d("ACCEPT_FLOW", "Step 3.3 SUCCESS. Transaction created with ID: " + transactionId);
+                        loadAllOffers();
                     }
 
                     @Override
                     public void onFailure(@NonNull Exception e) {
                         _isLoading.postValue(false);
                         _toastMessage.postValue(new Event<>("Item sold, but failed to create transaction record."));
-                        Log.e(TAG, "Step 3 FAILED.", e);
+                        Log.e("ACCEPT_FLOW", "Step 3.3 FAILED: Could not create transaction record.", e);
                         loadAllOffers();
                     }
                 });
@@ -198,7 +209,7 @@ public class OffersViewModel extends ViewModel {
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
                 _toastMessage.postValue(new Event<>("Item sold, but failed to fetch item details for transaction."));
-                Log.e(TAG, "Step 3 FAILED while fetching item details.", e);
+                Log.e("ACCEPT_FLOW", "Step 3.1 FAILED: Could not fetch item details.", e);
                 loadAllOffers();
             }
         });
@@ -209,7 +220,24 @@ public class OffersViewModel extends ViewModel {
     }
 
     public void counterOffer(Offer offer) {
-        _toastMessage.setValue(new Event<>("Counter offer functionality coming soon!"));
+        _openCounterOfferDialogEvent.setValue(new Event<>(offer));
+    }
+
+    public void sendCounterOffer(String offerId, double counterPrice, String message) {
+        _isLoading.setValue(true);
+        offerRepository.updateOfferStatus(offerId, "countered", counterPrice, message, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                _toastMessage.postValue(new Event<>("Counter offer sent successfully!"));
+                loadAllOffers();
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.postValue(false);
+                _toastMessage.postValue(new Event<>("Failed to send counter offer: " + e.getMessage()));
+            }
+        });
     }
 
     private void updateOfferStatus(Offer offer, String newStatus) {
@@ -251,6 +279,7 @@ public class OffersViewModel extends ViewModel {
         offerRepository.createOffer(newOffer, new Callback<String>() {
             @Override
             public void onSuccess(String offerId) {
+                itemRepository.incrementItemOffers(item.getItemId());
                 _isLoading.postValue(false);
                 _toastMessage.postValue(new Event<>("Offer sent successfully!"));
             }

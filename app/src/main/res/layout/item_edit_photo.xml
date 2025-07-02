@@ -8,31 +8,27 @@
     app:cardCornerRadius="@dimen/corner_radius_medium"
     app:cardElevation="1dp">
 
-    <ImageView
-        android:id="@+id/imageViewPhoto"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:scaleType="centerCrop"
-        android:contentDescription="Listing Photo"
-        tools:srcCompat="@drawable/ic_placeholder_image"/>
+        android:layout_height="match_parent">
 
-    <com.google.android.material.button.MaterialButton
-        android:id="@+id/buttonRemovePhoto"
-        style="@style/Widget.MaterialComponents.Button.Icon"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
-        android:layout_gravity="top|end"
-        android:layout_margin="4dp"
-        android:insetLeft="0dp"
-        android:insetTop="0dp"
-        android:insetRight="0dp"
-        android:insetBottom="0dp"
-        app:backgroundTint="#80000000"
-        app:icon="@drawable/ic_close"
-        app:iconPadding="0dp"
-        app:iconSize="16dp"
-        app:iconTint="@android:color/white"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.MaterialComponents.SmallComponent"
-        tools:ignore="ContentDescription,SpeakableTextPresentCheck,TouchTargetSizeCheck" />
+        <ImageView
+            android:id="@+id/imageViewPhoto"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:scaleType="centerCrop"
+            android:contentDescription="Listing Photo"
+            tools:srcCompat="@drawable/ic_placeholder_image" />
+
+        <ImageButton
+            android:id="@+id/buttonRemoveImage"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_gravity="top|end"
+            android:background="@android:color/transparent"
+            android:src="@android:drawable/ic_delete"
+            android:contentDescription="Remove Photo" />
+
+    </FrameLayout>
 
 </androidx.cardview.widget.CardView>

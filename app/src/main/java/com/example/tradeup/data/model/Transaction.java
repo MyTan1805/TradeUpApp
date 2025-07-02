@@ -1,3 +1,5 @@
+// File: src/main/java/com/example/tradeup/data/model/Transaction.java
+
 package com.example.tradeup.data.model;
 
 import androidx.annotation.Nullable;
@@ -19,26 +21,16 @@ public class Transaction {
     @Nullable
     private Timestamp transactionDate;
     @Nullable
-    private String paymentMethod; // ID from appConfig
+    private String paymentMethod;
     private boolean ratingGivenByBuyer;
     private boolean ratingGivenBySeller;
 
-    // Constructor rỗng cần thiết cho Firestore
+    // <<< SỬA LỖI: CHỈ CẦN MỘT CONSTRUCTOR RỖNG KHÔNG CÓ THÂN HÀM >>>
     public Transaction() {
-        this.transactionId = "";
-        this.itemId = "";
-        this.itemTitle = "";
-        this.itemImageUrl = null;
-        this.sellerId = "";
-        this.buyerId = "";
-        this.priceSold = 0.0;
-        this.transactionDate = null;
-        this.paymentMethod = null;
-        this.ratingGivenByBuyer = false;
-        this.ratingGivenBySeller = false;
+        // Để trống. Firestore sẽ tự động xử lý.
     }
 
-    // Getters and Setters
+    // --- Getters and Setters (Giữ nguyên) ---
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
@@ -71,8 +63,6 @@ public class Transaction {
 
     public boolean isRatingGivenByBuyer() { return ratingGivenByBuyer; }
     public void setRatingGivenByBuyer(boolean ratingGivenByBuyer) { this.ratingGivenByBuyer = ratingGivenByBuyer; }
-
-
 
     public boolean isRatingGivenBySeller() { return ratingGivenBySeller; }
     public void setRatingGivenBySeller(boolean ratingGivenBySeller) { this.ratingGivenBySeller = ratingGivenBySeller; }

@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -26,6 +27,7 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.view.WindowCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
@@ -62,11 +64,17 @@ import com.google.android.libraries.places.widget.model.AutocompleteActivityMode
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
+import java.util.HashSet;
+
 import dagger.hilt.android.AndroidEntryPoint;
+
+import android.view.Window;
+import android.view.WindowManager;
 
 @AndroidEntryPoint
 public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoActionsListener {
@@ -107,23 +115,30 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
         initializeLaunchers();
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        restoreEdgeToEdge();
+    }
+
     private void initializeLaunchers() {
-        imagePickerLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
-            if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
-                if (result.getData().getClipData() != null) {
-                    int count = result.getData().getClipData().getItemCount();
-                    List<Uri> uris = new ArrayList<>();
-                    for (int i = 0; i < count; i++) {
-                        uris.add(result.getData().getClipData().getItemAt(i).getUri());
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    // << FIX: Khôi phục lại trạng thái tràn viền sau khi ImagePicker đóng >>
+                    restoreEdgeToEdge();
+
+                    // Xử lý kết quả trả về
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri uri = result.getData().getData();
+                        if (uri != null) {
+                            photoAdapter.addImages(Collections.singletonList(uri));
+                        }
+                    } else if (result.getResultCode() == ImagePicker.RESULT_ERROR) {
+                        Toast.makeText(getContext(), ImagePicker.getError(result.getData()), Toast.LENGTH_SHORT).show();
                     }
-                    photoAdapter.addImages(uris);
-                } else if (result.getData().getData() != null) {
-                    photoAdapter.addImages(List.of(result.getData().getData()));
                 }
-            } else if (result.getResultCode() == ImagePicker.RESULT_ERROR) {
-                Toast.makeText(getContext(), ImagePicker.getError(result.getData()), Toast.LENGTH_SHORT).show();
-            }
-        });
+        );
 
         placesLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
@@ -162,7 +177,6 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupProgressDialog();
         setupRecyclerView();
         setupClickListeners();
         setupObservers();
@@ -173,17 +187,13 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     @Override
     public void onPause() {
         super.onPause();
-        // Dừng cập nhật vị trí để tiết kiệm pin khi fragment không còn hiển thị
+        // Dừng cập nhật vị trí để tiết kiệm pin
         stopLocationUpdates();
+        // << THÊM: Cũng khôi phục lại trạng thái màn hình phòng trường hợp người dùng thoát app ngang >>
+        restoreEdgeToEdge();
     }
 
     // --- Setup Methods ---
-
-    private void setupProgressDialog() {
-        progressDialog = new ProgressDialog(getContext());
-        progressDialog.setCancelable(false);
-        progressDialog.setTitle("Đang xử lý");
-    }
 
     private void setupRecyclerView() {
         photoAdapter = new PhotoAdapter(this);
@@ -218,7 +228,30 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
 
     private void setupObservers() {
         viewModel.getAppConfig().observe(getViewLifecycleOwner(), config -> this.appConfig = config);
-        viewModel.getAddItemState().observe(getViewLifecycleOwner(), this::handleAddItemState);
+
+        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.progressBar.setVisibility(isLoading ? View.VISIBLE : View.GONE);
+            binding.buttonPostListing.setEnabled(!isLoading);
+        });
+
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
+            String message = event.getContentIfNotHandled();
+            if (message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        viewModel.getPostSuccessEvent().observe(getViewLifecycleOwner(), event -> {
+            String itemId = event.getContentIfNotHandled();
+            if (itemId != null) {
+                Toast.makeText(getContext(), "Đăng tin thành công!", Toast.LENGTH_LONG).show();
+                // TODO: Điều hướng đến trang chi tiết của sản phẩm vừa đăng
+                // Bundle args = new Bundle();
+                // args.putString("itemId", itemId);
+                // NavHostFragment.findNavController(this).navigate(R.id.action_to_detail, args);
+                NavHostFragment.findNavController(this).navigateUp();
+            }
+        });
     }
 
     private void setupResultListeners() {
@@ -270,15 +303,31 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     private void handlePostListing() {
         if (!validateInput()) return;
 
+        String title = binding.editTextTitle.getText().toString().trim();
+
         Item itemToPost = new Item();
-        itemToPost.setTitle(binding.editTextTitle.getText().toString().trim());
+        // Fragment chỉ thu thập dữ liệu từ UI
+        itemToPost.setTitle(title);
         itemToPost.setPrice(Double.parseDouble(binding.editTextPrice.getText().toString().trim()));
         itemToPost.setDescription(binding.editTextDescription.getText().toString().trim());
         itemToPost.setCategory(selectedCategoryId);
         itemToPost.setCondition(selectedConditionId);
         itemToPost.setLocation(selectedLocation);
+        itemToPost.setSearchKeywords(generateKeywords(title));
 
         viewModel.postItem(itemToPost, photoAdapter.getImageUris());
+    }
+
+    private List<String> generateKeywords(String inputText) {
+        if (inputText == null || inputText.isEmpty()) {
+            return new ArrayList<>();
+        }
+        String cleanText = inputText.toLowerCase().replaceAll("[^a-z0-9\\s]", "");
+
+        String[] words = cleanText.split("\\s+");
+        HashSet<String> keywords = new HashSet<>(Arrays.asList(words));
+
+        return new ArrayList<>(keywords);
     }
 
     private boolean validateInput() {
@@ -324,19 +373,28 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     }
 
     private void checkGpsAndFetchLocation() {
-        locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000).build();
+        if (getActivity() == null) return;
+
+        locationRequest = new LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 10000)
+                .setWaitForAccurateLocation(false)
+                .setMinUpdateIntervalMillis(5000)
+                .setMaxUpdateDelayMillis(10000)
+                .build();
+
         LocationSettingsRequest.Builder builder = new LocationSettingsRequest.Builder().addLocationRequest(locationRequest);
         SettingsClient client = LocationServices.getSettingsClient(requireActivity());
         Task<LocationSettingsResponse> task = client.checkLocationSettings(builder.build());
 
-        task.addOnSuccessListener(requireActivity(), response -> startLocationUpdates());
+        task.addOnSuccessListener(requireActivity(), response -> {
+            startLocationUpdates();
+        });
+
         task.addOnFailureListener(requireActivity(), e -> {
             if (e instanceof ResolvableApiException) {
                 try {
                     IntentSenderRequest intentSenderRequest = new IntentSenderRequest.Builder(((ResolvableApiException) e).getResolution()).build();
                     gpsResolutionLauncher.launch(intentSenderRequest);
                 } catch (Exception sendEx) {
-                    // Ignore
                 }
             }
         });
@@ -366,22 +424,27 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     }
 
     private void getAddressFromLocation(Location location) {
+        if (getContext() == null) return;
         Geocoder geocoder = new Geocoder(requireContext(), Locale.getDefault());
         try {
+            // Chỉ lấy 1 kết quả địa chỉ gần nhất
             List<Address> addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1);
             if (addresses != null && !addresses.isEmpty()) {
-                updateLocationFromPlace(addresses.get(0).getAddressLine(0), location.getLatitude(), location.getLongitude());
+                String addressLine = addresses.get(0).getAddressLine(0);
+                updateLocationFromPlace(addressLine, location.getLatitude(), location.getLongitude());
             }
         } catch (IOException e) {
-            Log.e(TAG, "Geocoder failed", e);
+            Log.e(TAG, "Geocoder service not available", e);
         }
     }
 
     private void openPlacesAutocomplete() {
-        if (!Places.isInitialized()) return;
-        List<Place.Field> fields = Arrays.asList(Place.Field.ADDRESS, Place.Field.LAT_LNG);
+        if (getContext() == null || !Places.isInitialized()) return;
+
+        List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG);
         Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
-                .setCountry("VN").build(requireContext());
+                .setCountry("VN") // Giới hạn tìm kiếm ở Việt Nam
+                .build(requireContext());
         placesLauncher.launch(intent);
     }
 
@@ -401,6 +464,8 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
 
     @Override
     public void onAddPhotoClick() {
+        disableEdgeToEdge();
+
         ImagePicker.with(this)
                 .galleryOnly()
                 .crop()
@@ -410,6 +475,28 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
                     imagePickerLauncher.launch(intent);
                     return null;
                 });
+    }
+
+    private void disableEdgeToEdge() {
+        if (getActivity() != null) {
+            Window window = getActivity().getWindow();
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+            View decorView = window.getDecorView();
+            int flags = decorView.getSystemUiVisibility();
+            flags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+            decorView.setSystemUiVisibility(flags);
+        }
+    }
+
+    private void restoreEdgeToEdge() {
+        if (getActivity() != null) {
+            Window window = getActivity().getWindow();
+            WindowCompat.setDecorFitsSystemWindows(window, true);
+            View decorView = window.getDecorView();
+            int flags = decorView.getSystemUiVisibility();
+            flags &= ~(View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN);
+            decorView.setSystemUiVisibility(flags);
+        }
     }
 
     @Override

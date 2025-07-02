@@ -4,28 +4,39 @@ package com.example.tradeup.data.repository;
 import androidx.annotation.NonNull;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.User;
-import com.google.firebase.firestore.FirebaseFirestore;
+// << FIX: Cần import FirestoreUserSource >>
+import com.example.tradeup.data.source.remote.FirestoreUserSource;
 import java.util.Map;
 import javax.inject.Inject;
+import javax.inject.Singleton;
 
+@Singleton // << Rất nên có @Singleton cho Repository >>
 public class UserRepositoryImpl implements UserRepository {
 
-    private final FirebaseFirestore db;
-    private static final String USERS_COLLECTION = "users";
+    // << FIX: Inject FirestoreUserSource thay vì FirebaseFirestore >>
+    private final FirestoreUserSource firestoreUserSource;
 
     @Inject
-    public UserRepositoryImpl(FirebaseFirestore db) {
-        this.db = db;
+    public UserRepositoryImpl(FirestoreUserSource firestoreUserSource) {
+        this.firestoreUserSource = firestoreUserSource;
+    }
+
+    @Override
+    public void createUserProfile(@NonNull User user, @NonNull Callback<Void> callback) {
+        firestoreUserSource.createUserProfile(user)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
     }
 
     @Override
     public void getUserProfile(String uid, @NonNull Callback<User> callback) {
-        db.collection(USERS_COLLECTION).document(uid).get()
-                .addOnSuccessListener(documentSnapshot -> {
-                    if (documentSnapshot.exists()) {
-                        callback.onSuccess(documentSnapshot.toObject(User.class));
+        firestoreUserSource.getUserProfile(uid)
+                .addOnSuccessListener(user -> {
+                    if (user != null) {
+                        callback.onSuccess(user);
                     } else {
-                        callback.onSuccess(null);
+                        // Trường hợp user không tồn tại trong Firestore
+                        callback.onFailure(new Exception("User profile not found in database."));
                     }
                 })
                 .addOnFailureListener(callback::onFailure);
@@ -33,15 +44,24 @@ public class UserRepositoryImpl implements UserRepository {
 
     @Override
     public void updateUserProfile(String uid, Map<String, Object> updates, @NonNull Callback<Void> callback) {
-        db.collection(USERS_COLLECTION).document(uid)
-                .update(updates)
+        firestoreUserSource.updateUserFields(uid, updates)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(callback::onFailure);
     }
 
-    // ... các phương thức khác ...
+    // << FIX: THÊM CÁC PHƯƠNG THỨC CÒN THIẾU >>
+
     @Override
-    public void createUserProfile(@NonNull User user, @NonNull Callback<Void> callback) {
-        // ...
+    public void deactivateUser(String uid, Callback<Void> callback) {
+        firestoreUserSource.deactivateUser(uid)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    @Override
+    public void deleteUser(String uid, Callback<Void> callback) {
+        firestoreUserSource.deleteUser(uid)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
     }
 }

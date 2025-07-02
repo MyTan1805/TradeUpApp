@@ -1,22 +1,22 @@
-// File: src/main/java/com/example/tradeup/ui/listing/ActiveListingsFragment.java
-
 package com.example.tradeup.ui.listing;
 
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.FragmentTabbedListBinding;
 import com.example.tradeup.ui.adapters.MyListingAdapter;
-import com.example.tradeup.ui.profile.ProfileViewModel;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -24,14 +24,13 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class ActiveListingsFragment extends Fragment {
 
     private FragmentTabbedListBinding binding;
-    private ProfileViewModel viewModel;
+    private MyListingsViewModel viewModel; // Sử dụng MyListingsViewModel từ Fragment cha
     private MyListingAdapter adapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Lấy instance của ViewModel từ Fragment cha (MyListingsFragment)
-        viewModel = new ViewModelProvider(requireParentFragment()).get(ProfileViewModel.class);
+        viewModel = new ViewModelProvider(requireParentFragment()).get(MyListingsViewModel.class);
     }
 
     @Nullable
@@ -49,7 +48,7 @@ public class ActiveListingsFragment extends Fragment {
     }
 
     private void setupRecyclerView() {
-        adapter = new MyListingAdapter(new MyListingAdapter.OnItemMenuClickListener() {
+        adapter = new MyListingAdapter(new MyListingAdapter.OnItemActionListener() {
             @Override
             public void onMenuClick(Item item) {
                 viewModel.setSelectedItem(item);
@@ -61,16 +60,24 @@ public class ActiveListingsFragment extends Fragment {
 
             @Override
             public void onRateBuyerClick(Item item) {
-                // Không có hành động gì trong tab Active
+                // Không có hành động này trong tab Active
+            }
+
+            @Override
+            public void onItemClick(Item item) {
+                if (isAdded() && item != null) {
+                    Bundle args = new Bundle();
+                    args.putString("itemId", item.getItemId());
+                    NavHostFragment.findNavController(ActiveListingsFragment.this)
+                            .navigate(R.id.action_global_to_itemDetailFragment, args);
+                }
             }
         });
-
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
     }
 
     private void observeViewModel() {
-        // Lắng nghe danh sách sản phẩm "Active" từ ViewModel
         viewModel.getActiveListings().observe(getViewLifecycleOwner(), items -> {
             if (items != null) {
                 adapter.submitList(items);
