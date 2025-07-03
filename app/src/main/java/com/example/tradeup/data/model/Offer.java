@@ -1,3 +1,4 @@
+// File: src/main/java/com/example/tradeup/data/model/Offer.java
 package com.example.tradeup.data.model;
 
 import androidx.annotation.Nullable;
@@ -10,6 +11,8 @@ public class Offer {
     private String offerId;
     private String itemId;
     private String sellerId;
+    @Nullable
+    private String sellerDisplayName;
     private String buyerId;
     private String buyerDisplayName;
     @Nullable
@@ -17,11 +20,11 @@ public class Offer {
     private double offeredPrice;
     @Nullable
     private String message;
-    private String status; // "pending", "accepted", "rejected", "countered", "cancelled_by_buyer", "expired"
+    private String status;
     @Nullable
-    private Double counterOfferPrice;
+    private Double counterOfferPrice; // Thêm trường này
     @Nullable
-    private String counterOfferMessage;
+    private String counterOfferMessage; // Thêm trường này
     @ServerTimestamp
     @Nullable
     private Timestamp createdAt;
@@ -31,11 +34,11 @@ public class Offer {
     @Nullable
     private Timestamp expiresAt;
 
-    // Constructor rỗng cần thiết cho Firestore
     public Offer() {
         this.offerId = "";
         this.itemId = "";
         this.sellerId = "";
+        this.sellerDisplayName = null;
         this.buyerId = "";
         this.buyerDisplayName = "";
         this.buyerProfilePictureUrl = null;
@@ -49,7 +52,7 @@ public class Offer {
         this.expiresAt = null;
     }
 
-    // Getters and Setters
+    // Getter và Setter
     public String getOfferId() { return offerId; }
     public void setOfferId(String offerId) { this.offerId = offerId; }
 
@@ -58,6 +61,10 @@ public class Offer {
 
     public String getSellerId() { return sellerId; }
     public void setSellerId(String sellerId) { this.sellerId = sellerId; }
+
+    @Nullable
+    public String getSellerDisplayName() { return sellerDisplayName; }
+    public void setSellerDisplayName(@Nullable String sellerDisplayName) { this.sellerDisplayName = sellerDisplayName; }
 
     public String getBuyerId() { return buyerId; }
     public void setBuyerId(String buyerId) { this.buyerId = buyerId; }

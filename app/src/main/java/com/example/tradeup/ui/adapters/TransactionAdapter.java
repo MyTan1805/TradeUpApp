@@ -4,7 +4,10 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
+import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -12,11 +15,13 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Transaction;
-import com.example.tradeup.databinding.ItemTransactionBinding; // <-- Đảm bảo bạn đã có layout này
+import com.example.tradeup.databinding.ItemTransactionBinding;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Objects;
 
 public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdapter.TransactionViewHolder> {
 
@@ -26,6 +31,7 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
     public interface OnTransactionActionListener {
         void onTransactionClick(Transaction transaction);
         void onRateClick(Transaction transaction);
+        void onConfirmCOD(Transaction transaction);
     }
 
     public TransactionAdapter(@NonNull String currentUserId, @NonNull OnTransactionActionListener listener) {
@@ -53,7 +59,6 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
         }
     }
 
-    // ViewHolder
     static class TransactionViewHolder extends RecyclerView.ViewHolder {
         private final ItemTransactionBinding binding;
         private final OnTransactionActionListener listener;
@@ -71,18 +76,22 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
         void bind(final Transaction transaction) {
             // Bind thông tin cơ bản
             binding.textViewProductName.setText(transaction.getItemTitle());
-            binding.textViewTransactionId.setText("#" + transaction.getTransactionId().substring(0, 7)); // Hiển thị 7 ký tự đầu cho gọn
+            binding.textViewTransactionId.setText("#" + transaction.getTransactionId().substring(0, 7));
 
             // Format tiền tệ
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             binding.textViewPrice.setText(currencyFormat.format(transaction.getPriceSold()));
+
+            // Hiển thị paymentMethod và paymentStatus
+            binding.textViewPaymentMethod.setText("Payment Method: " + (transaction.getPaymentMethod() != null ? transaction.getPaymentMethod() : "Not selected"));
+            binding.textViewPaymentStatus.setText("Status: " + (transaction.getPaymentStatus() != null ? transaction.getPaymentStatus() : "Pending"));
 
             // Format ngày tháng
             if (transaction.getTransactionDate() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());
                 binding.textViewDate.setText(sdf.format(transaction.getTransactionDate().toDate()));
             } else {
-                binding.textViewDate.setText("");
+                binding.textViewDate.setText("Pending");
             }
 
             // Tải ảnh sản phẩm
@@ -92,33 +101,66 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
                     .error(R.drawable.ic_image_not_found)
                     .into(binding.imageViewProduct);
 
-            // Xác định vai trò của người dùng và hiển thị thông tin đối tác
+            // Xác định vai trò và lấy displayName từ Firestore
             boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
             if (isUserTheBuyer) {
                 binding.labelTransactionPartner.setText("Sold by:");
-                // TODO: Cần có cơ chế lấy tên người bán từ sellerId
-                binding.textViewUserName.setText(transaction.getSellerId().substring(0, 10) + "..."); // Tạm thời
+                fetchUserDisplayName(transaction.getSellerId(), binding.textViewUserName);
             } else {
                 binding.labelTransactionPartner.setText("Bought by:");
-                // TODO: Cần có cơ chế lấy tên người mua từ buyerId
-                binding.textViewUserName.setText(transaction.getBuyerId().substring(0, 10) + "..."); // Tạm thời
+                fetchUserDisplayName(transaction.getBuyerId(), binding.textViewUserName);
             }
 
-            // Ẩn/Hiện nút "Rate"
-            // TODO: Sửa lại tên button trong layout `item_transaction.xml` nếu cần
-            /*
+            // Cập nhật chipStatus dựa trên paymentStatus
+            String status = transaction.getPaymentStatus() != null ? transaction.getPaymentStatus() : "pending";
+            binding.chipStatus.setText(status);
+            int backgroundColorRes;
+            int textColorRes;
+            switch (status.toLowerCase()) {
+                case "pending":
+                    backgroundColorRes = R.color.status_pending_background;
+                    textColorRes = R.color.status_pending_text;
+                    break;
+                case "completed":
+                    backgroundColorRes = R.color.status_completed_background;
+                    textColorRes = R.color.status_completed_text;
+                    break;
+                default:
+                    backgroundColorRes = R.color.status_default_background;
+                    textColorRes = R.color.status_default_text;
+                    break;
+            }
+            binding.chipStatus.setChipBackgroundColorResource(backgroundColorRes);
+            binding.chipStatus.setTextColor(ContextCompat.getColor(context, textColorRes));
+
+            // Hiển thị nút Rate
             boolean canUserRate = (isUserTheBuyer && !transaction.isRatingGivenByBuyer()) ||
-                                  (!isUserTheBuyer && !transaction.isRatingGivenBySeller());
+                    (!isUserTheBuyer && !transaction.isRatingGivenBySeller());
             binding.buttonRate.setVisibility(canUserRate ? View.VISIBLE : View.GONE);
             binding.buttonRate.setOnClickListener(v -> listener.onRateClick(transaction));
-            */
+
+            // Hiển thị nút Confirm COD Payment cho seller
+            boolean isCODPending = "COD".equals(transaction.getPaymentMethod()) && "pending".equals(transaction.getPaymentStatus());
+            binding.buttonConfirmCOD.setVisibility(!isUserTheBuyer && isCODPending ? View.VISIBLE : View.GONE);
+            binding.buttonConfirmCOD.setOnClickListener(v -> listener.onConfirmCOD(transaction));
 
             // Xử lý sự kiện click vào cả item
             itemView.setOnClickListener(v -> listener.onTransactionClick(transaction));
         }
+
+        private void fetchUserDisplayName(String userId, TextView textView) {
+            FirebaseFirestore.getInstance().collection("users").document(userId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        String displayName = documentSnapshot.getString("displayName");
+                        textView.setText(displayName != null ? displayName : userId.substring(0, 10) + "...");
+                    })
+                    .addOnFailureListener(e -> {
+                        textView.setText(userId.substring(0, 10) + "...");
+                    });
+        }
     }
 
-    // DiffUtil.ItemCallback
     private static final DiffUtil.ItemCallback<Transaction> DIFF_CALLBACK = new DiffUtil.ItemCallback<Transaction>() {
         @Override
         public boolean areItemsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
@@ -127,9 +169,10 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
 
         @Override
         public boolean areContentsTheSame(@NonNull Transaction oldItem, @NonNull Transaction newItem) {
-            // So sánh các trường quan trọng có thể thay đổi
             return oldItem.isRatingGivenByBuyer() == newItem.isRatingGivenByBuyer() &&
-                    oldItem.isRatingGivenBySeller() == newItem.isRatingGivenBySeller();
+                    oldItem.isRatingGivenBySeller() == newItem.isRatingGivenBySeller() &&
+                    Objects.equals(oldItem.getPaymentMethod(), newItem.getPaymentMethod()) &&
+                    Objects.equals(oldItem.getPaymentStatus(), newItem.getPaymentStatus());
         }
     };
 }

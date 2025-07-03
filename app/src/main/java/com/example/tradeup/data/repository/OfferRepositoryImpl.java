@@ -1,13 +1,14 @@
+// File: src/main/java/com/example/tradeup/data/repository/OfferRepositoryImpl.java
 package com.example.tradeup.data.repository;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.Offer;
 import com.example.tradeup.data.source.remote.FirebaseOfferSource;
-
 import java.util.List;
+import java.util.Map;
+
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -31,13 +32,11 @@ public class OfferRepositoryImpl implements OfferRepository {
     @Override
     public void getOfferById(String offerId, Callback<Offer> callback) {
         firebaseOfferSource.getOfferById(offerId)
-                .addOnSuccessListener(offer -> {
-                    // offer có thể là null nếu không tìm thấy
-                    callback.onSuccess(offer);
-                })
+                .addOnSuccessListener(callback::onSuccess)
                 .addOnFailureListener(callback::onFailure);
     }
 
+    // <<< TRIỂN KHAI PHƯƠNG THỨC BỊ THIẾU >>>
     @Override
     public void getOffersForItem(String itemId, Callback<List<Offer>> callback) {
         firebaseOfferSource.getOffersForItem(itemId)
@@ -59,12 +58,17 @@ public class OfferRepositoryImpl implements OfferRepository {
                 .addOnFailureListener(callback::onFailure);
     }
 
+    @Override
+    public void updateOffer(@NonNull String offerId, @NonNull String newStatus,
+                            @Nullable Double newPrice, @Nullable String newMessage, Callback<Void> callback) {
+        firebaseOfferSource.updateOffer(offerId, newStatus, newPrice, newMessage)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
+    }
 
     @Override
-    public void updateOfferStatus(String offerId, @NonNull String newStatus,
-                                  @Nullable Double counterPrice, @Nullable String counterMessage,
-                                  Callback<Void> callback) {
-        firebaseOfferSource.updateOfferStatus(offerId, newStatus, counterPrice, counterMessage)
+    public void updateOffer(@NonNull String offerId, @NonNull Map<String, Object> updates, Callback<Void> callback) {
+        firebaseOfferSource.updateOffer(offerId, updates)
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(callback::onFailure);
     }

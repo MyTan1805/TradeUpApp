@@ -1,4 +1,3 @@
-// File: src/main/java/com/example/tradeup/ui/offers/ReceivedOffersFragment.java
 package com.example.tradeup.ui.offers;
 
 import android.os.Bundle;
@@ -6,22 +5,26 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import com.example.tradeup.data.model.Offer;
-import com.example.tradeup.databinding.FragmentTabbedListBinding;
-import com.example.tradeup.ui.adapters.OfferAdapter;
-import com.google.firebase.auth.FirebaseAuth;
-import java.util.Collections;
 
-public class ReceivedOffersFragment extends Fragment implements OfferAdapter.OnOfferActionListener {
+import com.example.tradeup.data.model.Transaction;
+import com.example.tradeup.databinding.FragmentTabbedListBinding;
+import com.example.tradeup.ui.adapters.TransactionAdapter;
+import com.google.firebase.auth.FirebaseAuth;
+
+import java.util.Collections;
+import java.util.List;
+
+public class TransactionsFragment extends Fragment {
 
     private FragmentTabbedListBinding binding;
     private OffersViewModel viewModel;
-    private OfferAdapter adapter;
+    private TransactionAdapter adapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -41,30 +44,39 @@ public class ReceivedOffersFragment extends Fragment implements OfferAdapter.OnO
         super.onViewCreated(view, savedInstanceState);
         setupRecyclerView();
         observeViewModel();
+        viewModel.loadTransactions(true); // Load transactions
     }
 
     private void setupRecyclerView() {
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : "";
-        adapter = new OfferAdapter(currentUserId, this);
+        adapter = new TransactionAdapter(currentUserId, new TransactionAdapter.OnTransactionActionListener() {
+            @Override
+            public void onTransactionClick(Transaction transaction) {
+                Toast.makeText(getContext(), "Clicked on transaction: " + transaction.getTransactionId(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onRateClick(Transaction transaction) {
+                Toast.makeText(getContext(), "Rate clicked for transaction: " + transaction.getTransactionId(), Toast.LENGTH_SHORT).show();
+                // TODO: Open rating dialog or fragment
+            }
+
+            @Override
+            public void onConfirmCOD(Transaction transaction) {
+                viewModel.confirmCODPayment(transaction.getTransactionId(), true);
+            }
+        });
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
     }
 
     private void observeViewModel() {
-        viewModel.getReceivedOffers().observe(getViewLifecycleOwner(), offers -> {
-            adapter.submitList(offers != null ? offers : Collections.emptyList());
-            binding.textViewEmpty.setVisibility(offers == null || offers.isEmpty() ? View.VISIBLE : View.GONE);
-            binding.textViewEmpty.setText("You have no received offers.");
-        });
-
-        viewModel.getOpenCounterOfferDialogEvent().observe(getViewLifecycleOwner(), event -> {
-            Offer offerToCounter = event.getContentIfNotHandled();
-            if (offerToCounter != null && isAdded()) {
-                CounterOfferDialogFragment.newInstance(offerToCounter.getOfferId())
-                        .show(getParentFragmentManager(), CounterOfferDialogFragment.TAG);
-            }
+        viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
+            adapter.submitList(transactions != null ? transactions : Collections.emptyList());
+            binding.textViewEmpty.setVisibility(transactions == null || transactions.isEmpty() ? View.VISIBLE : View.GONE);
+            binding.textViewEmpty.setText("You have no transactions.");
         });
 
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
@@ -77,26 +89,6 @@ public class ReceivedOffersFragment extends Fragment implements OfferAdapter.OnO
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
-    }
-
-    @Override
-    public void onAcceptClick(Offer offer) {
-        viewModel.accept(offer);
-    }
-
-    @Override
-    public void onRejectClick(Offer offer) {
-        viewModel.reject(offer);
-    }
-
-    @Override
-    public void onCounterClick(Offer offer) {
-        viewModel.counter(offer);
-    }
-
-    @Override
-    public void onItemClick(Offer offer) {
-        Toast.makeText(getContext(), "Clicked on item: " + offer.getItemId(), Toast.LENGTH_SHORT).show();
     }
 
     @Override

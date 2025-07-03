@@ -1,13 +1,13 @@
-// File: src/main/java/com/example/tradeup/data/model/Transaction.java
-
 package com.example.tradeup.data.model;
 
+import android.os.Parcel;
+import android.os.Parcelable;
 import androidx.annotation.Nullable;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.ServerTimestamp;
 
-public class Transaction {
+public class Transaction implements Parcelable {
     @DocumentId
     private String transactionId;
     private String itemId;
@@ -20,17 +20,72 @@ public class Transaction {
     @ServerTimestamp
     @Nullable
     private Timestamp transactionDate;
-    @Nullable
-    private String paymentMethod;
+    private String paymentMethod; // "COD" hoặc "Online"
+    private String paymentStatus; // "pending", "completed", "failed"
     private boolean ratingGivenByBuyer;
     private boolean ratingGivenBySeller;
+    private boolean sellerConfirmed;
+    private boolean buyerConfirmed;
 
-    // <<< SỬA LỖI: CHỈ CẦN MỘT CONSTRUCTOR RỖNG KHÔNG CÓ THÂN HÀM >>>
-    public Transaction() {
-        // Để trống. Firestore sẽ tự động xử lý.
+    public Transaction() {}
+
+    // Parcelable constructor
+    protected Transaction(Parcel in) {
+        transactionId = in.readString();
+        itemId = in.readString();
+        itemTitle = in.readString();
+        itemImageUrl = in.readString();
+        sellerId = in.readString();
+        buyerId = in.readString();
+        priceSold = in.readDouble();
+        transactionDate = in.readParcelable(Timestamp.class.getClassLoader());
+        paymentMethod = in.readString();
+        paymentStatus = in.readString();
+        ratingGivenByBuyer = in.readByte() != 0;
+        ratingGivenBySeller = in.readByte() != 0;
+        deliveryAddress = in.readString();
     }
 
-    // --- Getters and Setters (Giữ nguyên) ---
+    public static final Creator<Transaction> CREATOR = new Creator<Transaction>() {
+        @Override
+        public Transaction createFromParcel(Parcel in) {
+            return new Transaction(in);
+        }
+
+        @Override
+        public Transaction[] newArray(int size) {
+            return new Transaction[size];
+        }
+    };
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeString(transactionId);
+        dest.writeString(itemId);
+        dest.writeString(itemTitle);
+        dest.writeString(itemImageUrl);
+        dest.writeString(sellerId);
+        dest.writeString(buyerId);
+        dest.writeDouble(priceSold);
+        dest.writeParcelable(transactionDate, flags);
+        dest.writeString(paymentMethod);
+        dest.writeString(paymentStatus);
+        dest.writeByte((byte) (ratingGivenByBuyer ? 1 : 0));
+        dest.writeByte((byte) (ratingGivenBySeller ? 1 : 0));
+        dest.writeString(deliveryAddress);
+    }
+
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+    private String deliveryAddress;
+    public String getDeliveryAddress() { return deliveryAddress; }
+    public void setDeliveryAddress(@Nullable String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
+
+
+    // Getters and Setters
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
@@ -61,9 +116,24 @@ public class Transaction {
     public String getPaymentMethod() { return paymentMethod; }
     public void setPaymentMethod(@Nullable String paymentMethod) { this.paymentMethod = paymentMethod; }
 
+    public String getPaymentStatus() { return paymentStatus; }
+    public void setPaymentStatus(String paymentStatus) { this.paymentStatus = paymentStatus; }
+
     public boolean isRatingGivenByBuyer() { return ratingGivenByBuyer; }
     public void setRatingGivenByBuyer(boolean ratingGivenByBuyer) { this.ratingGivenByBuyer = ratingGivenByBuyer; }
 
     public boolean isRatingGivenBySeller() { return ratingGivenBySeller; }
     public void setRatingGivenBySeller(boolean ratingGivenBySeller) { this.ratingGivenBySeller = ratingGivenBySeller; }
+
+    public boolean isCompleted() {
+        return "completed".equals(paymentStatus);
+    }
+
+    public boolean isSellerConfirmed() {
+        return sellerConfirmed;
+    }
+
+    public boolean isBuyerConfirmed() {
+        return buyerConfirmed;
+    }
 }

@@ -12,7 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.lifecycle.ViewModelProvider;
 
 import com.example.tradeup.R;
-import com.example.tradeup.databinding.DialogCounterOfferBinding; // Sử dụng binding bạn đã tạo
+import com.example.tradeup.core.utils.Event;
+import com.example.tradeup.databinding.DialogCounterOfferBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
 public class CounterOfferDialogFragment extends BottomSheetDialogFragment {
@@ -39,7 +40,7 @@ public class CounterOfferDialogFragment extends BottomSheetDialogFragment {
         if (getArguments() != null) {
             offerId = getArguments().getString(ARG_OFFER_ID);
         }
-        // Lấy ViewModel từ Fragment cha (OffersFragment) để chia sẻ dữ liệu
+        // Lấy ViewModel từ Fragment cha (OffersFragment)
         viewModel = new ViewModelProvider(requireParentFragment()).get(OffersViewModel.class);
 
         // Style cho BottomSheet
@@ -57,6 +58,7 @@ public class CounterOfferDialogFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         setupListeners();
+        observeViewModel();
     }
 
     private void setupListeners() {
@@ -76,16 +78,35 @@ public class CounterOfferDialogFragment extends BottomSheetDialogFragment {
                     binding.tilCounterPrice.setError("Price must be greater than 0");
                     return;
                 }
-                // Nếu offerId hợp lệ, gọi ViewModel
                 if (offerId != null) {
-                    viewModel.sendCounterOffer(offerId, price, message);
-                    dismiss(); // Tự động đóng dialog sau khi gửi
+                    viewModel.submitCounterOffer(offerId, price, message); // Sửa thành submitCounterOffer
+                    // Không đóng dialog ngay, chờ thông báo từ ViewModel
                 } else {
                     Toast.makeText(getContext(), "Error: Offer ID is missing.", Toast.LENGTH_SHORT).show();
+                    dismiss();
                 }
             } catch (NumberFormatException e) {
                 binding.tilCounterPrice.setError("Invalid number format");
             }
+        });
+    }
+
+    private void observeViewModel() {
+        // Quan sát thông báo Toast từ ViewModel
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
+            String message = event.getContentIfNotHandled();
+            if (message != null && isAdded()) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+                if (message.contains("Counter offer sent")) {
+                    dismiss(); // Đóng dialog khi gửi thành công
+                }
+            }
+        });
+
+        // Quan sát trạng thái tải
+        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
+            binding.buttonSendCounterOffer.setEnabled(!isLoading);
+            // Có thể thêm ProgressBar trong dialog nếu cần
         });
     }
 

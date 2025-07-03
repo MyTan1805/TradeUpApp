@@ -167,4 +167,14 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
             navController.navigate(R.id.action_global_to_submitReviewFragment, args);
         }
     }
+
+    @Override
+    public void onConfirmCOD(Transaction transaction) {
+        Log.d(TAG, "onConfirmCOD clicked, but it is not handled in this screen.");
+        Toast.makeText(getContext(), "This action is handled in the Offers screen.", Toast.LENGTH_SHORT).show();
+
+        // Hoặc nếu bạn muốn ViewModel này cũng xử lý, bạn phải thêm logic
+        // vào TransactionHistoryViewModel. Nhưng hiện tại thì không cần thiết.
+        // viewModel.confirmCODPayment(transaction.getTransactionId(), ...);
+    }
 }

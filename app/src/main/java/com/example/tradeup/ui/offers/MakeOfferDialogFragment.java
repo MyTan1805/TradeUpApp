@@ -104,7 +104,7 @@ public class MakeOfferDialogFragment extends BottomSheetDialogFragment {
                 String message = binding.editTextMessage.getText().toString().trim();
 
                 // Gọi ViewModel để tạo offer
-                viewModel.createOffer(currentItem, offerAmount, message);
+                    viewModel.createOffer(currentItem, offerAmount, message);
             }
         });
     }

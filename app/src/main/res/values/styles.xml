@@ -289,6 +289,11 @@
         <item name="colorOnPrimary">?attr/colorOnSurface</item>
     </style>
 
+    <style name="Widget.TradeUp.Chip.Status.Default" parent="Widget.MaterialComponents.Chip.Choice">
+        <item name="chipBackgroundColor">@color/status_default_background</item>
+        <item name="android:textColor">@color/status_default_text</item>
+    </style>
+
     <!-- Nếu bạn muốn một font sans-serif cho body text -->
     <!--
     <style name="TextAppearance.TradeUp.BodySans16" parent="TextAppearance.MaterialComponents.Body1">

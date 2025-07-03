@@ -28,6 +28,8 @@ public class MyListingsViewModel extends ViewModel {
     private final ItemRepository itemRepository;
     private final AuthRepository authRepository;
 
+    private final TransactionRepository transactionRepository;
+
     private final MutableLiveData<List<Transaction>> _soldTransactions = new MutableLiveData<>();
     public LiveData<List<Transaction>> getSoldTransactions() { return _soldTransactions; }
 
@@ -62,7 +64,7 @@ public class MyListingsViewModel extends ViewModel {
     TransactionRepository transactionRepository) {
         this.itemRepository = itemRepository;
         this.authRepository = authRepository;
-
+        this.transactionRepository = transactionRepository;
         // Tải dữ liệu ngay khi ViewModel được tạo
         loadMyListings();
     }
@@ -88,6 +90,20 @@ public class MyListingsViewModel extends ViewModel {
             public void onFailure(@NonNull Exception e) {
                 Log.e(TAG, "Failed to load listings", e);
                 _toastMessage.postValue(new Event<>("Failed to load your listings: " + e.getMessage()));
+                _isLoading.postValue(false);
+            }
+        });
+
+        transactionRepository.getTransactionsByUser(currentUser.getUid(), "sellerId", 50, new Callback<List<Transaction>>() {
+            @Override
+            public void onSuccess(List<Transaction> transactions) {
+                _soldTransactions.postValue(transactions);
+                _isLoading.postValue(false); // Cập nhật isLoading ở đây
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _toastMessage.postValue(new Event<>("Failed to load transaction history: " + e.getMessage()));
                 _isLoading.postValue(false);
             }
         });

@@ -37,9 +37,14 @@
     <color name="status_countered_text">#1976D2</color> <!-- Màu xanh dương đậm cho chữ Countered -->
     <color name="status_countered_background">#E3F2FD</color> <!-- Màu xanh dương rất nhạt cho nền Countered -->
 
-    <color name="status_completed_text">#2E7D32</color>  <!-- Màu xanh lá đậm -->
-    <color name="status_completed_background">#E8F5E9</color> <!-- Màu xanh lá rất nhạt -->
     <color name="status_rated_text">#757575</color>  <!-- Màu xám cho chữ Rated -->
     <color name="status_rated_background">#F5F5F5</color> <!-- Màu xám rất nhạt -->
+
+    <color name="status_default_background">#ECEFF1</color>
+    <color name="status_default_text">#37474F</color>
+
+    <color name="status_completed_background">#E8F5E9</color>
+    <color name="status_completed_text">#2E7D32</color>
+
 
 </resources>
