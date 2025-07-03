@@ -5,6 +5,8 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
@@ -47,8 +49,9 @@ public class ListingOptionsDialogFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Item selectedItem = viewModel.getSelectedItem().getValue();
+        Item selectedItem = viewModel.getSelectedItem();
         if (selectedItem == null) {
+            Toast.makeText(getContext(), "Please select an item first.", Toast.LENGTH_SHORT).show();
             dismiss(); // An toàn, nếu không có item nào được chọn thì đóng dialog
             return;
         }

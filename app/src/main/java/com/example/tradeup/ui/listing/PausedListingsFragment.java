@@ -16,6 +16,9 @@ import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.FragmentTabbedListBinding;
 import com.example.tradeup.ui.adapters.MyListingAdapter;
 
+import java.util.Collections;
+import java.util.List;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -76,12 +79,22 @@ public class PausedListingsFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        viewModel.getPausedListings().observe(getViewLifecycleOwner(), items -> {
-            if (items != null) {
-                adapter.submitList(items);
-                binding.textViewEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+        // << FIX: Lắng nghe LiveData State tổng thể >>
+        viewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            if (state instanceof MyListingsState.Success) {
+                // Lấy danh sách pausedItems từ State
+                List<Item> pausedItems = ((MyListingsState.Success) state).pausedItems;
+                adapter.submitList(pausedItems);
+
+                boolean isEmpty = (pausedItems == null || pausedItems.isEmpty());
+                binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
                 binding.textViewEmpty.setText("You have no paused listings.");
+            } else if (state instanceof MyListingsState.Loading) {
+                // Xóa list cũ khi đang tải lại
+                adapter.submitList(Collections.emptyList());
+                binding.textViewEmpty.setVisibility(View.GONE);
             }
+            // Không cần xử lý Error ở đây, Fragment cha đã xử lý
         });
     }
 

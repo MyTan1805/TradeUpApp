@@ -27,9 +27,7 @@ public class Rating {
     @Nullable
     private Timestamp createdAt;
 
-    // << FIX 1: Thêm constructor rỗng cần thiết cho Firestore >>
     public Rating() {
-        // Firestore cần constructor này để deserialize
     }
 
     // Constructor đầy đủ để có thể tạo đối tượng một cách thủ công nếu cần
@@ -87,13 +85,11 @@ public class Rating {
         return stars == rating.stars &&
                 Objects.equals(ratingId, rating.ratingId) &&
                 Objects.equals(transactionId, rating.transactionId) &&
-                Objects.equals(raterDisplayName, rating.raterDisplayName) &&
-                Objects.equals(feedbackText, rating.feedbackText) &&
-                Objects.equals(createdAt, rating.createdAt);
+                Objects.equals(feedbackText, rating.feedbackText);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ratingId, transactionId, raterDisplayName, stars, feedbackText, createdAt);
+        return Objects.hash(ratingId, transactionId, stars, feedbackText);
     }
 }

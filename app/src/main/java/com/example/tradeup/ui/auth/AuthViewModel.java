@@ -50,10 +50,9 @@ public class AuthViewModel extends ViewModel {
         authRepository.registerUser(email, password, new Callback<FirebaseUser>() {
             @Override
             public void onSuccess(FirebaseUser firebaseUser) {
-                // Sau khi Auth thành công, tạo User document
-                createNewUserProfile(firebaseUser, displayName);
+                // Sau khi đăng ký Auth thành công, tạo profile
+                checkAndCreateProfile(firebaseUser, displayName, false);
             }
-
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.setValue(false);
@@ -117,8 +116,10 @@ public class AuthViewModel extends ViewModel {
                     } else {
                         sessionManager.saveEmail(null);
                     }
+                    _isLoading.setValue(false);
                     _navigationEvent.setValue(new Event<>(firebaseUser));
                 } else {
+                    _isLoading.setValue(false);
                     _toastMessage.setValue(new Event<>("Vui lòng xác thực email. Email mới đã được gửi."));
                     authRepository.sendEmailVerification(firebaseUser, new Callback<Void>() {
                         @Override public void onSuccess(Void data) {}
@@ -142,32 +143,60 @@ public class AuthViewModel extends ViewModel {
         authRepository.loginWithGoogle(idToken, new Callback<FirebaseUser>() {
             @Override
             public void onSuccess(FirebaseUser firebaseUser) {
-                // Kiểm tra xem user đã có trong Firestore chưa
-                userRepository.getUserProfile(firebaseUser.getUid(), new Callback<User>() {
-                    @Override
-                    public void onSuccess(User userProfile) {
-                        if (userProfile == null) {
-                            // User mới, tạo profile cho họ
-                            createNewUserProfile(firebaseUser, firebaseUser.getDisplayName());
-                        } else {
-                            // User đã tồn tại, cho phép đăng nhập
-                            _isLoading.setValue(false);
-                            _navigationEvent.setValue(new Event<>(firebaseUser));
-                        }
-                    }
-
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        _isLoading.setValue(false);
-                        _toastMessage.setValue(new Event<>("Không thể kiểm tra hồ sơ người dùng: " + e.getMessage()));
-                    }
-                });
+                // Sau khi đăng nhập Auth thành công, kiểm tra hoặc tạo profile
+                checkAndCreateProfile(firebaseUser, firebaseUser.getDisplayName(), true);
             }
-
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.setValue(false);
                 _toastMessage.setValue(new Event<>(e.getMessage()));
+            }
+        });
+    }
+
+    private void checkAndCreateProfile(FirebaseUser firebaseUser, String displayName, boolean isSocialLogin) {
+        userRepository.getUserProfile(firebaseUser.getUid(), new Callback<User>() {
+            @Override
+            public void onSuccess(User userProfile) {
+                if (userProfile != null) {
+                    // User đã tồn tại, cho đăng nhập ngay
+                    _isLoading.setValue(false);
+                    _navigationEvent.setValue(new Event<>(firebaseUser));
+                } else {
+                    // User mới, tạo profile mới
+                    createNewUserProfile(firebaseUser, displayName, isSocialLogin);
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>("Failed to check user profile: " + e.getMessage()));
+            }
+        });
+    }
+
+    private void createNewUserProfile(FirebaseUser firebaseUser, String displayName, boolean isSocialLogin) {
+        User newUser = new User();
+        newUser.setUid(firebaseUser.getUid());
+        newUser.setEmail(firebaseUser.getEmail());
+        newUser.setDisplayName(displayName);
+
+        userRepository.createUserProfile(newUser, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                // Đối với login mạng xã hội, email đã được xác thực, cho vào luôn.
+                // Đối với đăng ký thường, cần gửi mail.
+                if (isSocialLogin) {
+                    _isLoading.setValue(false);
+                    _navigationEvent.setValue(new Event<>(firebaseUser));
+                } else {
+                    sendVerificationEmail(firebaseUser);
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _toastMessage.setValue(new Event<>("Failed to create profile: " + e.getMessage()));
             }
         });
     }

@@ -1,21 +1,16 @@
-// File: src/main/java/com/example/tradeup/ui/listing/MyListingsFragment.java
-
 package com.example.tradeup.ui.listing;
 
-import android.app.AlertDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
-
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.FragmentMyListingsBinding;
@@ -28,13 +23,13 @@ import dagger.hilt.android.AndroidEntryPoint;
 public class MyListingsFragment extends Fragment {
 
     private FragmentMyListingsBinding binding;
-    private MyListingsViewModel viewModel; // <<< SỬA 1: DÙNG ĐÚNG KIỂU VIEWMODEL
+    private MyListingsViewModel viewModel;
     private MyListingsPagerAdapter pagerAdapter;
+    private NavController navController;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // <<< SỬA 2: KHỞI TẠO ĐÚNG VIEWMODEL >>>
         viewModel = new ViewModelProvider(this).get(MyListingsViewModel.class);
     }
 
@@ -48,54 +43,21 @@ public class MyListingsFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        navController = NavHostFragment.findNavController(this);
+
+        setupToolbar();
         setupViewPagerAndTabs();
-        setupClickListeners();
-        observeViewModel();
+        setupObservers();
     }
 
-
-    private void setupClickListeners() {
-        binding.fabAddNew.setOnClickListener(v -> {
-            if (isAdded()) {
-                // Sửa lại để dùng action đã tạo
-                NavHostFragment.findNavController(this).navigate(R.id.action_myListingsFragment_to_addItemFragment);
-            }
-        });
-        binding.toolbar.setNavigationOnClickListener(v -> {
-            if (isAdded()) {
-                NavHostFragment.findNavController(this).navigateUp();
-            }
-        });
-    }
-
-    private void observeViewModel() {
-        viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            if (binding != null) {
-                binding.progressBarMyListings.setVisibility(isLoading ? View.VISIBLE : View.GONE);
-            }
-        });
-
-        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
-            String message = event.getContentIfNotHandled();
-            if (message != null) {
-                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        // *** THÊM OBSERVER MỚI NÀY ***
-        viewModel.getNavigateToEditEvent().observe(getViewLifecycleOwner(), event -> {
-            Item itemToEdit = event.getContentIfNotHandled();
-            if (itemToEdit != null) {
-                Bundle args = new Bundle();
-                args.putString("itemId", itemToEdit.getItemId());
-                NavHostFragment.findNavController(this).navigate(R.id.action_global_to_editItemFragment, args);
-            }
-        });
+    private void setupToolbar() {
+        binding.toolbar.setNavigationOnClickListener(v -> navController.navigateUp());
     }
 
     private void setupViewPagerAndTabs() {
         pagerAdapter = new MyListingsPagerAdapter(this);
         binding.viewPager.setAdapter(pagerAdapter);
+
         new TabLayoutMediator(binding.tabLayout, binding.viewPager, (tab, position) -> {
             switch (position) {
                 case 0:
@@ -109,6 +71,46 @@ public class MyListingsFragment extends Fragment {
                     break;
             }
         }).attach();
+    }
+
+    private void setupObservers() {
+        // << FIX: Lắng nghe LiveData state duy nhất >>
+        viewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            // Hiển thị/ẩn ProgressBar toàn màn hình
+            binding.progressBarMyListings.setVisibility(state instanceof MyListingsState.Loading ? View.VISIBLE : View.GONE);
+
+            if (state instanceof MyListingsState.Error) {
+                // Hiển thị lỗi (có thể dùng Toast hoặc một UI lỗi riêng)
+                Toast.makeText(getContext(), ((MyListingsState.Error) state).message, Toast.LENGTH_LONG).show();
+            }
+        });
+
+        // Lắng nghe sự kiện điều hướng
+        viewModel.getNavigationEvent().observe(getViewLifecycleOwner(), event -> {
+            MyListingsNavigationEvent navEvent = event.getContentIfNotHandled();
+            if (navEvent != null) {
+                if (navEvent instanceof MyListingsNavigationEvent.ToEditItem) {
+                    Bundle args = new Bundle();
+                    args.putString("itemId", ((MyListingsNavigationEvent.ToEditItem) navEvent).itemId);
+                    navController.navigate(R.id.action_global_to_editItemFragment, args);
+                } else if (navEvent instanceof MyListingsNavigationEvent.ToRateBuyer) {
+                    MyListingsNavigationEvent.ToRateBuyer rateArgs = (MyListingsNavigationEvent.ToRateBuyer) navEvent;
+                    Bundle args = new Bundle();
+                    args.putString("transactionId", rateArgs.transactionId);
+                    args.putString("ratedUserId", rateArgs.ratedUserId);
+                    args.putString("itemId", rateArgs.itemId);
+                    navController.navigate(R.id.action_global_to_submitReviewFragment, args);
+                }
+            }
+        });
+
+        // Lắng nghe Toast message
+        viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
+            String message = event.getContentIfNotHandled();
+            if(message != null) {
+                Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            }
+        });
     }
 
     @Override

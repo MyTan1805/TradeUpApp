@@ -61,6 +61,12 @@ import com.google.android.libraries.places.widget.Autocomplete;
 import com.google.android.libraries.places.widget.AutocompleteActivity;
 import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
 
+import com.google.android.libraries.places.api.Places;
+import com.google.android.libraries.places.api.model.Place;
+import com.google.android.libraries.places.widget.Autocomplete;
+import com.google.android.libraries.places.widget.AutocompleteActivity;
+import com.google.android.libraries.places.widget.model.AutocompleteActivityMode;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -112,6 +118,10 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(requireActivity());
 
+        if (!Places.isInitialized()) {
+            Places.initialize(requireContext().getApplicationContext(), getString(R.string.maps_api_key));
+        }
+
         initializeLaunchers();
     }
 
@@ -143,10 +153,12 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
         placesLauncher = registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), result -> {
             if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
                 Place place = Autocomplete.getPlaceFromIntent(result.getData());
+                Log.i(TAG, "Place: " + place.getName() + ", " + place.getId() + ", " + place.getAddress());
                 updateLocationFromPlace(place);
             } else if (result.getResultCode() == AutocompleteActivity.RESULT_ERROR) {
                 Status status = Autocomplete.getStatusFromIntent(result.getData());
-                Toast.makeText(getContext(), "Lỗi: " + status.getStatusMessage(), Toast.LENGTH_SHORT).show();
+                Log.e(TAG, "Places Error: " + status.getStatusMessage());
+                Toast.makeText(getContext(), "Lỗi chọn địa điểm. Vui lòng thử lại.", Toast.LENGTH_SHORT).show();
             }
         });
 
@@ -441,16 +453,27 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     private void openPlacesAutocomplete() {
         if (getContext() == null || !Places.isInitialized()) return;
 
+        // Định nghĩa các trường dữ liệu muốn lấy về từ Place
         List<Place.Field> fields = Arrays.asList(Place.Field.ID, Place.Field.NAME, Place.Field.ADDRESS, Place.Field.LAT_LNG);
+
+        // Tạo Intent và launch
         Intent intent = new Autocomplete.IntentBuilder(AutocompleteActivityMode.OVERLAY, fields)
-                .setCountry("VN") // Giới hạn tìm kiếm ở Việt Nam
+                .setCountry("VN") // Giới hạn tìm kiếm trong lãnh thổ Việt Nam
                 .build(requireContext());
         placesLauncher.launch(intent);
     }
 
     private void updateLocationFromPlace(Place place) {
         if (place.getAddress() == null || place.getLatLng() == null) return;
-        updateLocationFromPlace(place.getAddress(), place.getLatLng().latitude, place.getLatLng().longitude);
+
+        String address = place.getAddress();
+        double latitude = place.getLatLng().latitude;
+        double longitude = place.getLatLng().longitude;
+
+        // Cập nhật biến và UI
+        this.selectedLocation = new ItemLocation(latitude, longitude, address, null); // Geohash sẽ được tính sau
+        binding.textCurrentLocation.setText(address);
+        binding.textCurrentLocation.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));
     }
 
     private void updateLocationFromPlace(String address, double lat, double lon) {

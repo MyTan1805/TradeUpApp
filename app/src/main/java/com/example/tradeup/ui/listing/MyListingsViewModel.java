@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
-import com.example.tradeup.core.utils.Event;
 
 @HiltViewModel
 public class MyListingsViewModel extends ViewModel {
@@ -27,155 +26,136 @@ public class MyListingsViewModel extends ViewModel {
 
     private final ItemRepository itemRepository;
     private final AuthRepository authRepository;
-
     private final TransactionRepository transactionRepository;
 
-    private final MutableLiveData<List<Transaction>> _soldTransactions = new MutableLiveData<>();
-    public LiveData<List<Transaction>> getSoldTransactions() { return _soldTransactions; }
-
-    private final MutableLiveData<Event<Item>> _navigateToEditEvent = new MutableLiveData<>();
-    public LiveData<Event<Item>> getNavigateToEditEvent() { return _navigateToEditEvent; }
-
-    // LiveData cho các trạng thái và dữ liệu
-    private final MutableLiveData<List<Item>> _activeListings = new MutableLiveData<>();
-    public LiveData<List<Item>> getActiveListings() { return _activeListings; }
-
-    private final MutableLiveData<List<Item>> _soldListings = new MutableLiveData<>();
-    public LiveData<List<Item>> getSoldListings() { return _soldListings; }
-
-    private final MutableLiveData<List<Item>> _pausedListings = new MutableLiveData<>();
-    public LiveData<List<Item>> getPausedListings() { return _pausedListings; }
-
-    private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
-    public LiveData<Boolean> isLoading() { return _isLoading; }
+    private final MutableLiveData<MyListingsState> _state = new MutableLiveData<>();
+    public LiveData<MyListingsState> getState() { return _state; }
 
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
 
-    // LiveData để lưu item đang được chọn khi người dùng nhấn nút menu
-    private final MutableLiveData<Item> _selectedItem = new MutableLiveData<>();
-    public LiveData<Item> getSelectedItem() { return _selectedItem; }
-    public void setSelectedItem(Item item) {
-        _selectedItem.setValue(item);
-    }
+    private final MutableLiveData<Event<MyListingsNavigationEvent>> _navigationEvent = new MutableLiveData<>();
+    public LiveData<Event<MyListingsNavigationEvent>> getNavigationEvent() { return _navigationEvent; }
+
+    // Biến private để lưu trữ item đang được chọn
+    private Item selectedItem;
 
     @Inject
-    public MyListingsViewModel(ItemRepository itemRepository, AuthRepository authRepository,
-    TransactionRepository transactionRepository) {
+    public MyListingsViewModel(ItemRepository itemRepository, AuthRepository authRepository, TransactionRepository transactionRepository) {
         this.itemRepository = itemRepository;
         this.authRepository = authRepository;
         this.transactionRepository = transactionRepository;
-        // Tải dữ liệu ngay khi ViewModel được tạo
         loadMyListings();
     }
 
-    /**
-     * Tải tất cả sản phẩm của người dùng hiện tại từ repository.
-     */
     public void loadMyListings() {
         FirebaseUser currentUser = authRepository.getCurrentUser();
         if (currentUser == null) {
-            _toastMessage.postValue(new Event<>("User not logged in."));
+            _state.setValue(new MyListingsState.Error("User not logged in."));
             return;
         }
-        _isLoading.postValue(true);
+        _state.setValue(new MyListingsState.Loading());
+
         itemRepository.getItemsBySellerId(currentUser.getUid(), new Callback<List<Item>>() {
             @Override
             public void onSuccess(List<Item> items) {
-                // Sau khi có dữ liệu, phân loại chúng vào các LiveData tương ứng
-                filterAndPostListings(items != null ? items : Collections.emptyList());
-                _isLoading.postValue(false);
+                if (items == null) {
+                    items = Collections.emptyList();
+                }
+                List<Item> activeItems = items.stream().filter(i -> "available".equalsIgnoreCase(i.getStatus())).collect(Collectors.toList());
+                List<Item> soldItems = items.stream().filter(i -> "sold".equalsIgnoreCase(i.getStatus())).collect(Collectors.toList());
+                List<Item> pausedItems = items.stream().filter(i -> "paused".equalsIgnoreCase(i.getStatus())).collect(Collectors.toList());
+
+                _state.setValue(new MyListingsState.Success(activeItems, soldItems, pausedItems));
             }
+
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.e(TAG, "Failed to load listings", e);
-                _toastMessage.postValue(new Event<>("Failed to load your listings: " + e.getMessage()));
-                _isLoading.postValue(false);
-            }
-        });
-
-        transactionRepository.getTransactionsByUser(currentUser.getUid(), "sellerId", 50, new Callback<List<Transaction>>() {
-            @Override
-            public void onSuccess(List<Transaction> transactions) {
-                _soldTransactions.postValue(transactions);
-                _isLoading.postValue(false); // Cập nhật isLoading ở đây
-            }
-
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                _toastMessage.postValue(new Event<>("Failed to load transaction history: " + e.getMessage()));
-                _isLoading.postValue(false);
+                _state.setValue(new MyListingsState.Error("Failed to load your listings."));
             }
         });
     }
 
-    /**
-     * Phân loại một danh sách item vào các LiveData 'active', 'sold', 'paused'.
-     */
-    private void filterAndPostListings(List<Item> allItems) {
-        _activeListings.postValue(allItems.stream()
-                .filter(i -> "available".equalsIgnoreCase(i.getStatus()))
-                .collect(Collectors.toList()));
-        _soldListings.postValue(allItems.stream()
-                .filter(i -> "sold".equalsIgnoreCase(i.getStatus()))
-                .collect(Collectors.toList()));
-        _pausedListings.postValue(allItems.stream()
-                .filter(i -> "paused".equalsIgnoreCase(i.getStatus()))
-                .collect(Collectors.toList()));
+    public void setSelectedItem(Item item) {
+        this.selectedItem = item;
     }
 
-    /**
-     * Cập nhật trạng thái của item đã được chọn.
-     * @param newStatus Trạng thái mới ("sold", "paused", "available").
-     */
+    // << FIX: Thêm phương thức getter này >>
+    public Item getSelectedItem() {
+        return this.selectedItem;
+    }
+
     public void updateSelectedItemStatus(String newStatus) {
-        Item itemToUpdate = _selectedItem.getValue();
-        if (itemToUpdate == null) {
-            _toastMessage.setValue(new Event<>("Error: No item selected."));
+        if (selectedItem == null) {
+            _toastMessage.postValue(new Event<>("Please select an item first."));
             return;
         }
-        _isLoading.setValue(true);
-        itemRepository.updateItemStatus(itemToUpdate.getItemId(), newStatus, new Callback<Void>() {
+        _state.setValue(new MyListingsState.Loading());
+        itemRepository.updateItemStatus(selectedItem.getItemId(), newStatus, new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 _toastMessage.postValue(new Event<>("Listing status updated!"));
-                loadMyListings(); // Tải lại toàn bộ danh sách để cập nhật giao diện
+                loadMyListings();
             }
             @Override
             public void onFailure(@NonNull Exception e) {
-                _isLoading.postValue(false);
                 _toastMessage.postValue(new Event<>("Error updating status: " + e.getMessage()));
+                // Vẫn tải lại để thoát khỏi trạng thái loading và hiển thị lỗi
+                loadMyListings();
             }
         });
     }
 
-    /**
-     * Xóa item đã được chọn.
-     */
     public void deleteSelectedItem() {
-        Item itemToDelete = _selectedItem.getValue();
-        if (itemToDelete == null) {
-            _toastMessage.setValue(new Event<>("Error: No item selected."));
+        if (selectedItem == null) {
+            _toastMessage.postValue(new Event<>("Please select an item first."));
             return;
         }
-        _isLoading.setValue(true);
-        itemRepository.deleteItem(itemToDelete.getItemId(), new Callback<Void>() {
+        _state.setValue(new MyListingsState.Loading());
+        itemRepository.deleteItem(selectedItem.getItemId(), new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 _toastMessage.postValue(new Event<>("Listing deleted."));
-                loadMyListings(); // Tải lại danh sách
+                loadMyListings();
             }
             @Override
             public void onFailure(@NonNull Exception e) {
-                _isLoading.postValue(false);
                 _toastMessage.postValue(new Event<>("Error deleting listing: " + e.getMessage()));
+                loadMyListings();
             }
         });
     }
+
     public void onEditOptionClicked() {
-        Item itemToEdit = _selectedItem.getValue();
-        if (itemToEdit != null) {
-            _navigateToEditEvent.setValue(new Event<>(itemToEdit));
+        if (selectedItem != null) {
+            _navigationEvent.setValue(new Event<>(new MyListingsNavigationEvent.ToEditItem(selectedItem.getItemId())));
         }
+    }
+
+    public void onRateBuyerClicked(Item soldItem) {
+        if (soldItem == null) return;
+        _state.setValue(new MyListingsState.Loading());
+        transactionRepository.getTransactionByItemId(soldItem.getItemId(), new Callback<Transaction>() {
+            @Override
+            public void onSuccess(Transaction transaction) {
+                // Tải lại để tắt loading indicator, bất kể kết quả thế nào
+                loadMyListings();
+                if (transaction != null) {
+                    _navigationEvent.setValue(new Event<>(new MyListingsNavigationEvent.ToRateBuyer(
+                            transaction.getTransactionId(),
+                            transaction.getBuyerId(),
+                            soldItem.getItemId()
+                    )));
+                } else {
+                    _toastMessage.setValue(new Event<>("Transaction info not found for this item."));
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                loadMyListings();
+                _toastMessage.setValue(new Event<>("Error finding transaction."));
+            }
+        });
     }
 }

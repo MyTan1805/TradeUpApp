@@ -66,26 +66,19 @@ public class LoginFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        setupUI();
         setupListeners();
+        setupUI();
+        checkInitialInputState();
         setupObservers();
     }
 
     // << TÁCH HÀM: Di chuyển logic khởi tạo UI ra riêng >>
     private void setupUI() {
-        // Tự động điền email và check "Remember me"
         String rememberedEmail = viewModel.getRememberedEmail();
         if (rememberedEmail != null) {
             binding.editTextEmailLogin.setText(rememberedEmail);
             binding.checkboxRememberMe.setChecked(true);
-        } else {
-            binding.checkboxRememberMe.setChecked(false);
         }
-
-        // Kích hoạt TextWatcher để kiểm tra trạng thái ban đầu của các trường
-        String emailInput = binding.editTextEmailLogin.getText().toString();
-        String passwordInput = binding.editTextPasswordLogin.getText().toString();
-        binding.buttonLogin.setEnabled(!emailInput.isEmpty() && !passwordInput.isEmpty());
     }
 
     // << FIX: Gộp tất cả listener vào một hàm duy nhất >>
@@ -113,23 +106,43 @@ public class LoginFragment extends Fragment {
                 NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_registerFragment)
         );
 
+        binding.buttonLogin.setOnClickListener(v -> {
+            String email = binding.editTextEmailLogin.getText().toString().trim();
+            String password = binding.editTextPasswordLogin.getText().toString().trim();
+            boolean rememberMe = binding.checkboxRememberMe.isChecked();
+            viewModel.loginUser(email, password, rememberMe);
+        });
+
         // 4. TextWatcher để bật/tắt nút Login
         TextWatcher loginTextWatcher = new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
 
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String emailInput = binding.editTextEmailLogin.getText().toString().trim();
                 String passwordInput = binding.editTextPasswordLogin.getText().toString().trim();
+
+                // Logic này không thay đổi, nó sẽ bật nút khi đủ điều kiện
                 binding.buttonLogin.setEnabled(!emailInput.isEmpty() && !passwordInput.isEmpty());
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
         };
+
         binding.editTextEmailLogin.addTextChangedListener(loginTextWatcher);
         binding.editTextPasswordLogin.addTextChangedListener(loginTextWatcher);
+    }
+
+    private void checkInputState() {
+        String emailInput = binding.editTextEmailLogin.getText().toString().trim();
+        String passwordInput = binding.editTextPasswordLogin.getText().toString().trim();
+        binding.buttonLogin.setEnabled(!emailInput.isEmpty() && !passwordInput.isEmpty());
+    }
+
+    private void checkInitialInputState() {
+        // Vô hiệu hóa nút ban đầu
+        binding.buttonLogin.setEnabled(false);
+        // Sau đó kiểm tra lại
+        checkInputState();
     }
 
     // << FIX: Cập nhật hàm observe theo ViewModel đã sửa >>

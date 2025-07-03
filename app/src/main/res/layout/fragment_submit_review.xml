@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="?attr/colorSurface"
     tools:context=".ui.reviews.SubmitReviewFragment">
 
@@ -121,14 +122,16 @@
                 android:textAppearance="?attr/textAppearanceHeadline5"
                 android:textStyle="bold" />
 
+            <!-- === RATING BAR ĐÃ ĐƯỢC "NÂNG CẤP" === -->
             <RatingBar
                 android:id="@+id/ratingBar"
-                style="@style/Widget.TradeUp.RatingBar"
-                android:layout_width="32dp"
-                android:layout_height="32dp"
+                style="?android:attr/ratingBarStyle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:numStars="5"
-                android:stepSize="1" />
+                android:stepSize="1"
+                />
 
             <TextView
                 android:layout_width="wrap_content"
@@ -155,7 +158,7 @@
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
                     android:inputType="textMultiLine|textCapSentences"
-                    android:lines="5" />
+                    android:minLines="5" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>

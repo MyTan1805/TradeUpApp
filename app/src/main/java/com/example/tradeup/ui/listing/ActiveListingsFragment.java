@@ -4,8 +4,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -18,18 +16,22 @@ import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.FragmentTabbedListBinding;
 import com.example.tradeup.ui.adapters.MyListingAdapter;
 
+import java.util.Collections;
+import java.util.List;
+
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
 public class ActiveListingsFragment extends Fragment {
 
     private FragmentTabbedListBinding binding;
-    private MyListingsViewModel viewModel; // Sử dụng MyListingsViewModel từ Fragment cha
+    private MyListingsViewModel viewModel;
     private MyListingAdapter adapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Lấy ViewModel từ Fragment cha, rất chính xác!
         viewModel = new ViewModelProvider(requireParentFragment()).get(MyListingsViewModel.class);
     }
 
@@ -53,8 +55,8 @@ public class ActiveListingsFragment extends Fragment {
             public void onMenuClick(Item item) {
                 viewModel.setSelectedItem(item);
                 if (isAdded()) {
-                    ListingOptionsDialogFragment.newInstance()
-                            .show(getParentFragmentManager(), ListingOptionsDialogFragment.TAG);
+                    // Giả sử bạn có dialog này
+                    // ListingOptionsDialogFragment.newInstance().show(getParentFragmentManager(), ListingOptionsDialogFragment.TAG);
                 }
             }
 
@@ -78,11 +80,21 @@ public class ActiveListingsFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        viewModel.getActiveListings().observe(getViewLifecycleOwner(), items -> {
-            if (items != null) {
-                adapter.submitList(items);
-                binding.textViewEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+        // << CẢI TIẾN: Lắng nghe LiveData State tổng thể >>
+        viewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            // Chỉ xử lý khi trạng thái là Success, các trạng thái khác (Loading, Error)
+            // sẽ được xử lý bởi Fragment cha (MyListingsFragment) để hiển thị ProgressBar toàn màn hình.
+            if (state instanceof MyListingsState.Success) {
+                List<Item> activeItems = ((MyListingsState.Success) state).activeItems;
+                adapter.submitList(activeItems);
+
+                boolean isEmpty = (activeItems == null || activeItems.isEmpty());
+                binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
                 binding.textViewEmpty.setText("You have no active listings.");
+            } else if (state instanceof MyListingsState.Loading) {
+                // Khi đang tải lại, có thể xóa list cũ để tránh hiển thị dữ liệu lỗi thời
+                adapter.submitList(Collections.emptyList());
+                binding.textViewEmpty.setVisibility(View.GONE);
             }
         });
     }

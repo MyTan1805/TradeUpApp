@@ -1,6 +1,7 @@
 package com.example.tradeup.ui.settings;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -99,7 +100,7 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
     // --- Xử lý sự kiện click từ Adapter ---
     @Override
     public void onNavigationItemClick(String tag) {
-        // << FIX: Gọi đúng các hàm trong ViewModel >>
+        Log.d("SettingsFragment", "Clicked tag: " + tag);
         switch (tag) {
             case "deactivate_account":
                 showConfirmationDialog(
@@ -122,12 +123,20 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
                         "Log Out",
                         "Are you sure you want to log out?",
                         "Log Out",
-                        () -> viewModel.logout() // Gọi hàm logout của ViewModel khi người dùng nhấn OK
+                        () -> viewModel.logout()
                 );
                 break;
-            // TODO: Thêm các case cho các item khác như "Edit Profile", "Change Password"
+            case "change_password":
+                // Thêm logic xử lý cho Change Password, ví dụ:
+                Toast.makeText(getContext(), "Change Password clicked", Toast.LENGTH_SHORT).show();
+                break;
+            case "edit_profile":
+                // Thêm logic cho Edit Profile
+                Toast.makeText(getContext(), "Edit Profile clicked", Toast.LENGTH_SHORT).show();
+                break;
+            // Thêm các case khác nếu cần
             default:
-                Toast.makeText(getContext(), "Clicked: " + tag, Toast.LENGTH_SHORT).show();
+                Log.d("SettingsFragment", "Unhandled tag: " + tag);
                 break;
         }
     }
@@ -166,38 +175,38 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
                 .show();
     }
 
-    // createSettingItems() giữ nguyên như cũ...
     private List<SettingItem> createSettingItems() {
         List<SettingItem> items = new ArrayList<>();
 
-        // Nhóm 1: Profile
-        items.add(new SettingItem.Navigation("edit_profile", R.drawable.ic_person, "Edit Profile"));
-        items.add(new SettingItem.Navigation("change_password", R.drawable.ic_lock, "Change Password"));
+        // << FIX: Các mục này không có icon, truyền 0 >>
+        items.add(new SettingItem.Navigation("edit_profile", 0, "Edit Profile"));
+        items.add(new SettingItem.Navigation("change_password", 0, "Change Password"));
 
-        // Nhóm 2: Notifications
         items.add(new SettingItem.GroupHeader("NOTIFICATION PREFERENCES"));
         items.add(new SettingItem.Switch("switch_messages", "New Messages", true));
         items.add(new SettingItem.Switch("switch_offers", "Offers", true));
-        items.add(new SettingItem.Switch("switch_updates", "App Updates", false));
+        items.add(new SettingItem.Switch("switch_app_updates", "App Updates", false));
+
+        // << FIX: Mục này có icon >>
         items.add(new SettingItem.Navigation("location_settings", R.drawable.ic_location_on, "Location Settings"));
 
-        // Nhóm 3: Account Management
         items.add(new SettingItem.GroupHeader("ACCOUNT MANAGEMENT"));
-        items.add(new SettingItem.Navigation("deactivate_account", 0, "Deactivate Account", R.color.status_warning, R.color.status_warning));
-        items.add(new SettingItem.Navigation("delete_account", 0, "Delete Account", R.color.status_error, R.color.status_error));
+        // Dùng constructor đầy đủ để truyền màu
+        items.add(new SettingItem.Navigation("deactivate_account", 0, "Deactivate Account", R.color.status_warning, 0));
+        items.add(new SettingItem.Navigation("delete_account", 0, "Delete Account", R.color.status_error, 0));
 
-        // Nhóm 4: Support
         items.add(new SettingItem.GroupHeader("SUPPORT"));
-        items.add(new SettingItem.Navigation("help_support", R.drawable.ic_help_outline, "Help & Support"));
-        // TODO: Lấy phiên bản ứng dụng động
-        items.add(new SettingItem.Info(R.drawable.ic_info_outline, "About TradeUp", "v1.0.0"));
+        // << FIX: Mục này không có icon >>
+        items.add(new SettingItem.Navigation("help_support", 0, "Help & Support"));
 
-        // Nhóm 5: Logout
+        // << FIX: Mục này không có icon >>
+        items.add(new SettingItem.Info(0, "About TradeUp", "v1.0.0"));
+
         items.add(new SettingItem.Logout());
 
         return items;
-
     }
+
 
     @Override
     public void onDestroyView() {

@@ -4,23 +4,18 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
-import com.example.tradeup.data.model.Transaction;
 import com.example.tradeup.databinding.FragmentTabbedListBinding;
 import com.example.tradeup.ui.adapters.MyListingAdapter;
-
+import java.util.Collections;
 import java.util.List;
-
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -63,9 +58,8 @@ public class SoldListingsFragment extends Fragment {
 
             @Override
             public void onRateBuyerClick(Item item) {
-                // Tạm thời hiển thị Toast, logic điều hướng sẽ cần thêm transactionId
-                Toast.makeText(getContext(), "Rate buyer for: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-                // TODO: Cần có cơ chế lấy transactionId tương ứng với itemId này để điều hướng đến màn hình review
+                // Logic này đã được chuyển vào ViewModel, rất tốt!
+                viewModel.onRateBuyerClicked(item);
             }
 
             @Override
@@ -83,11 +77,20 @@ public class SoldListingsFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        viewModel.getSoldListings().observe(getViewLifecycleOwner(), items -> {
-            if (items != null) {
-                adapter.submitList(items);
-                binding.textViewEmpty.setVisibility(items.isEmpty() ? View.VISIBLE : View.GONE);
+        // << FIX: Lắng nghe LiveData State tổng thể >>
+        viewModel.getState().observe(getViewLifecycleOwner(), state -> {
+            if (state instanceof MyListingsState.Success) {
+                // Lấy danh sách soldItems từ State
+                List<Item> soldItems = ((MyListingsState.Success) state).soldItems;
+                adapter.submitList(soldItems);
+
+                boolean isEmpty = (soldItems == null || soldItems.isEmpty());
+                binding.textViewEmpty.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
                 binding.textViewEmpty.setText("You have no sold listings.");
+            } else if (state instanceof MyListingsState.Loading) {
+                // Xóa list cũ khi đang tải lại
+                adapter.submitList(Collections.emptyList());
+                binding.textViewEmpty.setVisibility(View.GONE);
             }
         });
     }

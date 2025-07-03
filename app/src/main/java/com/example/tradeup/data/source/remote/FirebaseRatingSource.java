@@ -8,6 +8,7 @@ import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QuerySnapshot;
 import java.util.HashMap;
@@ -40,28 +41,53 @@ public class FirebaseRatingSource {
      * @return Task<Void> cho biết transaction thành công hay thất bại.
      */
     public Task<Void> submitRating(@NonNull Rating rating) {
+        // Tạo một tham chiếu cho document rating mới trước
+        final DocumentReference ratingDocRef = ratingsCollection.document();
+        final DocumentReference userDocRef = usersCollection.document(rating.getRatedUserId());
+        final DocumentReference transactionDocRef = transactionsCollection.document(rating.getTransactionId());
+
         return firestore.runTransaction(transaction -> {
-            // 1. Tạo một document Rating mới
-            DocumentReference ratingDocRef = ratingsCollection.document();
-            transaction.set(ratingDocRef, rating);
+            // ===================================================
+            // << FIX: BƯỚC 1 - THỰC HIỆN TẤT CẢ CÁC LỆNH ĐỌC >>
+            // ===================================================
 
-            // 2. Cập nhật thông tin cho người được đánh giá (ratedUserId)
-            DocumentReference userDocRef = usersCollection.document(rating.getRatedUserId());
+            // Đọc thông tin người dùng sẽ được đánh giá
             DocumentSnapshot userSnapshot = transaction.get(userDocRef);
+            // Đọc thông tin của giao dịch gốc
+            DocumentSnapshot transactionSnapshot = transaction.get(transactionDocRef);
 
-            // Lấy các giá trị hiện tại, nếu không có thì mặc định là 0
+            // Kiểm tra xem user và transaction có tồn tại không
+            if (!userSnapshot.exists() || !transactionSnapshot.exists()) {
+                throw new FirebaseFirestoreException("User or Transaction not found, cannot submit rating.",
+                        FirebaseFirestoreException.Code.ABORTED);
+            }
+
+            // ===================================================
+            // << BƯỚC 2 - TÍNH TOÁN DỮ LIỆU >>
+            // ===================================================
+
+            // Lấy các giá trị hiện tại từ các document đã đọc
             Long currentTotalRatings = userSnapshot.getLong("totalRatingCount");
             if (currentTotalRatings == null) currentTotalRatings = 0L;
 
             Double currentSumOfStars = userSnapshot.getDouble("sumOfStars");
             if (currentSumOfStars == null) currentSumOfStars = 0.0;
 
+            String buyerId = transactionSnapshot.getString("buyerId");
+
             // Tính toán các giá trị mới
             long newTotalRatings = currentTotalRatings + 1;
             double newSumOfStars = currentSumOfStars + rating.getStars();
             double newAverageRating = (newTotalRatings > 0) ? (newSumOfStars / newTotalRatings) : 0.0;
 
-            // Tạo map để cập nhật user
+            // ===================================================
+            // << BƯỚC 3 - THỰC HIỆN TẤT CẢ CÁC LỆNH GHI >>
+            // ===================================================
+
+            // 1. Ghi document Rating mới
+            transaction.set(ratingDocRef, rating);
+
+            // 2. Cập nhật thông tin cho User
             Map<String, Object> userUpdates = new HashMap<>();
             userUpdates.put("averageRating", newAverageRating);
             userUpdates.put("totalRatingCount", newTotalRatings);
@@ -69,16 +95,10 @@ public class FirebaseRatingSource {
             userUpdates.put("updatedAt", FieldValue.serverTimestamp());
             transaction.update(userDocRef, userUpdates);
 
-            // 3. Cập nhật trạng thái đã đánh giá trong document Transaction
-            DocumentReference transactionDocRef = transactionsCollection.document(rating.getTransactionId());
-            DocumentSnapshot transactionSnapshot = transaction.get(transactionDocRef);
-
-            String buyerId = transactionSnapshot.getString("buyerId");
-
-            // Xác định người đánh giá là người mua hay người bán để cập nhật đúng trường
+            // 3. Cập nhật thông tin cho Transaction
             if (Objects.equals(rating.getRaterUserId(), buyerId)) {
                 transaction.update(transactionDocRef, "ratingGivenByBuyer", true);
-            } else { // Người đánh giá là người bán
+            } else {
                 transaction.update(transactionDocRef, "ratingGivenBySeller", true);
             }
 

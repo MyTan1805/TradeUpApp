@@ -90,7 +90,12 @@ public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListi
 
             // Hiển thị nút "Rate Buyer" chỉ khi item đã được bán và chưa được đánh giá
             boolean isSold = "sold".equalsIgnoreCase(item.getStatus());
-            // TODO: Cần thêm logic kiểm tra xem giao dịch này đã được đánh giá chưa
+            if ("sold".equalsIgnoreCase(item.getStatus())) {
+                binding.buttonRateBuyer.setVisibility(View.VISIBLE);
+                binding.buttonRateBuyer.setOnClickListener(v -> listener.onRateBuyerClick(item));
+            } else {
+                binding.buttonRateBuyer.setVisibility(View.GONE);
+            }
             boolean needsRating = true;
             binding.buttonRateBuyer.setVisibility(isSold && needsRating ? View.VISIBLE : View.GONE);
         }

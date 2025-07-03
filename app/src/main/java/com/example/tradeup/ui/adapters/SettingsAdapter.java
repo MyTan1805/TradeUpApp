@@ -3,6 +3,7 @@ package com.example.tradeup.ui.adapters;
 import android.content.Context;
 import android.content.res.ColorStateList;
 import android.graphics.Color;
+import android.util.Log;
 import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -11,6 +12,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import androidx.annotation.AttrRes;
 import androidx.annotation.NonNull;
+import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.tradeup.R;
@@ -140,29 +142,27 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         void bind(SettingItem.Navigation item) {
-            // Thiết lập trạng thái ban đầu cho item điều hướng
+            Log.d("NavigationViewHolder", "Binding title: " + (item.title != null ? item.title : "null"));
             title.setText(item.title);
             value.setVisibility(View.GONE);
             arrow.setVisibility(View.VISIBLE);
             itemView.setClickable(true);
-            itemView.setOnClickListener(v -> listener.onNavigationItemClick(item.tag));
 
-            // Xử lý icon
             if (item.iconResId != 0) {
                 icon.setImageResource(item.iconResId);
                 icon.setVisibility(View.VISIBLE);
+                ((ConstraintLayout.LayoutParams) title.getLayoutParams()).startToEnd = R.id.icon;
             } else {
                 icon.setVisibility(View.GONE);
+                ((ConstraintLayout.LayoutParams) title.getLayoutParams()).startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
             }
 
-            // Xử lý màu chữ (reset về mặc định nếu không có màu đặc biệt)
             if (item.textColor != 0) {
                 title.setTextColor(ContextCompat.getColor(context, item.textColor));
             } else {
                 title.setTextColor(defaultTextColor);
             }
 
-            // Xử lý màu icon (reset về mặc định nếu không có màu đặc biệt)
             if (item.iconTint != 0) {
                 icon.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(context, item.iconTint)));
             } else {

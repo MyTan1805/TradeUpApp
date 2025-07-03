@@ -84,7 +84,7 @@ public class SubmitReviewViewModel extends ViewModel {
         FirebaseUser rater = authRepository.getCurrentUser(); // Người đang đánh giá
         User ratedUser = _ratedUser.getValue();
 
-        if (rater == null || ratedUser == null || transactionId == null) {
+        if (rater == null || ratedUserId == null || transactionId == null) {
             _toastMessage.setValue(new Event<>("Error: Missing required information."));
             return;
         }
