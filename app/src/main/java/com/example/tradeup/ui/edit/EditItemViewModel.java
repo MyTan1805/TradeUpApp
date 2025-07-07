@@ -1,30 +1,35 @@
 package com.example.tradeup.ui.edit;
 
+import android.content.Context;
 import android.net.Uri;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
 import androidx.lifecycle.ViewModel;
+
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.CloudinaryUploader;
 import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.repository.ItemRepository;
+import com.google.firebase.firestore.GeoPoint;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.stream.Collectors;
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import dagger.hilt.android.qualifiers.ApplicationContext;
+import ch.hsr.geohash.GeoHash;
 
 @HiltViewModel
 public class EditItemViewModel extends ViewModel {
 
     private final ItemRepository itemRepository;
+    private final Context context;
     private final String itemId;
-
     private final MutableLiveData<Item> _item = new MutableLiveData<>();
     public LiveData<Item> getItem() { return _item; }
 
@@ -37,16 +42,19 @@ public class EditItemViewModel extends ViewModel {
     private final MutableLiveData<Event<Boolean>> _updateSuccessEvent = new MutableLiveData<>();
     public LiveData<Event<Boolean>> getUpdateSuccessEvent() { return _updateSuccessEvent; }
 
+    private static final int GEOHASH_PRECISION = 5;
+
     @Inject
-    public EditItemViewModel(ItemRepository itemRepository, SavedStateHandle savedStateHandle) {
+    public EditItemViewModel(ItemRepository itemRepository, SavedStateHandle savedStateHandle, @ApplicationContext Context context) {
         this.itemRepository = itemRepository;
+        this.context = context;
         this.itemId = savedStateHandle.get("itemId");
         loadItemDetails();
     }
 
     private void loadItemDetails() {
         if (itemId == null) {
-            _errorMessage.setValue(new Event<>("Item ID is missing."));
+            _errorMessage.setValue(new Event<>("Thiếu ID sản phẩm."));
             return;
         }
         _isLoading.setValue(true);
@@ -55,69 +63,99 @@ public class EditItemViewModel extends ViewModel {
             public void onSuccess(Item item) {
                 _isLoading.postValue(false);
                 if (item != null) _item.postValue(item);
-                else _errorMessage.postValue(new Event<>("Item not found."));
+                else _errorMessage.postValue(new Event<>("Không tìm thấy sản phẩm."));
             }
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
-                _errorMessage.postValue(new Event<>("Failed to load item: " + e.getMessage()));
+                _errorMessage.postValue(new Event<>("Tải sản phẩm thất bại: " + e.getMessage()));
             }
         });
     }
 
-    public void saveChanges(String title, String desc, String priceStr, List<String> existingUrls, List<Uri> newUris) {
+    public void saveChanges(String title, String desc, String priceStr, List<String> existingUrls, List<Uri> newUris, GeoPoint geoPoint, String addressString) {
         Item currentItem = _item.getValue();
         if (currentItem == null) {
-            _errorMessage.setValue(new Event<>("Original item data not loaded."));
+            _errorMessage.setValue(new Event<>("Dữ liệu sản phẩm gốc chưa được tải."));
             return;
         }
 
-        // Validation...
+        // Validation
+        if (title == null || title.trim().isEmpty()) {
+            _errorMessage.setValue(new Event<>("Tiêu đề không được để trống."));
+            return;
+        }
         double price;
         try {
             price = Double.parseDouble(priceStr);
+            if (price < 0) {
+                _errorMessage.setValue(new Event<>("Giá không được âm."));
+                return;
+            }
         } catch (NumberFormatException e) {
-            _errorMessage.setValue(new Event<>("Invalid price."));
+            _errorMessage.setValue(new Event<>("Giá không hợp lệ."));
+            return;
+        }
+        if (geoPoint == null || addressString == null) {
+            _errorMessage.setValue(new Event<>("Vị trí không được để trống."));
             return;
         }
 
         _isLoading.setValue(true);
 
+        // Cập nhật thông tin
+        currentItem.setTitle(title.trim());
+        currentItem.setDescription(desc != null ? desc.trim() : "");
+        currentItem.setPrice(price);
+        currentItem.setLocation(geoPoint);
+        currentItem.setAddressString(addressString);
+        currentItem.setGeohash(GeoHash.withCharacterPrecision(
+                geoPoint.getLatitude(),
+                geoPoint.getLongitude(),
+                GEOHASH_PRECISION
+        ).toBase32());
+
         if (!newUris.isEmpty()) {
-            uploadNewImages(title, desc, price, existingUrls, newUris);
+            uploadNewImages(currentItem, existingUrls, newUris);
         } else {
-            updateItemInFirestore(title, desc, price, existingUrls);
+            currentItem.setImageUrls(existingUrls);
+            updateItemInFirestore(currentItem);
         }
     }
 
-    private void uploadNewImages(String title, String desc, double price, List<String> existingUrls, List<Uri> newUris) {
+    private void uploadNewImages(Item item, List<String> existingUrls, List<Uri> newUris) {
         final List<String> allImageUrls = Collections.synchronizedList(new ArrayList<>(existingUrls));
         final AtomicInteger counter = new AtomicInteger(0);
+        final int totalImages = newUris.size();
 
         for (Uri uri : newUris) {
-            // Giả sử CloudinaryUploader có hàm upload với Context. Bạn cần truyền nó vào từ Fragment.
-            // CloudinaryUploader.uploadImage...
-            // Trong onSuccess:
-            // allImageUrls.add(imageUrl);
-            // if (counter.incrementAndGet() == newUris.size()) {
-            //     updateItemInFirestore(title, desc, price, allImageUrls);
-            // }
+            CloudinaryUploader.uploadImageDirectlyToCloudinary(context, uri, new CloudinaryUploader.CloudinaryUploadCallback() {
+                @Override
+                public void onSuccess(@NonNull String imageUrl) {
+                    allImageUrls.add(imageUrl);
+                    if (counter.incrementAndGet() == totalImages) {
+                        item.setImageUrls(allImageUrls);
+                        updateItemInFirestore(item);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    _isLoading.setValue(false);
+                    _errorMessage.setValue(new Event<>("Tải ảnh thất bại: " + e.getMessage()));
+                }
+
+                @Override
+                public void onErrorResponse(int code, @Nullable String errorMessage) {
+                    _isLoading.setValue(false);
+                    _errorMessage.setValue(new Event<>("Lỗi Cloudinary (" + code + "): " + errorMessage));
+                }
+            });
         }
-        // Tạm thời bỏ qua logic upload phức tạp, giả sử thành công
-        _errorMessage.setValue(new Event<>("Image uploading is not fully implemented yet."));
-        _isLoading.setValue(false);
     }
 
-    private void updateItemInFirestore(String title, String desc, double price, List<String> finalImageUrls) {
-        Item itemToUpdate = _item.getValue();
-        if (itemToUpdate == null) return;
-
-        itemToUpdate.setTitle(title);
-        itemToUpdate.setDescription(desc);
-        itemToUpdate.setPrice(price);
-        itemToUpdate.setImageUrls(finalImageUrls);
-
-        itemRepository.updateItem(itemToUpdate, new Callback<Void>() {
+    private void updateItemInFirestore(Item item) {
+        itemRepository.updateItem(item, new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 _isLoading.postValue(false);
@@ -127,7 +165,7 @@ public class EditItemViewModel extends ViewModel {
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
-                _errorMessage.postValue(new Event<>("Failed to save: " + e.getMessage()));
+                _errorMessage.postValue(new Event<>("Cập nhật thất bại: " + e.getMessage()));
             }
         });
     }

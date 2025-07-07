@@ -1,5 +1,6 @@
 [versions]
 agp = "8.4.1"
+geofireJava = "2.3.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
@@ -23,6 +24,7 @@ okhttp-logging = "4.10.0"
 materialVersion = "1.12.0"
 
 [libraries]
+geofire-java = { module = "com.firebase:geofire-java", version.ref = "geofireJava" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

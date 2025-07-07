@@ -8,6 +8,10 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.profile.ProfileFragment">
 
+    <include
+        android:id="@+id/statActiveListings"
+        layout="@layout/item_profile_stat"/>
+
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"
         android:layout_width="wrap_content"

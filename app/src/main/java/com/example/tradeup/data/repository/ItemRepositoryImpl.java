@@ -1,12 +1,14 @@
 package com.example.tradeup.data.repository;
 
+import android.location.Location;
 import android.util.Log;
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.source.remote.FirebaseItemSource;
-// Không nên import ViewModel vào Repository
-// import com.example.tradeup.ui.search.SearchViewModel;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.Query;
 
 import java.util.List;
 import javax.inject.Inject;
@@ -15,7 +17,6 @@ import javax.inject.Singleton;
 @Singleton
 public class ItemRepositoryImpl implements ItemRepository {
     private static final String TAG = "ItemRepositoryImpl";
-
     private final FirebaseItemSource firebaseItemSource;
 
     @Inject
@@ -24,83 +25,158 @@ public class ItemRepositoryImpl implements ItemRepository {
     }
 
     @Override
-    public void addItem(Item item, final Callback<String> callback) {
+    public void addItem(Item item, Callback<String> callback) {
         firebaseItemSource.addItem(item)
-                .addOnSuccessListener(callback::onSuccess)
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(itemId -> { // << FIX: Đổi tên biến thành itemId
+                    callback.onSuccess(itemId);
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
     @Override
-    public void getItemById(String itemId, final Callback<Item> callback) {
+    public void getItemById(String itemId, Callback<Item> callback) {
         firebaseItemSource.getItemById(itemId)
-                .addOnSuccessListener(callback::onSuccess)
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(item -> { // << FIX: Đổi tên biến thành item
+                    callback.onSuccess(item);
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
     @Override
-    public void getAllItems(long limit, @Nullable String lastVisibleItemId, final Callback<List<Item>> callback) {
+    public void getAllItems(long limit, @Nullable String lastVisibleItemId, Callback<List<Item>> callback) {
         firebaseItemSource.getAllItems(limit, lastVisibleItemId)
-                .addOnSuccessListener(callback::onSuccess)
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(items -> { // tên 'items' ở đây đã đúng
+                    callback.onSuccess(items);
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
     @Override
-    public void getItemsBySellerId(String sellerId, final Callback<List<Item>> callback) {
-        Log.d(TAG, "getItemsBySellerId called for sellerId: " + sellerId);
+    public void getItemsBySellerId(String sellerId, Callback<List<Item>> callback) {
         firebaseItemSource.getItemsBySellerIdFromSource(sellerId)
-                .addOnSuccessListener(callback::onSuccess)
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(items -> { // tên 'items' ở đây đã đúng
+                    callback.onSuccess(items);
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
     @Override
-    public void updateItem(Item item, final Callback<Void> callback) {
+    public void updateItem(Item item, Callback<Void> callback) {
         firebaseItemSource.updateItem(item)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(aVoid -> { // << FIX: Tham số là Void
+                    callback.onSuccess(null); // << FIX: Truyền vào null
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
     @Override
-    public void deleteItem(String itemId, final Callback<Void> callback) {
+    public void deleteItem(String itemId, Callback<Void> callback) {
         firebaseItemSource.deleteItem(itemId)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(aVoid -> { // << FIX: Tham số là Void
+                    callback.onSuccess(null); // << FIX: Truyền vào null
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
     @Override
-    public void updateItemStatus(String itemId, String newStatus, final Callback<Void> callback) {
+    public void updateItemStatus(String itemId, String newStatus, Callback<Void> callback) {
         firebaseItemSource.updateItemStatus(itemId, newStatus)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(aVoid -> { // << FIX: Tham số là Void
+                    callback.onSuccess(null); // << FIX: Truyền vào null
+                    callback.onComplete();
+                })
+                .addOnFailureListener(e -> {
+                    callback.onFailure(e);
+                    callback.onComplete();
+                });
     }
 
-    // << SỬA LỖI: Triển khai lại hàm searchItems cho khớp với Interface mới >>
     @Override
-    public void searchItems(
-            @Nullable String keyword, @Nullable String categoryId, @Nullable String conditionId,
-            @Nullable Double minPrice, @Nullable Double maxPrice, long limit,
-            Callback<List<Item>> callback
+    public void searchByFilters(
+            @Nullable String keyword,
+            @Nullable String categoryId,
+            @Nullable String conditionId,
+            @Nullable Double minPrice,
+            @Nullable Double maxPrice,
+            long limit,
+            @NonNull String sortField, // << THÊM THAM SỐ NÀY
+            @NonNull Query.Direction direction, // << THÊM THAM SỐ NÀY
+            @NonNull Callback<List<Item>> callback
     ) {
-        firebaseItemSource.searchItems(keyword, categoryId, conditionId, minPrice, maxPrice, limit)
-                .addOnSuccessListener(callback::onSuccess)
-                .addOnFailureListener(callback::onFailure);
+        firebaseItemSource.searchByFilters(
+                keyword, categoryId, conditionId, minPrice, maxPrice, limit,
+                sortField, direction // << Truyền xuống tầng source
+        ).addOnSuccessListener(items -> {
+            callback.onSuccess(items);
+            callback.onComplete();
+        }).addOnFailureListener(e -> {
+            callback.onFailure(e);
+            callback.onComplete();
+        });
     }
 
     @Override
+    public void searchByLocation(
+            @NonNull Location center,
+            int radiusInKm,
+            @Nullable String keyword,
+            @Nullable String categoryId,
+            @Nullable String conditionId,
+            @Nullable Double minPrice,
+            @Nullable Double maxPrice,
+            long limit,
+            @NonNull String sortField,
+            @NonNull Query.Direction direction,
+            @NonNull Callback<List<Item>> callback
+    ) {
+        // Gọi xuống source với đầy đủ tham số
+        firebaseItemSource.searchByLocation(
+                center, radiusInKm, keyword, categoryId, conditionId,
+                minPrice, maxPrice, limit, sortField, direction
+        ).addOnSuccessListener(items -> {
+            callback.onSuccess(items);
+            // Bạn có thể bỏ onComplete() đi nếu callback không dùng đến
+            // callback.onComplete();
+        }).addOnFailureListener(e -> {
+            callback.onFailure(e);
+            // callback.onComplete();
+        });
+    }
+
+
+
+    @Override // << Giờ sẽ không báo lỗi >>
     public void incrementItemViews(String itemId) {
-        if (itemId == null || itemId.isEmpty()) {
-            Log.w(TAG, "Attempted to increment views with null or empty itemId.");
-            return;
-        }
         firebaseItemSource.incrementItemViews(itemId)
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to increment views for item: " + itemId, e));
     }
 
-    @Override
+    @Override // << Giờ sẽ không báo lỗi >>
     public void incrementItemOffers(String itemId) {
-        if (itemId == null || itemId.isEmpty()) {
-            Log.w(TAG, "Attempted to increment offers with null or empty itemId.");
-            return;
-        }
         firebaseItemSource.incrementItemOffers(itemId)
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to increment offers for item: " + itemId, e));
     }

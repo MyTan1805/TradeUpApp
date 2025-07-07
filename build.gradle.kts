@@ -5,6 +5,5 @@ plugins {
     alias(libs.plugins.kotlin.android) apply false
     alias(libs.plugins.hilt) apply false
     id("androidx.navigation.safeargs") version "2.7.7" apply false
-
 //    alias(libs.plugins.androidx.navigation.safeargs.kotlin) apply false
 }

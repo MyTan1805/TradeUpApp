@@ -59,13 +59,14 @@
                     app:chipIcon="@drawable/ic_sort"/>
 
                 <com.google.android.material.chip.Chip
-                    android:id="@+id/chipNearby"
+                    android:id="@+id/chipDistance"
                     style="@style/Widget.TradeUp.Chip.Filter"
                     android:text="Nearby"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checkable="true"
-                    app:chipIcon="@drawable/ic_near_me" />
+                    app:chipIcon="@drawable/ic_near_me"
+                    tools:text="Distance: 10km"/>
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCategory"

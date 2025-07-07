@@ -63,6 +63,15 @@
                     android:textColor="@color/subcategory_chip_text_color_selector"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
 
+                <com.google.android.material.chip.Chip
+                    android:id="@+id/chipSales"
+                    style="@style/Widget.TradeUp.Chip.SubCategory"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Sales"
+                    android:checkable="true"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
                 <!-- Thêm các chip khác ở đây -->
 
             </com.google.android.material.chip.ChipGroup>

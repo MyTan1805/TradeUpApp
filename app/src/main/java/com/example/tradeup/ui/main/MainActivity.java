@@ -2,6 +2,7 @@
 package com.example.tradeup.ui.main;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -12,28 +13,45 @@ import androidx.navigation.ui.NavigationUI;
 
 import com.example.tradeup.R;
 import com.example.tradeup.databinding.ActivityMainBinding;
+import com.firebase.geofire.GeoFireUtils;
+import com.firebase.geofire.GeoLocation;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 import dagger.hilt.android.AndroidEntryPoint;
+
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+
+import androidx.navigation.ui.AppBarConfiguration;
+
 
 @AndroidEntryPoint
 public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
     private NavController navController;
+    private AppBarConfiguration appBarConfiguration;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
         // 1. Lấy NavController một cách an toàn
         NavHostFragment navHostFragment = (NavHostFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.nav_host_fragment_activity_main);
         navController = Objects.requireNonNull(navHostFragment).getNavController();
+
+        appBarConfiguration = new AppBarConfiguration.Builder(
+                R.id.navigation_home, R.id.navigation_messages, R.id.navigation_notifications, R.id.navigation_profile
+        ).build();
 
         // 2. Tự động kết nối BottomNavigationView với NavController
         // Dòng này sẽ xử lý việc chuyển fragment và highlight item được chọn

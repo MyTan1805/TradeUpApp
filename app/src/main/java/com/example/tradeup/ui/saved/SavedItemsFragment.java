@@ -47,6 +47,9 @@ public class SavedItemsFragment extends Fragment implements ProductAdapter.OnPro
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+
+        binding.chipGroupFilters.check(R.id.chipRecentlySaved);
+
         super.onViewCreated(view, savedInstanceState);
         navController = NavHostFragment.findNavController(this);
 
@@ -71,11 +74,11 @@ public class SavedItemsFragment extends Fragment implements ProductAdapter.OnPro
     private void setupListeners() {
         // Xử lý sự kiện click vào các chip filter
         binding.chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
-            if (checkedId == R.id.chipAllItems) {
-                // TODO: Gọi hàm viewModel.onSortByDefault()
-            } else if (checkedId == R.id.chipRecentlySaved) {
-                // TODO: Gọi hàm viewModel.onSortByDate()
+            if (checkedId == R.id.chipRecentlySaved) {
+                viewModel.setSortMode(SavedItemsViewModel.SortMode.DEFAULT);
             } else if (checkedId == R.id.chipPriceLowHigh) {
+                viewModel.setSortMode(SavedItemsViewModel.SortMode.PRICE_LOW_TO_HIGH);
+            }  else if (checkedId == R.id.chipPriceLowHigh) {
                 // TODO: Gọi hàm viewModel.onSortByPrice()
             }
         });

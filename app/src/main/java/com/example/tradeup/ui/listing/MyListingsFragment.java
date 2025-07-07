@@ -48,6 +48,11 @@ public class MyListingsFragment extends Fragment {
         setupToolbar();
         setupViewPagerAndTabs();
         setupObservers();
+
+        if (getArguments() != null) {
+            int defaultTabIndex = getArguments().getInt("defaultTabIndex", 0);
+            binding.viewPager.setCurrentItem(defaultTabIndex, false);
+        }
     }
 
     private void setupToolbar() {

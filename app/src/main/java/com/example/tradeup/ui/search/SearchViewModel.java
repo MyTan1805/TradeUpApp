@@ -1,7 +1,10 @@
 package com.example.tradeup.ui.search;
 
+import android.location.Location;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
@@ -14,6 +17,8 @@ import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.config.AppConfig;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.ItemRepository;
+import com.example.tradeup.data.repository.LocationRepository;
+import com.example.tradeup.ui.home.HomeState;
 import com.google.firebase.firestore.Query;
 
 import java.util.List;
@@ -30,6 +35,16 @@ public class SearchViewModel extends ViewModel {
     private final MutableLiveData<SearchScreenState> _screenState = new MutableLiveData<>(new SearchScreenState.Idle());
     public LiveData<SearchScreenState> getScreenState() { return _screenState; }
 
+    private final MutableLiveData<Integer> _distanceInKm = new MutableLiveData<>();
+    private final MutableLiveData<Event<String>> _error = new MutableLiveData<>();
+    public LiveData<Integer> getDistanceInKm() { return _distanceInKm; }
+
+    private Location searchCenterLocation;
+    private final LocationRepository locationRepository;
+
+    private final MutableLiveData<Location> _searchCenter = new MutableLiveData<>();
+
+
     // LiveData cho các bộ lọc
     private final MutableLiveData<String> _keyword = new MutableLiveData<>();
     private final MutableLiveData<String> _selectedCategoryId = new MutableLiveData<>();
@@ -41,7 +56,6 @@ public class SearchViewModel extends ViewModel {
     // LiveData cho trạng thái UI
     private final MutableLiveData<List<Item>> _searchResults = new MutableLiveData<>();
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
-    private final MutableLiveData<Event<String>> _error = new MutableLiveData<>();
     private final MutableLiveData<AppConfig> _appConfig = new MutableLiveData<>();
 
     private final MutableLiveData<Event<String>> _errorToast = new MutableLiveData<>();
@@ -68,10 +82,45 @@ public class SearchViewModel extends ViewModel {
         }
     }
 
+    public void setDistanceAndSearch(@Nullable Integer distanceInKm) {
+        _distanceInKm.setValue(distanceInKm);
+
+        if (distanceInKm == null || distanceInKm <= 0) {
+            this.searchCenterLocation = null; // Xóa vị trí trung tâm
+            triggerSearch(false); // Tìm kiếm lại mà không có vị trí
+        } else {
+            fetchCurrentUserLocationAndSearch();
+        }
+    }
+
+    private void fetchCurrentUserLocationAndSearch() {
+        _isLoading.setValue(true);
+        locationRepository.getCurrentLocation(new Callback<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null) {
+                    searchCenterLocation = location;
+                    triggerSearch(false); // Có vị trí rồi, giờ tìm kiếm
+                } else {
+                    _isLoading.setValue(false);
+                    _error.setValue(new Event<>("Could not get current location. Please check GPS and permissions."));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isLoading.setValue(false);
+                _error.setValue(new Event<>(e.getMessage()));
+            }
+        });
+    }
+
     @Inject
-    public SearchViewModel(ItemRepository itemRepository, AppConfigRepository appConfigRepository) {
+    public SearchViewModel(ItemRepository itemRepository, AppConfigRepository appConfigRepository,
+                           LocationRepository locationRepository) {
         this.itemRepository = itemRepository;
         this.appConfigRepository = appConfigRepository;
+        this.locationRepository = locationRepository;
         loadAppConfig();
     }
 
@@ -93,31 +142,57 @@ public class SearchViewModel extends ViewModel {
     private void executeSearch() {
         _screenState.postValue(new SearchScreenState.Loading());
 
-        // << FIX: Gọi hàm searchItems với đúng các tham số đã được tinh gọn >>
-        itemRepository.searchItems(
-                _keyword.getValue(),
-                _selectedCategoryId.getValue(),
-                _selectedConditionId.getValue(),
-                _minPrice.getValue(),
-                _maxPrice.getValue(),
-                20, // Giới hạn số lượng kết quả trả về
-                new Callback<List<Item>>() {
-                    @Override
-                    public void onSuccess(List<Item> items) {
-                        if (items == null || items.isEmpty()) {
-                            _screenState.postValue(new SearchScreenState.Empty());
-                        } else {
-                            _screenState.postValue(new SearchScreenState.Success(items));
-                        }
-                    }
+        // Lấy các giá trị bộ lọc
+        String keyword = _keyword.getValue();
+        String categoryId = _selectedCategoryId.getValue();
+        String conditionId = _selectedConditionId.getValue();
+        Double minPrice = _minPrice.getValue();
+        Double maxPrice = _maxPrice.getValue();
+        Integer distance = _distanceInKm.getValue();
+        long limit = 20;
 
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        _screenState.postValue(new SearchScreenState.Error("Search failed: " + e.getMessage()));
-                    }
-                });
+        // Lấy giá trị sắp xếp
+        SortOrder sortOrder = _sortOrder.getValue();
+        if (sortOrder == null) {
+            sortOrder = SortOrder.NEWEST; // Mặc định
+        }
+        final String sortField = sortOrder.field;
+        final Query.Direction direction = sortOrder.direction;
+
+        Callback<List<Item>> searchCallback = new Callback<List<Item>>() {
+            @Override
+            public void onSuccess(List<Item> items) {
+                if (items == null || items.isEmpty()) {
+                    _screenState.postValue(new SearchScreenState.Empty());
+                } else {
+                    _screenState.postValue(new SearchScreenState.Success(items));
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("SearchViewModel", "Search failed", e);
+                _screenState.postValue(new SearchScreenState.Error("Search failed: " + e.getMessage()));
+            }
+        };
+
+        // Logic quyết định và SỬA LẠI LỜI GỌI HÀM
+        if (searchCenterLocation != null && distance != null && distance > 0) {
+            // << SỬA LẠI LỜI GỌI HÀM NÀY, THÊM sortField, direction >>
+            itemRepository.searchByLocation(
+                    searchCenterLocation, distance, keyword, categoryId, conditionId,
+                    minPrice, maxPrice, limit,
+                    sortField, direction, // <-- Truyền 2 tham số mới
+                    searchCallback
+            );
+        } else {
+            // << SỬA LẠI LỜI GỌI HÀM NÀY, THÊM sortField, direction >>
+            itemRepository.searchByFilters(
+                    keyword, categoryId, conditionId, minPrice, maxPrice, limit,
+                    sortField, direction, // <-- Truyền 2 tham số mới
+                    searchCallback
+            );
+        }
     }
-
     private void triggerSearch(boolean withDelay) {
         if (searchRunnable != null) {
             searchHandler.removeCallbacks(searchRunnable);

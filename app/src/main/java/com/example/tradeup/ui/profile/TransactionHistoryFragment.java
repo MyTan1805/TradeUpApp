@@ -97,10 +97,9 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
             } else if (checkedId == R.id.chipPurchases) {
                 viewModel.onPurchasesFilterClicked();
             }
-            // TODO: Thêm chip cho "Sales" nếu bạn muốn và cập nhật layout
-            /* else if (checkedId == R.id.chipSales) {
+            else if (checkedId == R.id.chipSales) {
                 viewModel.onSalesFilterClicked();
-            } */
+            }
         });
     }
 
@@ -177,4 +176,6 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
         // vào TransactionHistoryViewModel. Nhưng hiện tại thì không cần thiết.
         // viewModel.confirmCODPayment(transaction.getTransactionId(), ...);
     }
+
+
 }

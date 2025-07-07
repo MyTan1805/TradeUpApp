@@ -63,6 +63,19 @@
         app:layout_constraintBaseline_toBaselineOf="@id/chipProductStatus"
         tools:text="45 views" />
 
+    <TextView
+        android:id="@+id/textViewOffers"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:drawablePadding="4dp"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:textColor="?android:attr/textColorSecondary"
+        app:drawableStartCompat="@drawable/ic_local_offer"
+        app:layout_constraintBaseline_toBaselineOf="@+id/textViewViews"
+        app:layout_constraintStart_toEndOf="@+id/textViewViews"
+        tools:text="3 offers" />
+
     <ImageButton
         android:id="@+id/buttonMenu"
         android:layout_width="@dimen/touch_target_size"

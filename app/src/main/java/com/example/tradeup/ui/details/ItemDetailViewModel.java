@@ -45,7 +45,6 @@ public class ItemDetailViewModel extends ViewModel {
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
 
-    // *** LIVE DATA MỚI ĐỂ XÁC ĐỊNH CHỦ SỞ HỮU ***
     private final MutableLiveData<Boolean> _isViewingOwnItem = new MutableLiveData<>(false);
     public LiveData<Boolean> isViewingOwnItem() { return _isViewingOwnItem; }
 
@@ -87,6 +86,7 @@ public class ItemDetailViewModel extends ViewModel {
 
         _viewState.setValue(new ItemDetailViewState.Loading());
 
+        // Increment views with callback
         itemRepository.incrementItemViews(itemId);
 
         loadAppConfigFromRepo();
@@ -102,7 +102,7 @@ public class ItemDetailViewModel extends ViewModel {
                     _item.postValue(item);
                     loadSellerProfile(item.getSellerId());
 
-                    // *** KIỂM TRA CHỦ SỞ HỮU SAU KHI CÓ ITEM ***
+                    // Check if the current user is the owner
                     if (currentUserId != null && currentUserId.equals(item.getSellerId())) {
                         _isViewingOwnItem.postValue(true);
                     } else {
@@ -119,9 +119,6 @@ public class ItemDetailViewModel extends ViewModel {
         });
     }
 
-    // ... các hàm khác (checkIfItemIsSaved, toggleBookmark,...) giữ nguyên như cũ ...
-
-    // ... Toàn bộ các hàm còn lại của ViewModel không thay đổi ...
     private void checkIfItemIsSaved(String itemId) {
         if (currentUserId == null) {
             _isBookmarked.postValue(false);

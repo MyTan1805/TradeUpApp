@@ -62,6 +62,8 @@ public class ItemDetailFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getViewState().observe(getViewLifecycleOwner(), state -> {
+            if (binding == null) return;
+
             // Luôn ẩn/hiện progressbar dựa trên trạng thái Loading
             binding.progressBar.setVisibility(state instanceof ItemDetailViewState.Loading ? View.VISIBLE : View.GONE);
             // Ẩn/hiện nội dung chính
@@ -74,7 +76,6 @@ public class ItemDetailFragment extends Fragment {
             } else if (state instanceof ItemDetailViewState.Error) {
                 Toast.makeText(getContext(), ((ItemDetailViewState.Error) state).message, Toast.LENGTH_LONG).show();
                 if (isAdded()) {
-                    // Nếu có lỗi nghiêm trọng (vd: không tìm thấy item), quay lại màn hình trước
                     navController.navigateUp();
                 }
             }
@@ -83,10 +84,9 @@ public class ItemDetailFragment extends Fragment {
         viewModel.isBookmarked().observe(getViewLifecycleOwner(), this::updateBookmarkButton);
 
         viewModel.isViewingOwnItem().observe(getViewLifecycleOwner(), isOwnItem -> {
-            if (isOwnItem != null) {
-                // Ẩn thanh hành động dưới cùng nếu người dùng đang xem tin của chính mình
-                binding.bottomActionBar.setVisibility(isOwnItem ? View.GONE : View.VISIBLE);
-            }
+            if (binding == null || isOwnItem == null) return;
+            // Ẩn thanh hành động dưới cùng nếu người dùng đang xem tin của chính mình
+            binding.bottomActionBar.setVisibility(isOwnItem ? View.GONE : View.VISIBLE);
         });
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
@@ -98,14 +98,14 @@ public class ItemDetailFragment extends Fragment {
     }
 
     private void setMainContentVisibility(boolean visible) {
+        if (binding == null) return;
         int visibility = visible ? View.VISIBLE : View.GONE;
         binding.appBarLayout.setVisibility(visibility);
         binding.nestedScrollView.setVisibility(visibility);
-        // Thanh bottom bar sẽ được quản lý bởi isViewingOwnItem observer
     }
 
     private void populateUi(@NonNull Item item, @NonNull User seller, @NonNull String categoryName, @NonNull String conditionName) {
-        if (binding == null) return; // Đảm bảo view vẫn tồn tại
+        if (binding == null) return;
 
         // Setup Image Slider
         if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
@@ -120,6 +120,10 @@ public class ItemDetailFragment extends Fragment {
                     updateImageCounter(position + 1, item.getImageUrls().size());
                 }
             });
+        } else {
+            binding.viewPagerImages.setVisibility(View.GONE);
+            binding.tabLayoutIndicator.setVisibility(View.GONE);
+            binding.imageCounter.setVisibility(View.GONE);
         }
 
         // Bind Item Info
@@ -130,9 +134,9 @@ public class ItemDetailFragment extends Fragment {
         binding.textItemCondition.setText(conditionName);
         binding.textItemDescription.setText(item.getDescription());
 
-        // << FIX: HIỂN THỊ LƯỢT XEM >>
+        // Hiển thị lượt xem
         if (item.getViewsCount() != null) {
-            String viewsText = String.format(Locale.getDefault(), "%d views", item.getViewsCount());
+            String viewsText = String.format(Locale.getDefault(), "%d lượt xem", item.getViewsCount());
             binding.textItemViews.setText(viewsText);
             binding.textItemViews.setVisibility(View.VISIBLE);
         } else {
@@ -140,20 +144,20 @@ public class ItemDetailFragment extends Fragment {
         }
 
         // Bind Seller Info
-        Glide.with(this).load(seller.getProfilePictureUrl()).placeholder(R.drawable.ic_person).into(binding.imageSellerAvatar);
+        Glide.with(this)
+                .load(seller.getProfilePictureUrl())
+                .placeholder(R.drawable.ic_person)
+                .error(R.drawable.ic_error_image)
+                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                .into(binding.imageSellerAvatar);
         binding.textSellerName.setText(seller.getDisplayName());
-        if (item.getLocation() != null) {
-            binding.textSellerLocation.setText(item.getLocation().getAddressString());
-        }
+        binding.textSellerLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
         if (seller.getCreatedAt() != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
             binding.textMemberSince.setText("Thành viên từ " + sdf.format(seller.getCreatedAt().toDate()));
+        } else {
+            binding.textMemberSince.setVisibility(View.GONE);
         }
-
-        // Bind Rating Info
-        binding.ratingBarItem.setRating((float) seller.getAverageRating());
-        String ratingInfo = String.format(Locale.US, "%.1f (%d đánh giá)", seller.getAverageRating(), seller.getTotalRatingCount());
-        binding.textRatingInfo.setText(ratingInfo);
     }
 
     private void updateBookmarkButton(boolean isBookmarked) {
@@ -168,6 +172,8 @@ public class ItemDetailFragment extends Fragment {
     }
 
     private void setupClickListeners(@NonNull Item item, @NonNull User seller) {
+        if (binding == null) return;
+
         // 1. Nút quay lại
         binding.toolbar.setNavigationOnClickListener(v -> {
             if (isAdded()) navController.navigateUp();
@@ -179,27 +185,24 @@ public class ItemDetailFragment extends Fragment {
 
             if (itemIdMenu == R.id.action_share) {
                 Log.d(TAG, "Share menu item clicked.");
-                // Logic chia sẻ của bạn
                 Intent shareIntent = new Intent(Intent.ACTION_SEND);
                 shareIntent.setType("text/plain");
                 String shareBody = "Hãy xem sản phẩm này trên TradeUp: " + item.getTitle() + "\nLink: https://tradeup.app/item/" + item.getItemId();
                 shareIntent.putExtra(Intent.EXTRA_TEXT, shareBody);
                 startActivity(Intent.createChooser(shareIntent, "Chia sẻ qua"));
-                return true; // Đã xử lý sự kiện
+                return true;
 
             } else if (itemIdMenu == R.id.action_report) {
                 Log.d(TAG, "Report menu item clicked. Opening dialog...");
-                // Logic mở Dialog báo cáo
-                // Truyền cả ID người bán để ViewModel có thể lưu lại
                 ReportContentDialogFragment.newInstance(item.getItemId(), "listing", item.getSellerId())
                         .show(getParentFragmentManager(), "ReportDialog");
                 return true;
             }
 
-            return false; // Chưa xử lý, để hệ thống xử lý tiếp (nếu có)
+            return false;
         });
 
-        // 3. Nút Bookmark (đã là ImageButton riêng)
+        // 3. Nút Bookmark
         binding.buttonBookmark.setOnClickListener(v -> viewModel.toggleBookmark());
 
         // 4. Khu vực thông tin người bán

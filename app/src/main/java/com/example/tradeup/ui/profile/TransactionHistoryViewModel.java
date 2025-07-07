@@ -2,6 +2,7 @@ package com.example.tradeup.ui.profile;
 
 import android.util.Log;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
@@ -16,6 +17,10 @@ import java.util.Collections;
 import java.util.List;
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @HiltViewModel
 public class TransactionHistoryViewModel extends ViewModel {
@@ -56,7 +61,7 @@ public class TransactionHistoryViewModel extends ViewModel {
      * Hàm trung tâm để tải dữ liệu từ repository.
      * @param role Tên trường để query ("buyerId" hoặc "sellerId"). Nếu null, sẽ tải tất cả.
      */
-    private void fetchTransactions(String role) {
+    private void fetchTransactions(@Nullable String role) { // << Thêm @Nullable
         _isLoading.setValue(true);
         FirebaseUser currentUser = authRepository.getCurrentUser();
         if (currentUser == null) {
@@ -67,13 +72,12 @@ public class TransactionHistoryViewModel extends ViewModel {
 
         String userId = currentUser.getUid();
 
-        // TODO: Logic get all transactions chưa có trong repository.
-        // Hiện tại, chúng ta sẽ tạm thời tải cả 2 danh sách mua và bán khi role là null.
-        // Đây là cách làm tạm thời và cần được tối ưu sau.
+        // << SỬA LẠI HOÀN TOÀN LOGIC NÀY >>
         if (role == null) {
-            // Tạm thời chỉ tải giao dịch mua
-            fetchTransactionsByRole(userId, "buyerId");
+            // Trường hợp tải "All": Tải cả danh sách mua và bán
+            fetchAllUserTransactions(userId);
         } else {
+            // Trường hợp tải "Purchases" hoặc "Sales"
             fetchTransactionsByRole(userId, role);
         }
     }
@@ -82,6 +86,10 @@ public class TransactionHistoryViewModel extends ViewModel {
         transactionRepository.getTransactionsByUser(userId, role, TRANSACTION_LIMIT, new Callback<List<Transaction>>() {
             @Override
             public void onSuccess(List<Transaction> data) {
+                if (data != null) {
+                    // Sắp xếp theo ngày mới nhất
+                    data.sort(Comparator.comparing(Transaction::getTransactionDate, Comparator.nullsLast(Comparator.reverseOrder())));
+                }
                 _transactions.setValue(data != null ? data : Collections.emptyList());
                 _isLoading.setValue(false);
             }
@@ -93,6 +101,41 @@ public class TransactionHistoryViewModel extends ViewModel {
                 _isLoading.setValue(false);
             }
         });
+    }
+
+    private void fetchAllUserTransactions(String userId) {
+        final List<Transaction> allTransactions = Collections.synchronizedList(new ArrayList<>());
+        final AtomicInteger taskCounter = new AtomicInteger(2); // Chúng ta có 2 tác vụ cần hoàn thành
+
+        Callback<List<Transaction>> commonCallback = new Callback<List<Transaction>>() {
+            @Override
+            public void onSuccess(List<Transaction> data) {
+                if (data != null) {
+                    allTransactions.addAll(data);
+                }
+                finishTask();
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, "A part of fetching all transactions failed", e);
+                // Vẫn giảm counter để không bị treo loading mãi mãi
+                finishTask();
+            }
+
+            private void finishTask() {
+                if (taskCounter.decrementAndGet() == 0) {
+                    // Khi cả 2 tác vụ đã xong, sắp xếp và cập nhật UI
+                    allTransactions.sort(Comparator.comparing(Transaction::getTransactionDate, Comparator.nullsLast(Comparator.reverseOrder())));
+                    _transactions.postValue(allTransactions);
+                    _isLoading.postValue(false);
+                }
+            }
+        };
+
+        // Bắt đầu 2 tác vụ song song
+        transactionRepository.getTransactionsByUser(userId, "buyerId", TRANSACTION_LIMIT, commonCallback);
+        transactionRepository.getTransactionsByUser(userId, "sellerId", TRANSACTION_LIMIT, commonCallback);
     }
 
     // --- Xử lý sự kiện từ các Chip Filter ---

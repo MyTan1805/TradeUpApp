@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.tradeup.R;
@@ -57,7 +59,7 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> {
             if (isAdded()) {
-                NavHostFragment.findNavController(this).navigateUp();
+                NavigationUI.navigateUp(NavHostFragment.findNavController(this), (AppBarConfiguration) null);
             }
         });
     }

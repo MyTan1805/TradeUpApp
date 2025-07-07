@@ -11,6 +11,8 @@ import java.util.List;
 import java.util.Map;
 
 public class AppConfig {
+    private List<CategoryConfig> categories;
+
     private List<DisplayCategoryConfig> displayCategories;
     private List<ItemConditionConfig> itemConditions;
     private List<ReportReasonConfig> reportReasons;
@@ -34,8 +36,9 @@ public class AppConfig {
 
     // Constructor rỗng đã rất tốt
     public AppConfig() {
-        this.displayCategories = new ArrayList<>();
+        this.categories = new ArrayList<>();
         this.itemConditions = new ArrayList<>();
+        this.displayCategories = new ArrayList<>();
         this.reportReasons = new ArrayList<>();
         this.supportedPaymentMethods = new ArrayList<>();
         this.locationSearchRadiusOptions = new ArrayList<>();
@@ -46,15 +49,22 @@ public class AppConfig {
 
     // --- GETTERS AND SETTERS (ĐÃ CẢI TIẾN) ---
 
-    // Getter và Setter cho displayCategories
-    @NonNull // << Getter sẽ không bao giờ trả về null
+    // Getter và Setter cho categories
+    @NonNull
     public List<DisplayCategoryConfig> getDisplayCategories() {
         return displayCategories;
     }
 
     public void setDisplayCategories(List<DisplayCategoryConfig> displayCategories) {
-        // << FIX: Đảm bảo trường này không bao giờ là null >>
         this.displayCategories = (displayCategories != null) ? displayCategories : Collections.emptyList();
+    }
+
+    @NonNull
+    public List<CategoryConfig> getCategories() {
+        return categories;
+    }
+    public void setCategories(List<CategoryConfig> categories) {
+        this.categories = (categories != null) ? categories : Collections.emptyList();
     }
 
     // Các getter và setter khác đã được cải tiến tương tự

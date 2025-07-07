@@ -88,7 +88,15 @@
         android:id="@+id/myListingsFragment"
         android:name="com.example.tradeup.ui.listing.MyListingsFragment"
         android:label="Sản phẩm của tôi"
-        tools:layout="@layout/fragment_my_listings"/>
+        tools:layout="@layout/fragment_my_listings">
+
+        <argument
+            android:name="defaultTabIndex"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
+
+
 
     <fragment
         android:id="@+id/transactionHistoryFragment"
@@ -236,6 +244,10 @@
 
     <action
         android:id="@+id/action_profileFragment_to_offersFragment"
+        app:destination="@id/offersFragment" />
+
+    <action
+        android:id="@+id/action_global_to_offersFragment"
         app:destination="@id/offersFragment" />
 
 

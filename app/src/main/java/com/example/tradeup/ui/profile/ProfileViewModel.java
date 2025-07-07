@@ -20,6 +20,8 @@ import com.example.tradeup.data.repository.RatingRepository;
 import com.example.tradeup.data.repository.TransactionRepository;
 import com.example.tradeup.data.repository.UserRepository;
 import com.google.firebase.auth.FirebaseUser;
+
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +39,9 @@ public class ProfileViewModel extends ViewModel {
     private final RatingRepository ratingRepository;
     private final TransactionRepository transactionRepository;
     private final AuthRepository authRepository;
+
+    private User loadedUser = null;
+    private List<Item> loadedItems = null;
 
     // LiveData cho trạng thái chung
     private final MutableLiveData<ProfileHeaderState> _headerState = new MutableLiveData<>();
@@ -97,6 +102,9 @@ public class ProfileViewModel extends ViewModel {
 
     public void loadAllData() {
         _isLoading.setValue(true);
+        loadedUser = null;
+        loadedItems = null;
+
         String targetUserId = (profileUserIdArg != null && !profileUserIdArg.trim().isEmpty()) ? profileUserIdArg : currentAuthUserUid;
 
         if (targetUserId == null) {
@@ -115,7 +123,8 @@ public class ProfileViewModel extends ViewModel {
             @Override
             public void onSuccess(User user) {
                 if (user != null) {
-                    _headerState.postValue(new ProfileHeaderState.Success(user, userId.equals(currentAuthUserUid)));
+                    loadedUser = user;
+                    combineAndPostState();
                 } else {
                     _headerState.postValue(new ProfileHeaderState.Error("User profile not found."));
                 }
@@ -131,20 +140,41 @@ public class ProfileViewModel extends ViewModel {
         itemRepository.getItemsBySellerId(userId, new Callback<List<Item>>() {
             @Override
             public void onSuccess(List<Item> items) {
-                if (items != null) {
-                    filterAndPostListings(items);
-                }
-                _isLoading.postValue(false);
+                loadedItems = (items != null) ? items : new ArrayList<>();
+                combineAndPostState(); // Gọi hàm đồng bộ
             }
             @Override
             public void onFailure(@NonNull Exception e) {
                 _toastMessage.postValue(new Event<>("Error loading listings: " + e.getMessage()));
-                _isLoading.postValue(false);
+                loadedItems = new ArrayList<>(); // Coi như tải xong với danh sách rỗng
+                combineAndPostState();
             }
         });
     }
 
+    private synchronized void combineAndPostState() {
+        if (loadedUser == null || loadedItems == null) {
+            return;
+        }
+
+        long activeCount = loadedItems.stream().filter(i -> "available".equalsIgnoreCase(i.getStatus())).count();
+        long soldCount = loadedItems.stream().filter(i -> "sold".equalsIgnoreCase(i.getStatus())).count();
+
+        loadedUser.setTotalListings((int) activeCount);
+        loadedUser.setTotalTransactions((int) soldCount);
+
+        boolean isCurrentUser = loadedUser.getUid().equals(currentAuthUserUid);
+        _headerState.postValue(new ProfileHeaderState.Success(loadedUser, isCurrentUser));
+
+        filterAndPostListings(loadedItems);
+
+        _isLoading.postValue(false);
+    }
+
     private void filterAndPostListings(List<Item> allItems) {
+        if (allItems == null) {
+            allItems = Collections.emptyList();
+        }
         _activeListings.postValue(allItems.stream()
                 .filter(item -> "available".equalsIgnoreCase(item.getStatus()))
                 .collect(Collectors.toList()));
@@ -161,6 +191,10 @@ public class ProfileViewModel extends ViewModel {
             @Override
             public void onSuccess(List<Rating> ratings) {
                 _reviews.postValue(ratings != null ? ratings : Collections.emptyList());
+                if (loadedUser != null && ratings != null) {
+                    loadedUser.setTotalRatingCount(ratings.size());
+                    combineAndPostState();
+                }
             }
             @Override
             public void onFailure(@NonNull Exception e) {

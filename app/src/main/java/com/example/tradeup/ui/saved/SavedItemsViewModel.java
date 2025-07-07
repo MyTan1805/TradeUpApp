@@ -20,6 +20,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
+import java.util.Comparator;
+
 @HiltViewModel
 public class SavedItemsViewModel extends ViewModel {
 
@@ -39,6 +41,45 @@ public class SavedItemsViewModel extends ViewModel {
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
 
     private final String currentUserId;
+
+    public enum SortMode {
+        DEFAULT, // Sắp xếp mặc định (có thể là theo ngày lưu mới nhất)
+        PRICE_LOW_TO_HIGH,
+        PRICE_HIGH_TO_LOW
+    }
+
+    private final MutableLiveData<SortMode> _sortMode = new MutableLiveData<>(SortMode.DEFAULT);
+
+    // ...
+
+    // << THÊM HÀM NÀY ĐỂ UI GỌI >>
+    public void setSortMode(SortMode newMode) {
+        if (_sortMode.getValue() == newMode) return; // Không sắp xếp lại nếu không có gì thay đổi
+
+        _sortMode.setValue(newMode);
+        List<Item> currentList = _savedItems.getValue();
+        if (currentList == null || currentList.isEmpty()) return;
+
+        ArrayList<Item> sortedList = new ArrayList<>(currentList);
+
+        switch (newMode) {
+            case PRICE_LOW_TO_HIGH:
+                Collections.sort(sortedList, Comparator.comparingDouble(Item::getPrice));
+                break;
+            case PRICE_HIGH_TO_LOW:
+                Collections.sort(sortedList, Comparator.comparingDouble(Item::getPrice).reversed());
+                break;
+            case DEFAULT:
+            default:
+                // Sắp xếp theo ngày tạo sản phẩm mới nhất, vì ta chưa lưu "ngày save"
+                Collections.sort(sortedList, (i1, i2) -> {
+                    if (i1.getCreatedAt() == null || i2.getCreatedAt() == null) return 0;
+                    return i2.getCreatedAt().compareTo(i1.getCreatedAt());
+                });
+                break;
+        }
+        _savedItems.setValue(sortedList);
+    }
 
     @Inject
     public SavedItemsViewModel(ItemRepository itemRepository, UserSavedItemsRepository savedItemsRepository, AuthRepository authRepository) {

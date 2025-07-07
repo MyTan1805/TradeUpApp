@@ -12,6 +12,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.ui.AppBarConfiguration;
+import androidx.navigation.ui.NavigationUI;
 
 import com.example.tradeup.R;
 import com.example.tradeup.databinding.FragmentForgotPasswordBinding;
@@ -48,7 +50,7 @@ public class ForgotPasswordFragment extends Fragment {
         // 1. Nút Back trên Toolbar
         binding.toolbarForgotPassword.setNavigationOnClickListener(v -> {
             if (isAdded()) {
-                NavHostFragment.findNavController(this).popBackStack();
+                NavigationUI.navigateUp(NavHostFragment.findNavController(this), (AppBarConfiguration) null);
             }
         });
 

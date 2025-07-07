@@ -107,6 +107,25 @@ public class ProfileFragment extends Fragment {
                 Toast.makeText(getContext(), "Cannot open My Listings.", Toast.LENGTH_SHORT).show();
             }
         });
+
+        View activeListingsStat = binding.layoutStats.getChildAt(0);
+        activeListingsStat.setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putInt("defaultTabIndex", 0); // 0 là tab "Active"
+            navController.navigate(R.id.action_global_to_myListingsFragment, args);
+        });
+
+        View itemsSoldStat = binding.layoutStats.getChildAt(2);
+        itemsSoldStat.setOnClickListener(v -> {
+            Bundle args = new Bundle();
+            args.putInt("defaultTabIndex", 1); // 1 là tab "Sold"
+            navController.navigate(R.id.action_global_to_myListingsFragment, args);
+        });
+
+        View followersStat = binding.layoutStats.getChildAt(4);
+        followersStat.setOnClickListener(v -> {
+            Toast.makeText(getContext(), "Followers list coming soon!", Toast.LENGTH_SHORT).show();
+        });
     }
 
     private void observeViewModel() {

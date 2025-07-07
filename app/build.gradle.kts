@@ -101,6 +101,14 @@ dependencies {
 
     implementation("com.google.android.gms:play-services-auth:20.7.0")
 
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    implementation("ch.hsr:geohash:1.4.0")
+    implementation("io.grpc:grpc-okhttp:1.58.0")
+
+    implementation("com.firebase:geofire-android-common:3.2.0")
+    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
 
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)

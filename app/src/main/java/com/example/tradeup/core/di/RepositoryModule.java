@@ -24,12 +24,17 @@ import com.example.tradeup.data.repository.TransactionRepositoryImpl;
 import com.example.tradeup.data.repository.UserRepositoryImpl;
 import com.example.tradeup.data.repository.UserSavedItemsRepositoryImpl;
 
-
 import javax.inject.Singleton;
 import dagger.Binds;
 import dagger.Module;
 import dagger.hilt.InstallIn;
 import dagger.hilt.components.SingletonComponent;
+
+import com.example.tradeup.data.repository.LocationRepository;
+import com.example.tradeup.data.repository.LocationRepositoryImpl;
+
+import com.example.tradeup.data.repository.NotificationRepository;
+import com.example.tradeup.data.repository.NotificationRepositoryImpl;
 
 @Module
 @InstallIn(SingletonComponent.class)
@@ -74,4 +79,12 @@ public abstract class RepositoryModule { // Giữ nguyên abstract class cho @Bi
     @Binds
     @Singleton
     public abstract ReportRepository bindReportRepository(ReportRepositoryImpl reportRepositoryImpl);
+
+    @Binds
+    @Singleton
+    public abstract LocationRepository bindLocationRepository(LocationRepositoryImpl impl);
+
+    @Binds
+    @Singleton
+    public abstract NotificationRepository bindNotificationRepository(NotificationRepositoryImpl impl);
 }

@@ -83,6 +83,16 @@ public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListi
                 binding.textViewViews.setVisibility(View.GONE);
             }
 
+
+            String viewsText = String.format(Locale.getDefault(), "%d views", item.getViewsCount());
+            binding.textViewViews.setText(viewsText);
+
+            String offersText = String.format(Locale.getDefault(), "%d offers", item.getOffersCount());
+            binding.textViewOffers.setText(offersText);
+
+            binding.textViewViews.setVisibility(item.getViewsCount() > 0 ? View.VISIBLE : View.GONE);
+            binding.textViewOffers.setVisibility(item.getOffersCount() > 0 ? View.VISIBLE : View.GONE);
+
             // Gán sự kiện click cho các nút và toàn bộ item
             itemView.setOnClickListener(v -> listener.onItemClick(item));
             binding.buttonMenu.setOnClickListener(v -> listener.onMenuClick(item));

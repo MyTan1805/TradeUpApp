@@ -30,6 +30,8 @@ import java.util.Locale;
 
 import javax.inject.Inject; // *** THÊM IMPORT NÀY ***
 import dagger.hilt.android.AndroidEntryPoint;
+import com.example.tradeup.data.model.User;
+import com.example.tradeup.data.repository.UserRepository;
 
 @AndroidEntryPoint
 public class ReportContentDialogFragment extends BottomSheetDialogFragment {
@@ -44,6 +46,8 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
     // Inject ItemRepository để lấy thông tin sản phẩm
     @Inject
     ItemRepository itemRepository;
+    @Inject
+    UserRepository userRepository;
 
     private String contentId;
     private String contentType;
@@ -119,12 +123,36 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
                     }
                 }
             });
-        } else if ("profile".equalsIgnoreCase(contentType)) {
-            // TODO: Xử lý logic tải và hiển thị thông tin profile nếu báo cáo người dùng
-            binding.reportedItemContainer.setVisibility(View.GONE); // Tạm thời ẩn
+        } else if ("profile".equalsIgnoreCase(contentType) && contentId != null) {
+            binding.reportedItemContainer.setVisibility(View.VISIBLE);
             binding.textViewReportingHeader.setText("You are reporting this user:");
+
+            // Dùng userRepository để lấy thông tin người bị report
+            userRepository.getUserProfile(contentId, new Callback<User>() {
+                @Override
+                public void onSuccess(User user) {
+                    if (user != null && getContext() != null && binding != null) {
+                        binding.textViewProductName.setText(user.getDisplayName());
+                        // Ẩn giá và tên người bán
+                        binding.textViewPrice.setVisibility(View.GONE);
+                        binding.textViewSellerName.setVisibility(View.GONE);
+
+                        Glide.with(getContext())
+                                .load(user.getProfilePictureUrl())
+                                .placeholder(R.drawable.ic_person) // Dùng icon person làm placeholder
+                                .into(binding.imageViewProduct);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    if (binding != null) {
+                        binding.reportedItemContainer.setVisibility(View.GONE);
+                    }
+                }
+            });
+
         } else {
-            // Ẩn khối thông tin nếu không có đủ dữ liệu
             if (binding != null) {
                 binding.reportedItemContainer.setVisibility(View.GONE);
             }

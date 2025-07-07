@@ -2,6 +2,7 @@ package com.example.tradeup.ui.search;
 
 import static android.content.ContentValues.TAG;
 
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -9,6 +10,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.SearchView;
@@ -33,7 +36,11 @@ import com.example.tradeup.ui.search.SearchViewModel.SortOrder;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import android.Manifest;
+import androidx.core.content.ContextCompat;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -47,11 +54,22 @@ public class SearchResultsFragment extends Fragment {
     private SearchViewModel viewModel;
     private ProductAdapter searchResultsAdapter;
     private NavController navController;
+    private ActivityResultLauncher<String> requestPermissionLauncher;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(SearchViewModel.class);
+
+        // << THÊM: Khởi tạo launcher để xin quyền vị trí >>
+        requestPermissionLauncher = registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+            if (isGranted) {
+                // Nếu người dùng đồng ý cấp quyền, hiển thị lại dialog
+                showDistanceDialog();
+            } else {
+                Toast.makeText(getContext(), "Location permission is required to search by distance.", Toast.LENGTH_LONG).show();
+            }
+        });
     }
 
     @Nullable
@@ -117,7 +135,15 @@ public class SearchResultsFragment extends Fragment {
         binding.chipCategory.setOnClickListener(v -> showCategoryDialog());
         binding.chipCondition.setOnClickListener(v -> showConditionDialog());
         binding.chipPrice.setOnClickListener(v -> showPriceDialog());
-        binding.chipNearby.setOnClickListener(v -> showNearbyRadiusDialog());
+        binding.chipDistance.setOnClickListener(v -> {
+            // Kiểm tra quyền trước khi hiển thị dialog
+            if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                showDistanceDialog();
+            } else {
+                // Nếu chưa có quyền, xin quyền
+                requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION);
+            }
+        });
     }
 
     private void observeViewModel() {
@@ -155,6 +181,7 @@ public class SearchResultsFragment extends Fragment {
                 Toast.makeText(getContext(), error, Toast.LENGTH_SHORT).show();
             }
         });
+
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             binding.progressBarSearch.setVisibility(isLoading ? View.VISIBLE : View.GONE);
             if (isLoading) {
@@ -195,6 +222,14 @@ public class SearchResultsFragment extends Fragment {
                             .findFirst()
                             .ifPresent(c -> binding.chipCategory.setText(c.getName()));
                 }
+            }
+        });
+
+        viewModel.getDistanceInKm().observe(getViewLifecycleOwner(), distance -> {
+            if (distance == null || distance <= 0) {
+                binding.chipDistance.setText("Distance");
+            } else {
+                binding.chipDistance.setText(distance + " km");
             }
         });
 
@@ -296,25 +331,23 @@ public class SearchResultsFragment extends Fragment {
                 .show();
     }
 
-    private void showNearbyRadiusDialog() {
-        // Các tùy chọn bán kính, đơn vị là km để hiển thị cho người dùng
-        final String[] displayOptions = {"5 km", "10 km", "25 km", "50 km", "Clear filter"};
-        // Giá trị bán kính tương ứng, đơn vị là mét để truyền cho ViewModel/GeoFire
-        final double[] radiusOptionsInMeters = {5000, 10000, 25000, 50000, -1}; // -1 để xóa filter
+    private void showDistanceDialog() {
+        final CharSequence[] distanceOptions = {"5 km", "10 km", "25 km", "50 km", "Any Distance"};
+        final Integer[] distanceValues = {5, 10, 25, 50, null}; // Dùng null cho "Any"
 
-        // TODO: Lấy bán kính hiện tại từ ViewModel để biết mục nào đang được chọn
+        Integer currentDistance = viewModel.getDistanceInKm().getValue();
         int checkedItem = -1;
-        // ... (logic để tìm index của bán kính đang được chọn)
+        for (int i = 0; i < distanceValues.length; i++) {
+            if (Objects.equals(distanceValues[i], currentDistance)) {
+                checkedItem = i;
+                break;
+            }
+        }
 
         new MaterialAlertDialogBuilder(requireContext())
-                .setTitle("Search within")
-                .setSingleChoiceItems(displayOptions, checkedItem, (dialog, which) -> {
-                    double selectedRadius = radiusOptionsInMeters[which];
-
-                    // Tạm thời chỉ log ra
-                    Log.d(TAG, "Selected radius: " + selectedRadius + " meters.");
-                    Toast.makeText(getContext(), "Nearby search logic not fully implemented yet.", Toast.LENGTH_SHORT).show();
-
+                .setTitle("Select Search Radius")
+                .setSingleChoiceItems(distanceOptions, checkedItem, (dialog, which) -> {
+                    viewModel.setDistanceAndSearch(distanceValues[which]);
                     dialog.dismiss();
                 })
                 .show();

@@ -1,5 +1,3 @@
-// package: com.example.tradeup.ui.adapters
-// File: ProductAdapter.java (đã có từ trước, giờ cập nhật)
 package com.example.tradeup.ui.adapters;
 
 import android.view.LayoutInflater;
@@ -16,10 +14,10 @@ import com.example.tradeup.databinding.ItemProductCardHorizontalBinding;
 
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Objects;
 
 public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
-    // Định nghĩa các view type
     public static final int VIEW_TYPE_GRID = 1;
     public static final int VIEW_TYPE_HORIZONTAL = 2;
 
@@ -49,7 +47,7 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
         if (viewType == VIEW_TYPE_HORIZONTAL) {
             ItemProductCardHorizontalBinding binding = ItemProductCardHorizontalBinding.inflate(inflater, parent, false);
             return new HorizontalProductViewHolder(binding);
-        } else { // Mặc định là GRID
+        } else {
             ItemProductCardBinding binding = ItemProductCardBinding.inflate(inflater, parent, false);
             return new GridProductViewHolder(binding);
         }
@@ -65,7 +63,6 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
         }
     }
 
-    // ViewHolder cho layout lưới (item_product_card.xml)
     static class GridProductViewHolder extends RecyclerView.ViewHolder {
         private final ItemProductCardBinding binding;
 
@@ -80,24 +77,31 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
             binding.textViewProductPrice.setText(currencyFormatter.format(item.getPrice()));
 
             String imageUrl = (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) ? item.getImageUrls().get(0) : null;
-            Glide.with(itemView.getContext()).load(imageUrl).placeholder(R.drawable.ic_placeholder_image).into(binding.imageViewProduct);
+            Glide.with(itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_placeholder_image)
+                    .error(R.drawable.ic_error_image)
+                    .into(binding.imageViewProduct);
 
-            // TODO: Lấy location và rating từ item. Cần thêm field này vào model Item.
-            binding.textViewProductLocation.setText(item.getLocation() != null ? item.getLocation().getAddressString() : "N/A");
-            // binding.textViewProductRating.setText("4.5"); // Cần dữ liệu rating
+            // Sửa lỗi: Sử dụng getAddressString() trực tiếp từ Item
+            binding.textViewProductLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
 
-            // TODO: Cập nhật trạng thái nút yêu thích từ dữ liệu (ví dụ: isSaved)
-            // binding.buttonFavorite.setImageResource(isSaved ? R.drawable.ic_favorite_filled : R.drawable.ic_favorite_border);
+            // TODO: Nếu thêm trường rating vào Item, cập nhật tại đây
+            // binding.textViewProductRating.setText(item.getRating() != null ? String.format("%.1f", item.getRating()) : "N/A");
+
+            // Giả sử có một phương thức isFavorite() trong Item hoặc từ dữ liệu khác
+            boolean isFavorite = false; // TODO: Lấy trạng thái từ dữ liệu (ví dụ: Firestore hoặc Room)
+            binding.buttonFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
 
             itemView.setOnClickListener(v -> listener.onItemClick(item));
             binding.buttonFavorite.setOnClickListener(v -> {
-                // TODO: Truyền trạng thái hiện tại của nút favorite
-                listener.onFavoriteClick(item, false);
+                boolean newFavoriteState = !isFavorite;
+                binding.buttonFavorite.setImageResource(newFavoriteState ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
+                listener.onFavoriteClick(item, newFavoriteState);
             });
         }
     }
 
-    // ViewHolder cho layout ngang (item_product_card_horizontal.xml)
     static class HorizontalProductViewHolder extends RecyclerView.ViewHolder {
         private final ItemProductCardHorizontalBinding binding;
 
@@ -112,7 +116,14 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
             binding.textViewFeaturedProductPrice.setText(currencyFormatter.format(item.getPrice()));
 
             String imageUrl = (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) ? item.getImageUrls().get(0) : null;
-            Glide.with(itemView.getContext()).load(imageUrl).placeholder(R.drawable.ic_placeholder_image).into(binding.imageViewFeaturedProduct);
+            Glide.with(itemView.getContext())
+                    .load(imageUrl)
+                    .placeholder(R.drawable.ic_placeholder_image)
+                    .error(R.drawable.ic_error_image)
+                    .into(binding.imageViewFeaturedProduct);
+
+            // Có thể thêm addressString nếu layout ngang cần
+            // binding.textViewFeaturedProductLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
 
             itemView.setOnClickListener(v -> listener.onItemClick(item));
         }
@@ -126,7 +137,10 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
         @Override
         public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
-            return oldItem.getTitle().equals(newItem.getTitle()) && oldItem.getPrice() == newItem.getPrice();
+            return oldItem.getTitle().equals(newItem.getTitle()) &&
+                    oldItem.getPrice() == newItem.getPrice() &&
+                    Objects.equals(oldItem.getAddressString(), newItem.getAddressString()) &&
+                    Objects.equals(oldItem.getImageUrls(), newItem.getImageUrls());
         }
     };
 }

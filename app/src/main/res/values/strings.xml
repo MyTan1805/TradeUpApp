@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">TradeUp</string>
 
+    <string name="cloudinary_cloud_name">your_cloud_name</string>
+    <string name="nominatim_user_agent">TradeUp/1.0 (your.email@example.com)</string>
+
     <string name="default_web_client_id" translatable="false">960286397695-4l5a86tu0o77gpgvn4hhdpvquefl84du.apps.googleusercontent.com</string>
 
     <string name="dddd">Button</string>

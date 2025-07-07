@@ -20,6 +20,7 @@ import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.databinding.FragmentPublicProfileBinding;
 import com.example.tradeup.ui.adapters.ProductAdapter;
+import com.example.tradeup.ui.report.ReportContentDialogFragment;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -61,7 +62,21 @@ public class PublicProfileFragment extends Fragment {
                 NavHostFragment.findNavController(this).navigateUp();
             }
         });
-        // TODO: Xử lý menu (Share, Report) nếu cần
+        binding.toolbar.setOnMenuItemClickListener(menuItem -> {
+            if (menuItem.getItemId() == R.id.action_report_user) {
+                // Lấy userId từ ViewModel
+                if (viewModel.getHeaderState().getValue() instanceof ProfileHeaderState.Success) {
+                    User reportedUser = ((ProfileHeaderState.Success) viewModel.getHeaderState().getValue()).user;
+                    ReportContentDialogFragment.newInstance(
+                            reportedUser.getUid(), // contentId là userId
+                            "profile",             // contentType là "profile"
+                            reportedUser.getUid()  // reportedUserId cũng là userId
+                    ).show(getParentFragmentManager(), "ReportUserDialog");
+                }
+                return true;
+            }
+            return false;
+        });
     }
 
     private void setupRecyclerView() {
