@@ -49,6 +49,8 @@
             String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                     ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                     : "";
+
+            // << SỬA DÒNG NÀY >>
             adapter = new OfferAdapter(currentUserId, new OfferAdapter.OnOfferActionListener() {
                 @Override
                 public void onAcceptClick(Offer offer) {
@@ -69,7 +71,8 @@
                 public void onItemClick(Offer offer) {
                     Toast.makeText(getContext(), "Clicked on item: " + offer.getItemId(), Toast.LENGTH_SHORT).show();
                 }
-            });
+            }, requireContext()); // << THÊM requireContext() VÀO ĐÂY
+
             binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
             binding.recyclerView.setAdapter(adapter);
         }

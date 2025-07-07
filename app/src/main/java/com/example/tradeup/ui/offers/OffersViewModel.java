@@ -1,3 +1,6 @@
+// File: src/main/java/com/example/tradeup/ui/offers/OffersViewModel.java
+// << PHIÊN BẢN ĐÃ SỬA LỖI >>
+
 package com.example.tradeup.ui.offers;
 
 import android.util.Log;
@@ -43,14 +46,24 @@ public class OffersViewModel extends ViewModel {
 
     private final String currentUserId;
 
-
     private final MutableLiveData<List<Offer>> _receivedOffers = new MutableLiveData<>();
+    public LiveData<List<Offer>> getReceivedOffers() { return _receivedOffers; }
+
     private final MutableLiveData<List<Offer>> _sentOffers = new MutableLiveData<>();
+    public LiveData<List<Offer>> getSentOffers() { return _sentOffers; }
+
+    // Các LiveData khác giữ nguyên...
     private final MutableLiveData<List<Transaction>> _transactions = new MutableLiveData<>();
+    public LiveData<List<Transaction>> getTransactions() { return _transactions; }
     private final MutableLiveData<Event<Offer>> _openCounterOfferDialogEvent = new MutableLiveData<>();
+    public LiveData<Event<Offer>> getOpenCounterOfferDialogEvent() { return _openCounterOfferDialogEvent; }
     private final MutableLiveData<Event<Transaction>> _openPaymentSelectionEvent = new MutableLiveData<>();
+    public LiveData<Event<Transaction>> getOpenPaymentSelectionEvent() { return _openPaymentSelectionEvent; }
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
+    public LiveData<Boolean> isLoading() { return _isLoading; }
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
+    public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
+
 
     @Inject
     public OffersViewModel(
@@ -64,7 +77,6 @@ public class OffersViewModel extends ViewModel {
         this.authRepository = authRepository;
         this.itemRepository = itemRepository;
         this.transactionRepository = transactionRepository;
-
         this.notificationRepository = notificationRepository;
 
         FirebaseUser user = authRepository.getCurrentUser();
@@ -73,13 +85,130 @@ public class OffersViewModel extends ViewModel {
         loadInitialData();
     }
 
-    public LiveData<List<Offer>> getReceivedOffers() { return _receivedOffers; }
-    public LiveData<List<Offer>> getSentOffers() { return _sentOffers; }
-    public LiveData<List<Transaction>> getTransactions() { return _transactions; }
-    public LiveData<Event<Offer>> getOpenCounterOfferDialogEvent() { return _openCounterOfferDialogEvent; }
-    public LiveData<Event<Transaction>> getOpenPaymentSelectionEvent() { return _openPaymentSelectionEvent; }
-    public LiveData<Boolean> isLoading() { return _isLoading; }
-    public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
+    public void accept(Offer offer) {
+        if (!validateOfferAction(offer)) return;
+
+        _isLoading.setValue(true);
+
+        itemRepository.updateItemStatus(offer.getItemId(), "sold", new Callback<Void>() {
+            @Override
+            public void onSuccess(Void itemStatusData) {
+                updateOfferStatusAndCreateTransaction(offer);
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Could not mark item as sold: " + e.getMessage());
+            }
+        });
+    }
+
+    // << HÀM MỚI: Tách logic để rõ ràng hơn >>
+    private void updateOfferStatusAndCreateTransaction(Offer offer) {
+        // Luôn chấp nhận giá `currentPrice`
+        offerRepository.updateOffer(offer.getOfferId(), "accepted", offer.getCurrentPrice(), "Offer accepted.", new Callback<Void>() {
+            @Override
+            public void onSuccess(Void offerStatusData) {
+                String receiverId = offer.getLastActionByUid(); // Người đưa ra giá cuối cùng sẽ nhận thông báo bị chấp nhận
+                sendOfferStatusNotification(offer, "offer_accepted", receiverId);
+                createTransactionFromOffer(offer);
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Failed to update offer status: " + e.getMessage());
+            }
+        });
+    }
+    // << HÀM CREATETRANSACTIONFROMOFFER ĐƯỢC CẬP NHẬT >>
+    // Hàm này bây giờ chỉ tập trung vào việc tạo transaction, không mở dialog nữa
+    private void createTransactionFromOffer(Offer offer) {
+        itemRepository.getItemById(offer.getItemId(), new Callback<Item>() {
+            @Override
+            public void onSuccess(Item item) {
+                if (item == null) {
+                    showError("Item not found, cannot create transaction.");
+                    return;
+                }
+
+                Transaction transaction = createTransactionObject(offer, item);
+                transactionRepository.createTransaction(transaction, new Callback<String>() {
+                    @Override
+                    public void onSuccess(String transactionId) {
+                        // << SỬA Ở ĐÂY >>
+                        // Chỉ hiển thị thông báo thành công cho người bán.
+                        showSuccess("Offer accepted! The buyer has been notified.");
+                        // Tải lại toàn bộ danh sách để cập nhật giao diện
+                        loadAllOffers();
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        showError("Failed to create transaction: " + e.getMessage());
+                    }
+                });
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Failed to get item details for transaction: " + e.getMessage());
+            }
+        });
+    }
+
+    // << HÀM SENDOFFERSTATUSNOTIFICATION ĐƯỢC CẬP NHẬT >>
+    private void sendOfferStatusNotification(Offer offer, String type, String receiverId) {
+        FirebaseUser currentUser = authRepository.getCurrentUser();
+        if (currentUser == null) return;
+
+        // Lấy tên sản phẩm để hiển thị trong thông báo (cần lấy từ item)
+        itemRepository.getItemById(offer.getItemId(), new Callback<Item>() {
+            @Override
+            public void onSuccess(Item item) {
+                if (item == null) return;
+
+                Notification notif = new Notification();
+                notif.setUserId(receiverId);
+                notif.setType(type);
+                notif.setRelatedContentId(offer.getItemId());
+                notif.setRead(false);
+
+                // Lấy ảnh của sản phẩm
+                if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
+                    notif.setImageUrl(item.getImageUrls().get(0));
+                }
+
+                // Tùy chỉnh title và message dựa trên type
+                switch (type) {
+                    case "offer_accepted":
+                        notif.setTitle("Offer Accepted!");
+                        notif.setMessage("Your offer for '" + item.getTitle() + "' has been accepted. Tap to proceed to payment.");
+                        break;
+                    case "offer_rejected":
+                        notif.setTitle("Offer Rejected");
+                        notif.setMessage("Your offer for '" + item.getTitle() + "' has been rejected by the seller.");
+                        break;
+                    case "offer_countered":
+                        notif.setTitle("New Counter Offer");
+                        notif.setMessage("You've received a counter offer for '" + item.getTitle() + "'.");
+                        break;
+                }
+
+                // Gửi thông báo sau khi đã có đủ thông tin
+                notificationRepository.createNotification(notif, new Callback<Void>() {
+                    @Override public void onSuccess(Void data) { Log.d(TAG, "Sent offer status notification successfully for type: " + type); }
+                    @Override public void onFailure(@NonNull Exception e) { Log.e(TAG, "Failed to send offer status notification for type: " + type, e); }
+                });
+            }
+            @Override public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, "Could not get item details to create notification", e);
+            }
+        });
+    }
+
+
+    // =================================================================
+    // === CÁC HÀM CÒN LẠI GIỮ NGUYÊN ===================================
+    // =================================================================
 
     private void loadInitialData() {
         if (currentUserId == null) {
@@ -93,23 +222,39 @@ public class OffersViewModel extends ViewModel {
 
     public void createOffer(Item item, double offeredPrice, String message) {
         if (!validateOfferCreation(item)) return;
-
         _isLoading.setValue(true);
 
-        offerRepository.createOffer(
-                createNewOfferObject(item, offeredPrice, message),
-                new Callback<String>() {
-                    @Override
-                    public void onSuccess(String offerId) {
-                        handleOfferCreationSuccess(item);
-                    }
+        FirebaseUser currentUser = authRepository.getCurrentUser();
+        if (currentUser == null) {
+            showError("User not logged in.");
+            return;
+        }
 
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        showError("Failed to send offer: " + e.getMessage());
-                    }
-                }
-        );
+        Offer newOffer = new Offer();
+        newOffer.setItemId(item.getItemId());
+        newOffer.setSellerId(item.getSellerId());
+        newOffer.setBuyerId(currentUser.getUid());
+        newOffer.setBuyerDisplayName(currentUser.getDisplayName() != null ? currentUser.getDisplayName() : "A buyer");
+        if (currentUser.getPhotoUrl() != null) {
+            newOffer.setBuyerProfilePictureUrl(currentUser.getPhotoUrl().toString());
+        }
+
+        newOffer.setCurrentPrice(offeredPrice);
+        newOffer.setLastMessage(message);
+        newOffer.setLastActionByUid(currentUser.getUid()); // Người mua là người hành động cuối
+        newOffer.setStatus("pending");
+        newOffer.setExpiresAt(new Timestamp(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)));
+
+        offerRepository.createOffer(newOffer, new Callback<String>() {
+            @Override
+            public void onSuccess(String offerId) {
+                handleOfferCreationSuccess(item);
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Failed to send offer: " + e.getMessage());
+            }
+        });
     }
 
     private boolean validateOfferCreation(Item item) {
@@ -123,27 +268,6 @@ public class OffersViewModel extends ViewModel {
             return false;
         }
         return true;
-    }
-
-    private Offer createNewOfferObject(Item item, double offeredPrice, String message) {
-        FirebaseUser currentUser = authRepository.getCurrentUser();
-        Offer newOffer = new Offer();
-
-        newOffer.setItemId(item.getItemId());
-        newOffer.setSellerId(item.getSellerId());
-        newOffer.setBuyerId(currentUserId);
-        newOffer.setBuyerDisplayName(currentUser.getDisplayName() != null ?
-                currentUser.getDisplayName() : "A buyer");
-        newOffer.setStatus("pending");
-        newOffer.setOfferedPrice(offeredPrice);
-        newOffer.setMessage(message);
-        newOffer.setExpiresAt(new Timestamp(new Date(System.currentTimeMillis() + 7 * 24 * 60 * 60 * 1000)));
-
-        if (currentUser.getPhotoUrl() != null) {
-            newOffer.setBuyerProfilePictureUrl(currentUser.getPhotoUrl().toString());
-        }
-
-        return newOffer;
     }
 
     private void handleOfferCreationSuccess(Item item) {
@@ -179,30 +303,11 @@ public class OffersViewModel extends ViewModel {
             @Override
             public void onSuccess(Void data) {
                 Log.d(TAG, "Successfully created notification for new offer.");
-                // Không cần làm gì thêm ở đây, thông báo đã được gửi đi
             }
 
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.e(TAG, "Failed to create notification for new offer.", e);
-                // Lỗi này không quá nghiêm trọng, không cần báo cho người dùng
-            }
-        });
-    }
-
-    public void accept(Offer offer) {
-        if (!validateOfferAction(offer)) return;
-
-        _isLoading.setValue(true);
-        itemRepository.updateItemStatus(offer.getItemId(), "sold", new Callback<Void>() {
-            @Override
-            public void onSuccess(Void data) {
-                updateOfferStatusAndNotify(offer, "accepted", offer.getBuyerId());
-                createTransactionFromOffer(offer);
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showError("Could not mark item as sold: " + e.getMessage());
             }
         });
     }
@@ -216,16 +321,6 @@ public class OffersViewModel extends ViewModel {
         boolean isSeller = currentUserId.equals(offer.getSellerId());
         boolean isBuyer = currentUserId.equals(offer.getBuyerId());
 
-        if (isSeller && offer.getCounterOfferPrice() != null) {
-            showError("Seller cannot accept their own counter-offer");
-            return false;
-        }
-
-        if (isBuyer && offer.getCounterOfferPrice() == null) {
-            showError("Buyer cannot accept their own offer");
-            return false;
-        }
-
         if (!isSeller && !isBuyer) {
             showError("You are not involved in this offer");
             return false;
@@ -234,31 +329,14 @@ public class OffersViewModel extends ViewModel {
         return true;
     }
 
-    private void processAcceptedOffer(Offer offer) {
-        offerRepository.updateOffer(offer.getOfferId(), "accepted", null, "Offer accepted",
-                new Callback<Void>() {
-                    @Override
-                    public void onSuccess(Void data) {
-                        sendOfferStatusNotification(offer, "offer_accepted", offer.getBuyerId());
-                        createTransactionFromOffer(offer);
-                    }
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        showError("Failed to update offer status: " + e.getMessage());
-                    }
-                }
-        );
-    }
-
     public void reject(Offer offer) {
         if (!validateOfferAction(offer)) return;
 
-        // Xác định người nhận thông báo là người còn lại trong cuộc hội thoại
         String receiverId = offer.getSellerId().equals(currentUserId)
                 ? offer.getBuyerId()
                 : offer.getSellerId();
 
-        // Cập nhật trạng thái và gửi thông báo
+        updateOfferStatusAndNotify(offer, "rejected", receiverId);
     }
 
     public void counter(Offer offer) {
@@ -267,27 +345,34 @@ public class OffersViewModel extends ViewModel {
 
     public void submitCounterOffer(String offerId, double newPrice, String message) {
         _isLoading.setValue(true);
+        FirebaseUser currentUser = authRepository.getCurrentUser();
+        if (currentUser == null) {
+            showError("User not logged in.");
+            return;
+        }
+
         Map<String, Object> updates = new HashMap<>();
-        updates.put("counterOfferPrice", newPrice);
-        updates.put("counterOfferMessage", message.isEmpty() ? "Sent a new price" : message);
-        updates.put("status", "pending");
+        updates.put("currentPrice", newPrice);
+        updates.put("lastMessage", message);
+        updates.put("lastActionByUid", currentUser.getUid()); // Ghi nhận người vừa trả giá
+        updates.put("status", "pending"); // Đảm bảo trạng thái vẫn là pending
         updates.put("updatedAt", FieldValue.serverTimestamp());
 
         offerRepository.updateOffer(offerId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void unused) {
-                // Lấy lại offer để có thông tin đầy đủ nhất
                 offerRepository.getOfferById(offerId, new Callback<Offer>() {
                     @Override
                     public void onSuccess(Offer updatedOffer) {
                         if (updatedOffer != null) {
-                            // << GỬI THÔNG BÁO CHO NGƯỜI MUA >>
-                            sendOfferStatusNotification(updatedOffer, "offer_countered", updatedOffer.getBuyerId());
+                            // Gửi thông báo cho người còn lại
+                            String receiverId = updatedOffer.getSellerId().equals(currentUser.getUid())
+                                    ? updatedOffer.getBuyerId()
+                                    : updatedOffer.getSellerId();
+                            sendOfferStatusNotification(updatedOffer, "offer_countered", receiverId);
                         }
                     }
-                    @Override public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Failed to get offer details after countering", e);
-                    }
+                    @Override public void onFailure(@NonNull Exception e) { Log.e(TAG, "Failed to get updated offer", e); }
                 });
                 showSuccess("Counter offer sent!");
                 loadAllOffers();
@@ -295,92 +380,6 @@ public class OffersViewModel extends ViewModel {
             @Override
             public void onFailure(@NonNull Exception e) {
                 showError("Failed to send counter offer: " + e.getMessage());
-            }
-        });
-    }
-
-    private void createTransactionFromOffer(Offer offer) {
-        itemRepository.getItemById(offer.getItemId(), new Callback<Item>() {
-            @Override
-            public void onSuccess(Item item) {
-                if (item == null) {
-                    showError("Item not found for transaction");
-                    return;
-                }
-
-                Transaction transaction = createTransactionObject(offer, item);
-                transactionRepository.createTransaction(transaction, new Callback<String>() {
-                    @Override
-                    public void onSuccess(String transactionId) {
-                        showSuccess("Offer accepted! Please select payment method");
-                        _openPaymentSelectionEvent.postValue(new Event<>(transaction));
-                    }
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        showError("Failed to create transaction: " + e.getMessage());
-                    }
-                });
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showError("Failed to get item details: " + e.getMessage());
-            }
-        });
-    }
-
-    private void sendOfferStatusNotification(Offer offer, String type, String receiverId) {
-        FirebaseUser currentUser = authRepository.getCurrentUser();
-        if (currentUser == null) return;
-
-        Notification notif = new Notification();
-        notif.setUserId(receiverId);
-        notif.setType(type);
-        notif.setRelatedContentId(offer.getItemId());
-        notif.setRead(false);
-
-        // Lấy tên sản phẩm để hiển thị trong thông báo (cần lấy từ item)
-        itemRepository.getItemById(offer.getItemId(), new Callback<Item>() {
-            @Override
-            public void onSuccess(Item item) {
-                if (item == null) return;
-
-                Notification notif = new Notification();
-                notif.setUserId(receiverId);
-                notif.setType(type);
-                notif.setRelatedContentId(offer.getItemId());
-                notif.setRead(false);
-
-                // Lấy ảnh của sản phẩm
-                if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
-                    notif.setImageUrl(item.getImageUrls().get(0));
-                }
-
-                // Tùy chỉnh title và message dựa trên type
-                switch (type) {
-                    case "offer_accepted":
-                        notif.setTitle("Offer Accepted!");
-                        notif.setMessage("Your offer for '" + item.getTitle() + "' has been accepted. Tap to proceed to payment.");
-                        break;
-                    // << THÊM CASE MỚI CHO REJECTED >>
-                    case "offer_rejected":
-                        notif.setTitle("Offer Rejected");
-                        notif.setMessage("Your offer for '" + item.getTitle() + "' has been rejected by the seller.");
-                        break;
-                    // << THÊM CASE MỚI CHO COUNTERED >>
-                    case "offer_countered":
-                        notif.setTitle("New Counter Offer");
-                        notif.setMessage("You've received a counter offer for '" + item.getTitle() + "'.");
-                        break;
-                }
-
-                // Gửi thông báo sau khi đã có đủ thông tin
-                notificationRepository.createNotification(notif, new Callback<Void>() {
-                    @Override public void onSuccess(Void data) { Log.d(TAG, "Sent offer status notification successfully for type: " + type); }
-                    @Override public void onFailure(@NonNull Exception e) { Log.e(TAG, "Failed to send offer status notification for type: " + type, e); }
-                });
-            }
-            @Override public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Could not get item details to create notification", e);
             }
         });
     }
@@ -393,8 +392,8 @@ public class OffersViewModel extends ViewModel {
                 item.getImageUrls().get(0) : null);
         transaction.setSellerId(item.getSellerId());
         transaction.setBuyerId(offer.getBuyerId());
-        transaction.setPriceSold(offer.getCounterOfferPrice() != null ?
-                offer.getCounterOfferPrice() : offer.getOfferedPrice());
+        // Giá chốt đơn LUÔN LÀ `currentPrice`
+        transaction.setPriceSold(offer.getCurrentPrice());
         transaction.setPaymentStatus("pending");
         return transaction;
     }
@@ -426,25 +425,22 @@ public class OffersViewModel extends ViewModel {
         );
     }
 
+
     public void selectPaymentMethod(String transactionId, String paymentMethod, @Nullable String deliveryAddress) {
         _isLoading.setValue(true);
-
         Map<String, Object> updates = new HashMap<>();
         updates.put("paymentMethod", paymentMethod);
-        updates.put("paymentStatus", "pending");
 
-        if (paymentMethod.equals("COD") && deliveryAddress != null) {
-            updates.put("deliveryAddress", deliveryAddress);
-            updates.put("shippingStatus", "waiting_for_shipment");
+        if ("COD".equalsIgnoreCase(paymentMethod)) {
+            if (deliveryAddress != null) updates.put("deliveryAddress", deliveryAddress);
+            updates.put("shippingStatus", "waiting_for_shipment"); // << SET TRẠNG THÁI BAN ĐẦU
         }
 
         transactionRepository.updateTransaction(transactionId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void unused) {
-                showSuccess(paymentMethod.equals("COD") ?
-                        "COD selected. Please wait for delivery" :
-                        "Processing online payment");
-                loadTransactions(false);
+                showSuccess("Payment method selected.");
+                loadTransactions(true); // Tải lại để thấy trạng thái mới
             }
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -453,39 +449,40 @@ public class OffersViewModel extends ViewModel {
         });
     }
 
-    public void confirmCODPayment(String transactionId, boolean isSellerConfirm) {
+    public void markAsShipped(String transactionId) {
         _isLoading.setValue(true);
-
         Map<String, Object> updates = new HashMap<>();
-        String field = isSellerConfirm ? "sellerConfirmed" : "buyerConfirmed";
-        updates.put(field, true);
-
+        updates.put("shippingStatus", "shipped");
         transactionRepository.updateTransaction(transactionId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void unused) {
-                checkCODConfirmationStatus(transactionId);
+                showSuccess("Marked as shipped.");
+                loadTransactions(false); // Giả sử seller đang ở tab Sales
             }
             @Override
             public void onFailure(@NonNull Exception e) {
-                showError("Confirmation failed: " + e.getMessage());
+                showError("Failed to update status: " + e.getMessage());
             }
         });
     }
 
-    private void checkCODConfirmationStatus(String transactionId) {
-        transactionRepository.getTransactionById(transactionId, new Callback<Transaction>() {
+    public void confirmReceipt(String transactionId) {
+        _isLoading.setValue(true);
+        // Khi người mua xác nhận, giao dịch hoàn tất
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("shippingStatus", "completed");
+        updates.put("paymentStatus", "completed");
+        updates.put("transactionDate", FieldValue.serverTimestamp());
+
+        transactionRepository.updateTransaction(transactionId, updates, new Callback<Void>() {
             @Override
-            public void onSuccess(Transaction transaction) {
-                if (transaction.isSellerConfirmed() && transaction.isBuyerConfirmed()) {
-                    completeTransaction(transactionId);
-                } else {
-                    showSuccess("Confirmation recorded");
-                    _isLoading.postValue(false);
-                }
+            public void onSuccess(Void unused) {
+                showSuccess("Transaction completed!");
+                loadTransactions(true); // Giả sử buyer đang ở tab Purchases
             }
             @Override
             public void onFailure(@NonNull Exception e) {
-                showError("Failed to verify status: " + e.getMessage());
+                showError("Failed to complete transaction: " + e.getMessage());
             }
         });
     }
@@ -575,13 +572,14 @@ public class OffersViewModel extends ViewModel {
         });
     }
 
-    private void updateOfferStatus(String offerId, String status, @Nullable Double price, String message) {
+    private void updateOfferStatusAndNotify(Offer offer, String newStatus, String receiverId) {
         _isLoading.setValue(true);
-        offerRepository.updateOffer(offerId, status, price, message, new Callback<Void>() {
+        offerRepository.updateOffer(offer.getOfferId(), newStatus, null, null, new Callback<Void>() {
             @Override
-            public void onSuccess(Void unused) {
-                showSuccess(message);
-                loadAllOffers();
+            public void onSuccess(Void data) {
+                sendOfferStatusNotification(offer, newStatus, receiverId);
+                showSuccess("Offer status updated.");
+                loadAllOffers(); // Tải lại danh sách
             }
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -599,21 +597,4 @@ public class OffersViewModel extends ViewModel {
         _toastMessage.postValue(new Event<>(message));
         _isLoading.postValue(false);
     }
-
-    private void updateOfferStatusAndNotify(Offer offer, String newStatus, String receiverId) {
-        _isLoading.setValue(true);
-        offerRepository.updateOffer(offer.getOfferId(), newStatus, null, null, new Callback<Void>() {
-            @Override
-            public void onSuccess(Void data) {
-                sendOfferStatusNotification(offer, newStatus, receiverId);
-                showSuccess("Offer status updated.");
-                loadAllOffers(); // Tải lại danh sách
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showError("Action failed: " + e.getMessage());
-            }
-        });
-    }
-
 }

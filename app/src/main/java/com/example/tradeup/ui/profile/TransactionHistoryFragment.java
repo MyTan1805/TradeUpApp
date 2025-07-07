@@ -21,6 +21,7 @@ import com.example.tradeup.databinding.FragmentTransactionHistoryBinding;
 import com.example.tradeup.ui.adapters.TransactionAdapter;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.example.tradeup.ui.offers.PaymentSelectionFragment;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -166,15 +167,24 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
             navController.navigate(R.id.action_global_to_submitReviewFragment, args);
         }
     }
+    @Override
+    public void onMarkAsShippedClick(Transaction transaction) {
+        // Gọi hàm từ ViewModel của fragment này
+        viewModel.markAsShipped(transaction.getTransactionId());
+    }
 
     @Override
-    public void onConfirmCOD(Transaction transaction) {
-        Log.d(TAG, "onConfirmCOD clicked, but it is not handled in this screen.");
-        Toast.makeText(getContext(), "This action is handled in the Offers screen.", Toast.LENGTH_SHORT).show();
+    public void onConfirmReceiptClick(Transaction transaction) {
+        viewModel.confirmReceipt(transaction.getTransactionId());
+    }
 
-        // Hoặc nếu bạn muốn ViewModel này cũng xử lý, bạn phải thêm logic
-        // vào TransactionHistoryViewModel. Nhưng hiện tại thì không cần thiết.
-        // viewModel.confirmCODPayment(transaction.getTransactionId(), ...);
+    @Override
+    public void onProceedToPaymentClick(Transaction transaction) {
+        if (isAdded() && transaction != null) {
+            // Mở dialog chọn phương thức thanh toán
+            PaymentSelectionFragment.newInstance(transaction)
+                    .show(getParentFragmentManager(), PaymentSelectionFragment.TAG);
+        }
     }
 
 

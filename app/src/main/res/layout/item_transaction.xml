@@ -16,6 +16,7 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
+        <!-- Các View thông tin cơ bản giữ nguyên -->
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imageViewProduct"
             android:layout_width="64dp"
@@ -23,9 +24,9 @@
             android:scaleType="centerCrop"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            tools:src="@drawable/ic_placeholder_image"/>
 
-        <!-- Cột Trái -->
         <TextView
             android:id="@+id/textViewProductName"
             android:layout_width="0dp"
@@ -51,28 +52,6 @@
             tools:text="$129.99" />
 
         <TextView
-            android:id="@+id/textViewPaymentMethod"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?android:attr/textColorSecondary"
-            app:layout_constraintStart_toStartOf="@id/textViewProductName"
-            app:layout_constraintTop_toBottomOf="@id/textViewPrice"
-            tools:text="Payment Method: COD" />
-
-        <TextView
-            android:id="@+id/textViewPaymentStatus"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?android:attr/textColorSecondary"
-            app:layout_constraintStart_toStartOf="@id/textViewProductName"
-            app:layout_constraintTop_toBottomOf="@id/textViewPaymentMethod"
-            tools:text="Status: Pending" />
-
-        <TextView
             android:id="@+id/labelTransactionPartner"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -80,18 +59,8 @@
             android:textAppearance="?attr/textAppearanceCaption"
             android:textColor="?android:attr/textColorSecondary"
             app:layout_constraintStart_toStartOf="@id/textViewProductName"
-            app:layout_constraintTop_toBottomOf="@id/textViewPaymentStatus"
+            app:layout_constraintTop_toBottomOf="@id/textViewPrice"
             tools:text="Sold to" />
-
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonConfirmCOD"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Confirm COD Payment"
-            android:visibility="gone"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/buttonRate"
-            android:layout_marginTop="8dp" />
 
         <TextView
             android:id="@+id/textViewUserName"
@@ -103,9 +72,6 @@
             app:layout_constraintTop_toBottomOf="@id/labelTransactionPartner"
             tools:text="Sarah Johnson" />
 
-
-
-        <!-- Cột Phải -->
         <TextView
             android:id="@+id/textViewDate"
             android:layout_width="wrap_content"
@@ -116,47 +82,30 @@
             app:layout_constraintTop_toTopOf="@id/textViewProductName"
             tools:text="Dec 15, 2023" />
 
-        <TextView
-            android:id="@+id/textViewTransactionId"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?android:attr/textColorSecondary"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewDate"
-            tools:text="#1234567" />
-
         <com.google.android.material.chip.Chip
             android:id="@+id/chipStatus"
-            style="@style/Widget.TradeUp.Chip.Status.Completed"
             android:layout_width="wrap_content"
-            android:layout_height="32dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/textViewTransactionId"
+            app:layout_constraintTop_toBottomOf="@id/textViewDate"
             tools:text="Completed" />
 
+        <!-- NÚT HÀNH ĐỘNG DUY NHẤT -->
         <com.google.android.material.button.MaterialButton
-            android:id="@+id/buttonRate"
-            android:layout_width="wrap_content"
+            android:id="@+id/buttonAction"
+            style="?attr/materialButtonOutlinedStyle"
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="Rate"
             android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/chipStatus"
-            android:layout_marginTop="8dp" />
-        <TextView
-            android:id="@+id/textViewDeliveryAddress"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="?attr/textAppearanceCaption"
-            android:textColor="?android:attr/textColorSecondary"
-            app:layout_constraintStart_toStartOf="@id/textViewProductName"
-            app:layout_constraintTop_toBottomOf="@id/textViewPaymentStatus"
-            tools:text="Delivery: 123 Main St, Hanoi" />
-
-
-
+            app:layout_constraintHorizontal_bias="0.0"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/textViewUserName"
+            app:layout_constraintVertical_bias="1.0"
+            tools:text="Proceed to Payment"
+            tools:visibility="visible" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

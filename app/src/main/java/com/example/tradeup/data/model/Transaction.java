@@ -22,10 +22,10 @@ public class Transaction implements Parcelable {
     private Timestamp transactionDate;
     private String paymentMethod; // "COD" hoặc "Online"
     private String paymentStatus; // "pending", "completed", "failed"
+
+    private String shippingStatus;
     private boolean ratingGivenByBuyer;
     private boolean ratingGivenBySeller;
-    private boolean sellerConfirmed;
-    private boolean buyerConfirmed;
 
     public Transaction() {}
 
@@ -86,6 +86,11 @@ public class Transaction implements Parcelable {
 
 
     // Getters and Setters
+
+    @Nullable
+    public String getShippingStatus() { return shippingStatus; }
+    public void setShippingStatus(@Nullable String shippingStatus) { this.shippingStatus = shippingStatus; }
+
     public String getTransactionId() { return transactionId; }
     public void setTransactionId(String transactionId) { this.transactionId = transactionId; }
 
@@ -129,11 +134,5 @@ public class Transaction implements Parcelable {
         return "completed".equals(paymentStatus);
     }
 
-    public boolean isSellerConfirmed() {
-        return sellerConfirmed;
-    }
 
-    public boolean isBuyerConfirmed() {
-        return buyerConfirmed;
-    }
 }

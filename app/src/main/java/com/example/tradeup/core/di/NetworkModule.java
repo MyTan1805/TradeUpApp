@@ -13,10 +13,12 @@ import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-
+import javax.inject.Named;
 @Module
 @InstallIn(SingletonComponent.class)
 public class NetworkModule {
+
+    private static final String NOMINATIM_API_URL = "https://nominatim.openstreetmap.org/";
 
     @Provides
     @Singleton
@@ -28,21 +30,12 @@ public class NetworkModule {
 
     @Provides
     @Singleton
-    public OkHttpClient provideOkHttpClient(HttpLoggingInterceptor loggingInterceptor) {
+    @Named("NominatimClient")
+    public OkHttpClient provideNominatimOkHttpClient() { // Đổi tên hàm cho rõ ràng
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient.Builder()
-                .addInterceptor(loggingInterceptor)
-                // ======================================================================
-                // === BƯỚC SỬA LỖI QUAN TRỌNG NHẤT LÀ ĐÂY ===
-                // Thêm một interceptor để tự động chèn User-Agent vào mỗi request.
-                // ======================================================================
-                .addInterceptor(chain -> {
-                    Request originalRequest = chain.request();
-                    Request newRequest = originalRequest.newBuilder()
-                            // Thay "your.email@example.com" bằng một email liên hệ thực tế
-                            .header("User-Agent", "TradeUpApp/1.0 (contact@tradeup-project.com)")
-                            .build();
-                    return chain.proceed(newRequest);
-                })
+                .addInterceptor(logging)
                 .build();
     }
 
@@ -50,18 +43,19 @@ public class NetworkModule {
     // Giờ nó sẽ sử dụng OkHttpClient đã được cấu hình đúng ở trên.
     @Provides
     @Singleton
-    public Retrofit provideNominatimRetrofit(OkHttpClient okHttpClient) {
+    @Named("NominatimRetrofit")
+    public Retrofit provideNominatimRetrofit(@Named("NominatimClient") OkHttpClient okHttpClient) {
         return new Retrofit.Builder()
-                .baseUrl("https://nominatim.openstreetmap.org/")
-                .client(okHttpClient) // <-- Dùng client đã có User-Agent
+                .baseUrl(NOMINATIM_API_URL)
                 .addConverterFactory(GsonConverterFactory.create())
+                .client(okHttpClient)
                 .build();
     }
 
     // Phương thức này không cần thay đổi.
     @Provides
     @Singleton
-    public NominatimApiService provideNominatimApiService(Retrofit retrofit) {
+    public NominatimApiService provideNominatimApiService(@Named("NominatimRetrofit") Retrofit retrofit) {
         return retrofit.create(NominatimApiService.class);
     }
 }

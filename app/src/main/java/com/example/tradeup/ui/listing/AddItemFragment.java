@@ -75,12 +75,12 @@ import com.google.android.material.chip.Chip;
 public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoActionsListener {
 
     private static final String TAG = "AddItemFragment";
-    private static final String REQUEST_KEY_CATEGORY = "request_category";
+//    private static final String REQUEST_KEY_CATEGORY = "request_category";
     private static final String REQUEST_KEY_CONDITION = "request_condition";
     private static final String REQUEST_KEY_BEHAVIOR = "request_behavior";
     private static final String REQUEST_KEY_PARENT_CATEGORY = "request_parent_category";
     private static final String REQUEST_KEY_SUB_CATEGORY = "request_sub_category";
-    private final List<String> currentTags = new ArrayList<>();
+//    private final List<String> currentTags = new ArrayList<>();
 
     private String selectedParentCategoryId; // ID của danh mục cha đã chọn
     private String selectedSubCategoryId;
@@ -95,7 +95,7 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     private LocationCallback locationCallback;
     private LocationRequest locationRequest;
     private AppConfig appConfig;
-    private String selectedCategoryId;
+//    private String selectedCategoryId;
     private String selectedConditionId;
     private GeoPoint selectedGeoPoint;
     private String selectedAddress;
@@ -166,20 +166,6 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
         stopLocationUpdates();
     }
 
-    private void addChipToGroup(String tag) {
-        Chip chip = new Chip(getContext());
-        chip.setText(tag);
-        chip.setCloseIconVisible(true);
-        chip.setClickable(true);
-        chip.setCheckable(false);
-        chip.setOnCloseIconClickListener(v -> {
-            binding.chipGroupTags.removeView(chip);
-            currentTags.remove(tag);
-        });
-        binding.chipGroupTags.addView(chip);
-    }
-
-
     private void setupRecyclerView() {
         photoAdapter = new PhotoAdapter(this);
         binding.recyclerViewImages.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
@@ -192,9 +178,9 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
 
         binding.fieldCategory.setOnClickListener(v -> {
             // Mở dialog chọn danh mục cha trước
-            if (appConfig != null && appConfig.getDisplayCategories() != null) {
-                ArrayList<String> parentCategoryNames = appConfig.getDisplayCategories().stream()
-                        .map(DisplayCategoryConfig::getName).collect(Collectors.toCollection(ArrayList::new));
+            if (appConfig != null && appConfig.getCategories() != null) {
+                ArrayList<String> parentCategoryNames = appConfig.getCategories().stream()
+                        .map(CategoryConfig::getName).collect(Collectors.toCollection(ArrayList::new));
                 ListSelectionDialogFragment.newInstance("Chọn Danh mục", parentCategoryNames, REQUEST_KEY_PARENT_CATEGORY)
                         .show(getParentFragmentManager(), "ParentCategoryDialog");
             }
@@ -256,13 +242,48 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
     }
 
     private void setupResultListeners() {
-        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_CATEGORY, this, (requestKey, bundle) -> {
+        // 1. Lắng nghe kết quả từ Dialog chọn Danh mục Cha
+        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_PARENT_CATEGORY, this, (requestKey, bundle) -> {
             int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
             if (index != -1 && appConfig != null) {
-                DisplayCategoryConfig selected = appConfig.getDisplayCategories().get(index);
-                this.selectedCategoryId = selected.getId();
-                binding.fieldCategory.setText(selected.getName());
-                binding.fieldCategory.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));
+                CategoryConfig selectedParent = appConfig.getCategories().get(index);
+                this.selectedParentCategoryId = selectedParent.getId();
+
+                List<SubcategoryConfig> subcategories = selectedParent.getSubcategories();
+                if (subcategories != null && !subcategories.isEmpty()) {
+                    ArrayList<String> subCategoryNames = subcategories.stream()
+                            .map(SubcategoryConfig::getName).collect(Collectors.toCollection(ArrayList::new));
+                    ListSelectionDialogFragment.newInstance(selectedParent.getName(), subCategoryNames, REQUEST_KEY_SUB_CATEGORY)
+                            .show(getParentFragmentManager(), "SubCategoryDialog");
+                } else {
+                    this.selectedSubCategoryId = this.selectedParentCategoryId; // Không có con thì lấy cha
+                    binding.fieldCategory.setText(selectedParent.getName());
+                    binding.fieldCategory.setError(null); // Xóa lỗi nếu có
+                    binding.fieldCategory.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));
+                    updateSuggestedTags(this.selectedSubCategoryId);
+                }
+            }
+        });
+
+        // 2. Lắng nghe kết quả từ Dialog chọn Danh mục Con
+        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_SUB_CATEGORY, this, (requestKey, bundle) -> {
+            int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
+            if (index != -1 && appConfig != null && selectedParentCategoryId != null) {
+                CategoryConfig parent = appConfig.getCategories().stream()
+                        .filter(c -> selectedParentCategoryId.equals(c.getId()))
+                        .findFirst().orElse(null);
+
+                if (parent != null) {
+                    SubcategoryConfig selectedSub = parent.getSubcategories().get(index);
+                    this.selectedSubCategoryId = selectedSub.getId(); // << GÁN GIÁ TRỊ CUỐI CÙNG
+
+                    String displayText = parent.getName() + " > " + selectedSub.getName();
+                    binding.fieldCategory.setText(displayText);
+                    binding.fieldCategory.setError(null); // Xóa lỗi nếu có
+                    binding.fieldCategory.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));
+
+                    updateSuggestedTags(this.selectedSubCategoryId);
+                }
             }
         });
 
@@ -289,51 +310,15 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
             }
         });
 
-        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_PARENT_CATEGORY, this, (requestKey, bundle) -> {
+        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_BEHAVIOR, this, (requestKey, bundle) -> {
             int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
-            if (index != -1 && appConfig != null) {
-                // Lấy danh mục cha đã chọn
-                CategoryConfig selectedParent = appConfig.getCategories().get(index);
-                this.selectedParentCategoryId = selectedParent.getId();
-
-                // Lấy danh sách danh mục con
-                List<SubcategoryConfig> subcategories = selectedParent.getSubcategories();
-                if (subcategories != null && !subcategories.isEmpty()) {
-                    // Mở Dialog 2 để chọn danh mục con
-                    ArrayList<String> subCategoryNames = subcategories.stream()
-                            .map(SubcategoryConfig::getName).collect(Collectors.toCollection(ArrayList::new));
-                    ListSelectionDialogFragment.newInstance(selectedParent.getName(), subCategoryNames, REQUEST_KEY_SUB_CATEGORY)
-                            .show(getParentFragmentManager(), "SubCategoryDialog");
-                } else {
-                    // Nếu không có danh mục con, coi như đã chọn xong
-                    this.selectedSubCategoryId = this.selectedParentCategoryId;
-                    binding.fieldCategory.setText(selectedParent.getName());
-                    updateSuggestedTags(this.selectedSubCategoryId);
-                }
-            }
-        });
-
-        getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_SUB_CATEGORY, this, (requestKey, bundle) -> {
-            int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
-            if (index != -1 && appConfig != null && selectedParentCategoryId != null) {
-                // Tìm lại danh mục cha
-                CategoryConfig parent = appConfig.getCategories().stream()
-                        .filter(c -> selectedParentCategoryId.equals(c.getId()))
-                        .findFirst().orElse(null);
-
-                if (parent != null) {
-                    // Lấy danh mục con đã chọn
-                    SubcategoryConfig selectedSub = parent.getSubcategories().get(index);
-                    this.selectedSubCategoryId = selectedSub.getId();
-
-                    // Hiển thị dạng "Cha > Con"
-                    String displayText = parent.getName() + " > " + selectedSub.getName();
-                    binding.fieldCategory.setText(displayText);
-                    binding.fieldCategory.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));
-
-                    // Cập nhật tag gợi ý dựa trên ID của danh mục con
-                    updateSuggestedTags(this.selectedSubCategoryId);
-                }
+            if (index != -1) {
+                // Lấy giá trị chuỗi từ danh sách tĩnh trong ViewModel
+                selectedItemBehavior = AddItemViewModel.ITEM_BEHAVIORS.get(index);
+                // Cập nhật giao diện
+                binding.fieldItemBehavior.setText(selectedItemBehavior);
+                binding.fieldItemBehavior.setError(null); // Xóa lỗi nếu có
+                binding.fieldItemBehavior.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));
             }
         });
     }
@@ -396,9 +381,8 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
         if (!validateInput()) return;
 
         Item itemToPost = new Item();
-        itemToPost.setTags(new ArrayList<>(currentTags));
-        itemToPost.setTitle(binding.editTextTitle.getText().toString().trim());
         itemToPost.setTags(new ArrayList<>(selectedTags));
+        itemToPost.setTitle(binding.editTextTitle.getText().toString().trim());
         try {
             itemToPost.setPrice(Double.parseDouble(binding.editTextPrice.getText().toString().trim()));
         } catch (NumberFormatException e) {
@@ -406,11 +390,10 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
             return;
         }
         itemToPost.setDescription(binding.editTextDescription.getText().toString().trim());
-        itemToPost.setCategory(selectedCategoryId);
         itemToPost.setCondition(selectedConditionId);
 
         itemToPost.setItemBehavior(selectedItemBehavior);
-        itemToPost.setTags(new ArrayList<>(currentTags));
+        itemToPost.setTags(new ArrayList<>(selectedTags));
 
         itemToPost.setCategory(selectedSubCategoryId);
 
@@ -460,13 +443,12 @@ public class AddItemFragment extends Fragment implements PhotoAdapter.OnPhotoAct
             binding.tilPrice.setError("Giá không hợp lệ");
             return false;
         }
-        if (selectedCategoryId == null) {
-            Toast.makeText(getContext(), "Vui lòng chọn danh mục.", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-        if (selectedSubCategoryId == null) { // << Sửa lại điều kiện >>
+        if (selectedSubCategoryId == null) {
+            binding.fieldCategory.setError("Vui lòng chọn danh mục chi tiết"); // Hiển thị lỗi trên field
             Toast.makeText(getContext(), "Vui lòng chọn danh mục chi tiết.", Toast.LENGTH_SHORT).show();
             return false;
+        } else {
+            binding.fieldCategory.setError(null);
         }
         if (selectedConditionId == null) {
             Toast.makeText(getContext(), "Vui lòng chọn tình trạng.", Toast.LENGTH_SHORT).show();

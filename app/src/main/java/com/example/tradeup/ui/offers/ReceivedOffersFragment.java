@@ -47,11 +47,12 @@ public class ReceivedOffersFragment extends Fragment implements OfferAdapter.OnO
         String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
                 ? FirebaseAuth.getInstance().getCurrentUser().getUid()
                 : "";
-        adapter = new OfferAdapter(currentUserId, this);
+
+        adapter = new OfferAdapter(currentUserId, this, requireContext());
+
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
     }
-
     private void observeViewModel() {
         viewModel.getReceivedOffers().observe(getViewLifecycleOwner(), offers -> {
             adapter.submitList(offers != null ? offers : Collections.emptyList());

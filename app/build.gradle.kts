@@ -86,9 +86,9 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
 
     // Lifecycle components
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.3")
-    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.8.3")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.github.bumptech.glide:glide:4.16.0")
@@ -109,6 +109,15 @@ dependencies {
 
     implementation("com.firebase:geofire-android-common:3.2.0")
     implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
+
+    implementation("com.stripe:stripe-android:20.39.0") // Luôn kiểm tra phiên bản mới nhất
+
+    // Thư viện Retrofit để gọi API đến server
+    implementation("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
+
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)

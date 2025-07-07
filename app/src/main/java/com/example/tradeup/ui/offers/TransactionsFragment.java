@@ -59,13 +59,27 @@ public class TransactionsFragment extends Fragment {
 
             @Override
             public void onRateClick(Transaction transaction) {
-                Toast.makeText(getContext(), "Rate clicked for transaction: " + transaction.getTransactionId(), Toast.LENGTH_SHORT).show();
-                // TODO: Open rating dialog or fragment
+                Toast.makeText(getContext(), "Rate clicked: " + transaction.getTransactionId(), Toast.LENGTH_SHORT).show();
+                // TODO: Điều hướng đến màn hình Rate
+            }
+
+            // << TRIỂN KHAI CÁC HÀM MỚI >>
+            @Override
+            public void onMarkAsShippedClick(Transaction transaction) {
+                viewModel.markAsShipped(transaction.getTransactionId());
             }
 
             @Override
-            public void onConfirmCOD(Transaction transaction) {
-                viewModel.confirmCODPayment(transaction.getTransactionId(), true);
+            public void onConfirmReceiptClick(Transaction transaction) {
+                viewModel.confirmReceipt(transaction.getTransactionId());
+            }
+
+            @Override
+            public void onProceedToPaymentClick(Transaction transaction) {
+                if (isAdded()) {
+                    PaymentSelectionFragment.newInstance(transaction)
+                            .show(getParentFragmentManager(), PaymentSelectionFragment.TAG);
+                }
             }
         });
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));

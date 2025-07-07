@@ -150,6 +150,16 @@
         <argument android:name="itemId" app:argType="string" />
     </fragment>
 
+    <fragment
+        android:id="@+id/stripePaymentFragment"
+        android:name="com.example.tradeup.ui.payment.StripePaymentFragment"
+        android:label="Process Payment"
+        tools:layout="@layout/fragment_stripe_payment">
+        <argument
+            android:name="transaction"
+            app:argType="com.example.tradeup.data.model.Transaction" />
+    </fragment>
+
 
     <!-- CÁC DIALOG / BOTTOMSHEET -->
     <dialog
@@ -250,6 +260,8 @@
         android:id="@+id/action_global_to_offersFragment"
         app:destination="@id/offersFragment" />
 
-
+    <action
+        android:id="@+id/action_global_to_stripePaymentFragment"
+        app:destination="@id/stripePaymentFragment" />
 
 </navigation>
