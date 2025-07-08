@@ -21,13 +21,17 @@ import androidx.navigation.fragment.NavHostFragment;
 
 import com.example.tradeup.R;
 import com.example.tradeup.core.utils.Event;
+import com.example.tradeup.core.utils.FcmTokenUtil;
 import com.example.tradeup.databinding.FragmentLoginBinding;
+import com.example.tradeup.services.MyFirebaseMessagingService;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInAccount;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.messaging.FirebaseMessaging;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -37,7 +41,7 @@ public class LoginFragment extends Fragment {
     private static final String TAG = "LoginFragment";
 
     private FragmentLoginBinding binding;
-    private AuthViewModel viewModel; // << CHỈ CẦN MỘT BIẾN VIEWMODEL
+    private AuthViewModel viewModel;
 
     private ActivityResultLauncher<Intent> googleSignInLauncher;
     private GoogleSignInClient googleSignInClient;
@@ -46,13 +50,9 @@ public class LoginFragment extends Fragment {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        // Khởi tạo ViewModel
         viewModel = new ViewModelProvider(this).get(AuthViewModel.class);
 
-        // Cấu hình Google Sign-In
         configureGoogleSignIn();
-
-        // Khởi tạo ActivityResultLauncher
         setupGoogleSignInLauncher();
     }
 
@@ -72,7 +72,6 @@ public class LoginFragment extends Fragment {
         setupObservers();
     }
 
-    // << TÁCH HÀM: Di chuyển logic khởi tạo UI ra riêng >>
     private void setupUI() {
         String rememberedEmail = viewModel.getRememberedEmail();
         if (rememberedEmail != null) {
@@ -81,23 +80,19 @@ public class LoginFragment extends Fragment {
         }
     }
 
-    // << FIX: Gộp tất cả listener vào một hàm duy nhất >>
     private void setupListeners() {
-        // 1. Listener cho nút Login
         binding.buttonLogin.setOnClickListener(v -> {
             String email = binding.editTextEmailLogin.getText().toString().trim();
             String password = binding.editTextPasswordLogin.getText().toString().trim();
             boolean rememberMe = binding.checkboxRememberMe.isChecked();
-            viewModel.loginUser(email, password, rememberMe); // << Sửa: Thêm rememberMe
+            viewModel.loginUser(email, password, rememberMe);
         });
 
-        // 2. Listener cho nút Google Login
         binding.buttonGoogleLogin.setOnClickListener(v -> {
             Intent signInIntent = googleSignInClient.getSignInIntent();
             googleSignInLauncher.launch(signInIntent);
         });
 
-        // 3. Listener cho các nút điều hướng khác
         binding.textViewForgotPassword.setOnClickListener(v ->
                 NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_forgotPasswordFragment)
         );
@@ -106,14 +101,6 @@ public class LoginFragment extends Fragment {
                 NavHostFragment.findNavController(this).navigate(R.id.action_loginFragment_to_registerFragment)
         );
 
-        binding.buttonLogin.setOnClickListener(v -> {
-            String email = binding.editTextEmailLogin.getText().toString().trim();
-            String password = binding.editTextPasswordLogin.getText().toString().trim();
-            boolean rememberMe = binding.checkboxRememberMe.isChecked();
-            viewModel.loginUser(email, password, rememberMe);
-        });
-
-        // 4. TextWatcher để bật/tắt nút Login
         TextWatcher loginTextWatcher = new TextWatcher() {
             @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
             @Override public void afterTextChanged(Editable s) {}
@@ -122,8 +109,6 @@ public class LoginFragment extends Fragment {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 String emailInput = binding.editTextEmailLogin.getText().toString().trim();
                 String passwordInput = binding.editTextPasswordLogin.getText().toString().trim();
-
-                // Logic này không thay đổi, nó sẽ bật nút khi đủ điều kiện
                 binding.buttonLogin.setEnabled(!emailInput.isEmpty() && !passwordInput.isEmpty());
             }
         };
@@ -139,13 +124,10 @@ public class LoginFragment extends Fragment {
     }
 
     private void checkInitialInputState() {
-        // Vô hiệu hóa nút ban đầu
         binding.buttonLogin.setEnabled(false);
-        // Sau đó kiểm tra lại
         checkInputState();
     }
 
-    // << FIX: Cập nhật hàm observe theo ViewModel đã sửa >>
     private void setupObservers() {
         viewModel.isLoading().observe(getViewLifecycleOwner(), isLoading -> {
             binding.progressBarLogin.setVisibility(isLoading ? View.VISIBLE : View.GONE);
@@ -162,6 +144,8 @@ public class LoginFragment extends Fragment {
 
         viewModel.getNavigationEvent().observe(getViewLifecycleOwner(), event -> {
             if (event.getContentIfNotHandled() != null) {
+                // Sau khi đăng nhập thành công, lấy và lưu token FCM
+                getAndSaveFcmToken();
                 NavHostFragment.findNavController(this).navigate(R.id.action_global_to_main_nav);
             }
         });
@@ -206,9 +190,26 @@ public class LoginFragment extends Fragment {
         }
     }
 
+    // Phương thức mới để lấy và lưu token FCM
+    private void getAndSaveFcmToken() {
+        FirebaseMessaging.getInstance().getToken().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String token = task.getResult();
+                Log.d(TAG, "FCM token retrieved: " + token);
+                String userId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                FcmTokenUtil.saveFcmTokenToFirestore(userId, token);
+            } else {
+                Log.w(TAG, "Failed to retrieve FCM token", task.getException());
+                if (getContext() != null) {
+                    Toast.makeText(getContext(), "Failed to retrieve FCM token.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+    }
+
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null; // Quan trọng để tránh rò rỉ bộ nhớ
+        binding = null;
     }
 }

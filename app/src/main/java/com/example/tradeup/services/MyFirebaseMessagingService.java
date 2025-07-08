@@ -1,12 +1,25 @@
 // File: src/main/java/com/example/tradeup/services/MyFirebaseMessagingService.java
 package com.example.tradeup.services;
 
+import static java.security.AccessController.getContext;
+
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
+import android.os.Build;
 import android.util.Log;
+import android.widget.Toast;
+
 import androidx.annotation.NonNull;
+import androidx.core.app.NotificationCompat;
+
+import com.example.tradeup.R;
+import com.example.tradeup.core.utils.FcmTokenUtil;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.messaging.FirebaseMessaging;
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import java.util.HashMap;
@@ -24,7 +37,13 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
     public void onNewToken(@NonNull String token) {
         super.onNewToken(token);
         Log.d(TAG, "Refreshed FCM token: " + token);
-        sendRegistrationToServer(token);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FcmTokenUtil.saveFcmTokenToFirestore(userId, token);
+        } else {
+            Log.w(TAG, "No authenticated user found when refreshing token.");
+        }
     }
 
     /**
@@ -36,35 +55,34 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
         super.onMessageReceived(remoteMessage);
         Log.d(TAG, "From: " + remoteMessage.getFrom());
 
-        // In ra để debug
         if (remoteMessage.getNotification() != null) {
             Log.d(TAG, "Message Notification Title: " + remoteMessage.getNotification().getTitle());
             Log.d(TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
+
+            // Tạo và hiển thị thông báo
+            NotificationManager notificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+            String channelId = "default_channel_id";
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
+                    .setSmallIcon(R.drawable.ic_notification)
+                    .setContentTitle(remoteMessage.getNotification().getTitle())
+                    .setContentText(remoteMessage.getNotification().getBody())
+                    .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                    .setAutoCancel(true);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                NotificationChannel channel = new NotificationChannel(channelId, "Default Channel", NotificationManager.IMPORTANCE_DEFAULT);
+                notificationManager.createNotificationChannel(channel);
+            }
+
+            notificationManager.notify(1, builder.build());
         }
 
-        // Trong app thực tế, bạn có thể tạo một thông báo tùy chỉnh ở đây
-        // để hiển thị ngay cả khi app đang mở, hoặc cập nhật một badge trên icon.
+        if (remoteMessage.getData().size() > 0) {
+            Log.d(TAG, "Message Data: " + remoteMessage.getData());
+        }
     }
-
     /**
      * Gửi token lên server (Firestore) để lưu vào document của người dùng hiện tại.
      * @param token FCM token mới của thiết bị.
      */
-    private void sendRegistrationToServer(String token) {
-        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-        // Chỉ gửi token lên nếu người dùng đã đăng nhập
-        if (currentUser != null) {
-            String userId = currentUser.getUid();
-            FirebaseFirestore db = FirebaseFirestore.getInstance();
-
-            // Dùng Map để cập nhật, chỉ thêm token mới vào mảng fcmTokens
-            Map<String, Object> updates = new HashMap<>();
-            updates.put("fcmTokens", FieldValue.arrayUnion(token));
-
-            db.collection("users").document(userId)
-                    .update(updates)
-                    .addOnSuccessListener(aVoid -> Log.i(TAG, "FCM token updated successfully for user: " + userId))
-                    .addOnFailureListener(e -> Log.w(TAG, "Error updating FCM token", e));
-        }
-    }
 }

@@ -1,32 +1,26 @@
-// File: src/main/java/com/example/tradeup/core/di/AppModule.java
 package com.example.tradeup.core.di;
 
 import android.content.Context;
 import com.example.tradeup.core.utils.SessionManager;
+import com.example.tradeup.data.network.StripeApiService;
+import com.example.tradeup.data.network.NotificationApiService;
 import dagger.Module;
 import dagger.Provides;
 import dagger.hilt.InstallIn;
 import dagger.hilt.android.qualifiers.ApplicationContext;
 import dagger.hilt.components.SingletonComponent;
-import javax.inject.Singleton;
-import com.example.tradeup.data.network.StripeApiService;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import javax.inject.Named;
 import javax.inject.Singleton;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
-import javax.inject.Named;
-/**
- * Module này chỉ cung cấp các dependency cấp ứng dụng, không thuộc về một
- * nhóm cụ thể nào như Firebase hay Network.
- */
+
 @Module
 @InstallIn(SingletonComponent.class)
 public class AppModule {
 
-    private static final String STRIPE_BACKEND_URL = "http://10.0.2.2:4242/";
+    private static final String BASE_URL = "http://10.0.2.2:4242/"; // Chung cho Stripe và Notification
 
     @Provides
     @Singleton
@@ -36,8 +30,8 @@ public class AppModule {
 
     @Provides
     @Singleton
-    @Named("StripeClient")
-    public OkHttpClient provideStripeOkHttpClient() { // Đổi tên hàm cho rõ ràng
+    @Named("AppClient")
+    public OkHttpClient provideOkHttpClient() {
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor();
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
         return new OkHttpClient.Builder()
@@ -47,10 +41,10 @@ public class AppModule {
 
     @Provides
     @Singleton
-    @Named("StripeRetrofit")
-    public Retrofit provideStripeRetrofit(@Named("StripeClient") OkHttpClient okHttpClient) { // Yêu cầu client có nhãn "StripeClient"
+    @Named("AppRetrofit")
+    public Retrofit provideRetrofit(@Named("AppClient") OkHttpClient okHttpClient) {
         return new Retrofit.Builder()
-                .baseUrl(STRIPE_BACKEND_URL)
+                .baseUrl(BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(okHttpClient)
                 .build();
@@ -58,8 +52,13 @@ public class AppModule {
 
     @Provides
     @Singleton
-    public StripeApiService provideStripeApiService(@Named("StripeRetrofit") Retrofit retrofit) { // Yêu cầu Retrofit có nhãn "StripeRetrofit"
+    public StripeApiService provideStripeApiService(@Named("AppRetrofit") Retrofit retrofit) {
         return retrofit.create(StripeApiService.class);
     }
 
+    @Provides
+    @Singleton
+    public NotificationApiService provideNotificationApiService(@Named("AppRetrofit") Retrofit retrofit) {
+        return retrofit.create(NotificationApiService.class);
+    }
 }
