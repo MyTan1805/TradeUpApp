@@ -1,5 +1,7 @@
 package com.example.tradeup.data.source.remote;
 
+import android.util.Log;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
@@ -57,35 +59,19 @@ public class FirebaseChatSource {
                     callback.onSuccess(chatId); // Chat đã tồn tại
                 } else {
                     // Tạo chat mới
-                    // Bạn cần tạo class Chat.java với constructor phù hợp
-                    Chat newChat = new Chat(); // Giả sử Chat.java có constructor rỗng
-                    newChat.setChatId(chatId);
+                    Chat newChat = new Chat();
+
+                    // KHÔNG CẦN DÒNG NÀY NỮA, VÌ @DocumentId SẼ TỰ LÀM:
+                    // newChat.setChatId(chatId);
+
                     newChat.setParticipants(sortedIds);
                     if (relatedItemId != null) {
                         newChat.setRelatedItemId(relatedItemId);
                     }
-                    // Khởi tạo các trường khác của Chat nếu cần (ví dụ: createdAt, updatedAt dùng FieldValue.serverTimestamp())
-                    // newChat.setCreatedAt(FieldValue.serverTimestamp()); // Sẽ lỗi nếu model không hỗ trợ Object
-                    // newChat.setUpdatedAt(FieldValue.serverTimestamp());
+                    // Các trường khác như participantInfo, unreadCount...
 
-                    Map<String, Object> chatData = new HashMap<>();
-                    chatData.put("chatId", chatId); // Firestore sẽ tự lấy từ ID document nếu model có @DocumentId
-                    chatData.put("participants", sortedIds);
-                    if (relatedItemId != null) {
-                        chatData.put("relatedItemId", relatedItemId);
-                    }
-                    chatData.put("createdAt", FieldValue.serverTimestamp());
-                    chatData.put("updatedAt", FieldValue.serverTimestamp());
-                    // Khởi tạo participantInfo và unreadCount nếu cần
-                    // Map<String, Object> participantInfo = new HashMap<>(); // Cần lấy info từ users collection
-                    // chatData.put("participantInfo", participantInfo);
-                    // Map<String, Integer> unreadCount = new HashMap<>();
-                    // unreadCount.put(sortedIds.get(0), 0);
-                    // unreadCount.put(sortedIds.get(1), 0);
-                    // chatData.put("unreadCount", unreadCount);
-
-
-                    chatDocRef.set(chatData) // Dùng Map hoặc POJO Chat
+                    // Khi set(), Firestore sẽ tự động điền ID document vào trường có @DocumentId
+                    chatDocRef.set(newChat)
                             .addOnSuccessListener(aVoid -> callback.onSuccess(chatId))
                             .addOnFailureListener(callback::onFailure);
                 }
@@ -143,50 +129,51 @@ public class FirebaseChatSource {
     }
 
     public void sendMessage(String chatId, Message message, Callback<Void> callback) {
-        // Firestore sẽ tự tạo timestamp nếu model Message.java có field timestamp với @ServerTimestamp
-        // Nếu không, bạn cần set thủ công: message.setTimestamp(Timestamp.now());
-        // Hoặc dùng Map để set FieldValue.serverTimestamp() cho trường timestamp
-
-        Map<String, Object> messageData = new HashMap<>();
-        messageData.put("senderId", message.getSenderId());
-        messageData.put("receiverId", message.getReceiverId());
-        if (message.getText() != null) messageData.put("text", message.getText());
-        if (message.getImageUrl() != null) messageData.put("imageUrl", message.getImageUrl());
-        messageData.put("type", message.getType());
-        messageData.put("timestamp", FieldValue.serverTimestamp()); // Quan trọng để có server timestamp
-        messageData.put("isRead", false);
-        // Thêm offerDetails nếu có
-
         CollectionReference messagesSubCollection = chatsCollection.document(chatId).collection("messages");
 
-        // Sử dụng batch write để thêm tin nhắn và cập nhật chat document
         WriteBatch batch = firestore.batch();
 
-        // 1. Thêm tin nhắn mới
-        DocumentReference newMessageRef = messagesSubCollection.document(); // Tự tạo ID cho tin nhắn
-        batch.set(newMessageRef, messageData); // Dùng Map hoặc POJO Message
+        // 1. Thêm tin nhắn mới vào subcollection
+        // Dùng trực tiếp object Message vì nó đã có @ServerTimestamp cho trường timestamp
+        DocumentReference newMessageRef = messagesSubCollection.document();
+        batch.set(newMessageRef, message);
 
-        // 2. Cập nhật thông tin lastMessage trong Chat document
+        // 2. Cập nhật thông tin trong document chat chính
         DocumentReference chatDocRef = chatsCollection.document(chatId);
         Map<String, Object> chatUpdates = new HashMap<>();
+
         String lastMessageText = message.getText();
         if (lastMessageText == null && message.getImageUrl() != null) {
-            lastMessageText = "Hình ảnh"; // Hoặc "Image"
+            lastMessageText = "Image";
         } else if (lastMessageText == null && message.getOfferDetails() != null) {
-            lastMessageText = "Đề nghị"; // Hoặc "Offer"
+            lastMessageText = "Offer";
         }
+
         chatUpdates.put("lastMessageText", lastMessageText);
-        chatUpdates.put("lastMessageTimestamp", FieldValue.serverTimestamp()); // Dùng server timestamp
+        chatUpdates.put("lastMessageTimestamp", FieldValue.serverTimestamp());
         chatUpdates.put("lastMessageSenderId", message.getSenderId());
         chatUpdates.put("updatedAt", FieldValue.serverTimestamp());
-        // Cập nhật unreadCount cho người nhận (ví dụ, tăng unreadCount của receiverId)
-        // chatUpdates.put("unreadCount." + message.getReceiverId(), FieldValue.increment(1));
+
+        // === PHẦN SỬA LỖI & THÊM MỚI QUAN TRỌNG NHẤT ===
+        // Tăng unreadCount của người nhận (receiver) lên 1
+        if (message.getReceiverId() != null) {
+            // Dùng dot notation để cập nhật một trường bên trong một map
+            // Ví dụ: "unreadCount.user_id_B"
+            chatUpdates.put("unreadCount." + message.getReceiverId(), FieldValue.increment(1));
+        }
+        // === KẾT THÚC PHẦN SỬA LỖI ===
 
         batch.update(chatDocRef, chatUpdates);
 
         batch.commit()
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+                .addOnSuccessListener(aVoid -> {
+                    Log.d("FirebaseChatSource", "sendMessage batch commit successful.");
+                    callback.onSuccess(null);
+                })
+                .addOnFailureListener(e -> {
+                    Log.e("FirebaseChatSource", "sendMessage batch commit failed.", e);
+                    callback.onFailure(e);
+                });
     }
 
     public void markMessagesAsRead(String chatId, String userId, Callback<Void> callback) {

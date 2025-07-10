@@ -18,6 +18,9 @@ public interface ItemRepository {
     void updateItem(Item item, Callback<Void> callback);
     void deleteItem(String itemId, Callback<Void> callback);
     void updateItemStatus(String itemId, String newStatus, Callback<Void> callback);
+
+    void getItemsByCategory(String categoryId, Callback<List<Item>> callback);
+    void getItemsByIds(List<String> itemIds, Callback<List<Item>> callback);
     void searchByFilters(
             @Nullable String keyword, @Nullable String categoryId, @Nullable String conditionId,
             @Nullable Double minPrice, @Nullable Double maxPrice, long limit,

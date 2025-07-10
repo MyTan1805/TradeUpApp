@@ -25,10 +25,14 @@ import com.example.tradeup.ui.adapters.ImageSliderAdapter;
 import com.example.tradeup.ui.offers.MakeOfferDialogFragment;
 import com.example.tradeup.ui.report.ReportContentDialogFragment;
 import com.google.android.material.tabs.TabLayoutMediator;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.text.NumberFormat;
 import java.text.SimpleDateFormat;
+import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 
 import dagger.hilt.android.AndroidEntryPoint;
 
@@ -73,6 +77,8 @@ public class ItemDetailFragment extends Fragment {
                 ItemDetailViewState.Success successState = (ItemDetailViewState.Success) state;
                 populateUi(successState.item, successState.seller, successState.categoryName, successState.conditionName);
                 setupClickListeners(successState.item, successState.seller);
+                // Lưu lịch sử xem
+                logUserBrowsingHistory(successState.item.getSellerId(), successState.item.getItemId(), successState.categoryName);
             } else if (state instanceof ItemDetailViewState.Error) {
                 Toast.makeText(getContext(), ((ItemDetailViewState.Error) state).message, Toast.LENGTH_LONG).show();
                 if (isAdded()) {
@@ -95,6 +101,20 @@ public class ItemDetailFragment extends Fragment {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
+
+        viewModel.getNavigateToChatEvent().observe(getViewLifecycleOwner(), event -> {
+            Bundle args = event.getContentIfNotHandled();
+            if (args != null && isAdded()) {
+                // Sử dụng action toàn cục để điều hướng từ bất kỳ đâu đến màn hình chat
+                // Chúng ta cần tạo action này trong main_nav.xml
+                try {
+                    navController.navigate(R.id.action_global_to_chatDetailFragment, args);
+                } catch (Exception e) {
+                    Log.e(TAG, "Navigation to chat failed", e);
+                    Toast.makeText(getContext(), "Could not open chat screen.", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
     }
 
     private void setMainContentVisibility(boolean visible) {
@@ -102,6 +122,20 @@ public class ItemDetailFragment extends Fragment {
         int visibility = visible ? View.VISIBLE : View.GONE;
         binding.appBarLayout.setVisibility(visibility);
         binding.nestedScrollView.setVisibility(visibility);
+    }
+
+    private void logUserBrowsingHistory(String userId, String itemId, String category) {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        Map<String, Object> browsingData = new HashMap<>();
+        browsingData.put("userId", userId);
+        browsingData.put("itemId", itemId);
+        browsingData.put("category", category);
+        browsingData.put("timestamp", FieldValue.serverTimestamp());
+
+        db.collection("userBrowsingHistory")
+                .add(browsingData)
+                .addOnSuccessListener(documentReference -> Log.d(TAG, "Browsing history logged"))
+                .addOnFailureListener(e -> Log.e(TAG, "Error logging browsing history", e));
     }
 
     private void populateUi(@NonNull Item item, @NonNull User seller, @NonNull String categoryName, @NonNull String conditionName) {
@@ -226,7 +260,7 @@ public class ItemDetailFragment extends Fragment {
 
         // 6. Nút Nhắn tin
         binding.buttonMessageSeller.setOnClickListener(v -> {
-            Toast.makeText(getContext(), "Chức năng Nhắn tin sẽ được làm sau.", Toast.LENGTH_SHORT).show();
+            viewModel.onMessageSellerClicked();
         });
     }
 

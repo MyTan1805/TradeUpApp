@@ -55,6 +55,10 @@ public class Message {
     public void setTimestamp(@Nullable Timestamp timestamp) { this.timestamp = timestamp; }
     public boolean isRead() { return isRead; } // Getter cho boolean là "is..."
     public void setRead(boolean read) { isRead = read; }
+
+    public void setIsRead(boolean isRead) {
+        this.isRead = isRead;
+    }
     @Nullable
     public OfferNotificationDetails getOfferDetails() { return offerDetails; }
     public void setOfferDetails(@Nullable OfferNotificationDetails offerDetails) { this.offerDetails = offerDetails; }

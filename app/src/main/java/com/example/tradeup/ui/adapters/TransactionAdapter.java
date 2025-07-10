@@ -79,9 +79,8 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
         }
 
         void bind(final Transaction transaction) {
-            // --- 1. BIND THÔNG TIN CƠ BẢN ---
+            // === PHẦN 1: BIND DỮ LIỆU CƠ BẢN (GIỮ NGUYÊN) ===
             binding.textViewProductName.setText(transaction.getItemTitle());
-
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             binding.textViewPrice.setText(currencyFormat.format(transaction.getPriceSold()));
 
@@ -98,37 +97,36 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
                     .error(R.drawable.ic_image_not_found)
                     .into(binding.imageViewProduct);
 
-            boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
-            if (isUserTheBuyer) {
-                binding.labelTransactionPartner.setText("Sold by:");
-                fetchUserDisplayName(transaction.getSellerId(), binding.textViewUserName);
-            } else {
-                binding.labelTransactionPartner.setText("Bought by:");
-                fetchUserDisplayName(transaction.getBuyerId(), binding.textViewUserName);
-            }
+            final boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
 
+            // Gán listener cho toàn bộ item, để có thể xem chi tiết
             itemView.setOnClickListener(v -> listener.onTransactionClick(transaction));
 
-            // --- 2. ẨN NÚT HÀNH ĐỘNG ---
-            binding.buttonAction.setVisibility(View.GONE);
+            // === PHẦN 2: LOGIC HIỂN THỊ NÚT VÀ TRẠNG THÁI (CẬP NHẬT) ===
+            binding.buttonAction.setVisibility(View.GONE); // Mặc định ẩn nút đi
+            binding.buttonAction.setOnClickListener(null); // Xóa listener cũ
 
-            // --- 3. XỬ LÝ LOGIC HIỂN THỊ ---
             String paymentStatus = transaction.getPaymentStatus() != null ? transaction.getPaymentStatus().toLowerCase() : "pending";
-            String shippingStatus = transaction.getShippingStatus();
-            String paymentMethod = transaction.getPaymentMethod();
+            String shippingStatus = transaction.getShippingStatus(); // Có thể null
+            String paymentMethod = transaction.getPaymentMethod(); // Có thể null
 
+            // --- KỊCH BẢN 1: GIAO DỊCH ĐÃ HOÀN TẤT ---
             if ("completed".equals(paymentStatus)) {
                 binding.chipStatus.setText("Completed");
                 binding.chipStatus.setChipBackgroundColorResource(R.color.status_completed_background);
                 binding.chipStatus.setTextColor(ContextCompat.getColor(context, R.color.status_completed_text));
 
+                // Kiểm tra xem người dùng hiện tại đã rate chưa
                 boolean canUserRate = (isUserTheBuyer && !transaction.isRatingGivenByBuyer()) || (!isUserTheBuyer && !transaction.isRatingGivenBySeller());
                 if (canUserRate) {
                     binding.buttonAction.setText("Rate Transaction");
                     binding.buttonAction.setVisibility(View.VISIBLE);
                     binding.buttonAction.setOnClickListener(v -> listener.onRateClick(transaction));
                 }
-            } else if ("pending".equals(paymentStatus)) {
+            }
+            // --- KỊCH BẢN 2: GIAO DỊCH ĐANG CHỜ XỬ LÝ ---
+            else if ("pending".equals(paymentStatus)) {
+                // Nếu chưa chọn phương thức thanh toán
                 if (paymentMethod == null) {
                     binding.chipStatus.setText("Pending Payment");
                     if (isUserTheBuyer) {
@@ -136,26 +134,68 @@ public class TransactionAdapter extends ListAdapter<Transaction, TransactionAdap
                         binding.buttonAction.setVisibility(View.VISIBLE);
                         binding.buttonAction.setOnClickListener(v -> listener.onProceedToPaymentClick(transaction));
                     }
-                } else if ("COD".equalsIgnoreCase(paymentMethod)) {
+                }
+                // Nếu đã chọn COD
+                else if ("COD".equalsIgnoreCase(paymentMethod)) {
                     if ("waiting_for_shipment".equals(shippingStatus)) {
                         binding.chipStatus.setText("Waiting for Shipment");
-                        if (!isUserTheBuyer) {
+                        if (!isUserTheBuyer) { // Người bán sẽ thấy nút này
                             binding.buttonAction.setText("Mark as Shipped");
                             binding.buttonAction.setVisibility(View.VISIBLE);
                             binding.buttonAction.setOnClickListener(v -> listener.onMarkAsShippedClick(transaction));
                         }
                     } else if ("shipped".equals(shippingStatus)) {
                         binding.chipStatus.setText("In Transit");
-                        if (isUserTheBuyer) {
+                        if (isUserTheBuyer) { // Người mua sẽ thấy nút này
                             binding.buttonAction.setText("Confirm Receipt");
                             binding.buttonAction.setVisibility(View.VISIBLE);
                             binding.buttonAction.setOnClickListener(v -> listener.onConfirmReceiptClick(transaction));
                         }
+                    } else {
+                        // Trạng thái COD mặc định khác (ví dụ: vừa chọn xong)
+                        binding.chipStatus.setText("COD Pending");
                     }
-                } else if ("Online".equalsIgnoreCase(paymentMethod)) {
+                }
+                // Nếu đã chọn Online
+                else if ("Online".equalsIgnoreCase(paymentMethod)) {
                     binding.chipStatus.setText("Processing Payment");
+                    // Không có action nào ở đây, chờ kết quả từ Stripe
                 }
             }
+            // --- KỊCH BẢN 3: CÁC TRƯỜNG HỢP KHÁC (Failed, Cancelled...) ---
+            else {
+                binding.chipStatus.setText(transaction.getPaymentStatus());
+                // Set màu mặc định cho các trạng thái khác
+                binding.chipStatus.setChipBackgroundColorResource(R.color.status_default_background);
+                binding.chipStatus.setTextColor(ContextCompat.getColor(context, R.color.status_default_text));
+            }
+
+            // Lấy tên của đối tác giao dịch
+            fetchPartnerName(isUserTheBuyer ? transaction.getSellerId() : transaction.getBuyerId(), transaction);
+        }
+        private void fetchPartnerName(String partnerId, final Transaction transaction) { // << THÊM THAM SỐ transaction
+            FirebaseFirestore.getInstance().collection("users").document(partnerId)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (binding == null) return; // Kiểm tra an toàn
+                        if (documentSnapshot != null && documentSnapshot.exists()) {
+                            String partnerName = documentSnapshot.getString("displayName");
+
+                            // Bây giờ chúng ta có thể dùng `transaction` một cách an toàn
+                            boolean isBuyer = transaction.getBuyerId().equals(currentUserId);
+                            String label = isBuyer ? "Sold by:" : "Bought by:";
+
+                            binding.labelTransactionPartner.setText(label);
+                            binding.textViewUserName.setText(partnerName != null ? partnerName : "A user");
+                        } else {
+                            binding.textViewUserName.setText("A user");
+                        }
+                    })
+                    .addOnFailureListener(e -> {
+                        if (binding != null) {
+                            binding.textViewUserName.setText("A user");
+                        }
+                    });
         }
 
         // << HÀM BỊ THIẾU ĐÃ ĐƯỢC THÊM VÀO ĐÂY >>

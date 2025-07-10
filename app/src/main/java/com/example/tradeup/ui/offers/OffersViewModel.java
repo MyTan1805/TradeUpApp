@@ -482,26 +482,92 @@ public class OffersViewModel extends ViewModel {
     }
 
     public void selectPaymentMethod(String transactionId, String paymentMethod, @Nullable String deliveryAddress) {
-        _isLoading.setValue(true);
+        _isLoading.setValue(true); // << Báo cho UI biết là đang xử lý
         Map<String, Object> updates = new HashMap<>();
         updates.put("paymentMethod", paymentMethod);
 
         if ("COD".equalsIgnoreCase(paymentMethod)) {
-            if (deliveryAddress != null) updates.put("deliveryAddress", deliveryAddress);
+            // Chỉ cập nhật shippingStatus và deliveryAddress nếu là COD
             updates.put("shippingStatus", "waiting_for_shipment");
+            if (deliveryAddress != null) {
+                updates.put("deliveryAddress", deliveryAddress);
+            }
         }
+        // Với "Online", chúng ta chỉ cần cập nhật paymentMethod. Trạng thái shipping sẽ được cập nhật sau khi thanh toán thành công.
 
         transactionRepository.updateTransaction(transactionId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void unused) {
+                // *** ĐÂY LÀ PHẦN QUAN TRỌNG NHẤT ***
+                // Hiển thị thông báo thành công và tải lại danh sách
                 showSuccess("Payment method selected.");
+
+                // Gửi thông báo cho người bán
+                transactionRepository.getTransactionById(transactionId, new Callback<Transaction>() {
+                    @Override public void onSuccess(Transaction t) {
+                        if (t != null) {
+                            sendTransactionNotification(t, "payment_method_selected", t.getSellerId());
+                        }
+                    }
+                    @Override public void onFailure(@NonNull Exception e) {
+                        Log.e(TAG, "Failed to get transaction details for notification", e);
+                    }
+                });
+
+                // Tải lại danh sách giao dịch của người mua
                 loadTransactions(true);
             }
+
             @Override
             public void onFailure(@NonNull Exception e) {
+                // Hiển thị lỗi
                 showError("Payment selection failed: " + e.getMessage());
             }
         });
+    }
+
+    private void sendTransactionNotification(Transaction transaction, String type, String receiverId) {
+        if (transaction == null || type == null || receiverId == null) {
+            Log.e(TAG, "Cannot send notification due to null parameters.");
+            return;
+        }
+
+        Notification notif = new Notification();
+        notif.setUserId(receiverId);
+        notif.setType(type);
+        notif.setRelatedContentId(transaction.getItemId());
+        notif.setImageUrl(transaction.getItemImageUrl());
+
+        // Tạo title và message dựa trên type
+        switch (type) {
+            case "payment_method_selected":
+                notif.setTitle("Payment Method Selected");
+                notif.setMessage(String.format("The buyer has selected %s for your item '%s'. Please prepare for shipment.",
+                        transaction.getPaymentMethod(), transaction.getItemTitle()));
+                break;
+            case "online_payment_success":
+                notif.setTitle("Payment Received!");
+                notif.setMessage(String.format("The buyer has paid for your item '%s'. Please prepare for shipment.", transaction.getItemTitle()));
+                break;
+            // Thêm các case khác nếu cần trong tương lai
+        }
+
+        // Chỉ gửi nếu có title (tránh gửi thông báo rỗng)
+        if (notif.getTitle() != null) {
+            notificationRepository.createNotification(notif, new Callback<Void>() {
+                @Override
+                public void onSuccess(Void data) {
+                    Log.d(TAG, "Successfully stored transaction notification of type: " + type);
+                    // Ở đây không cần gửi push notification vì đây là luồng phụ,
+                    // thông báo chính đã được gửi ở các hàm accept, reject...
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    Log.e(TAG, "Failed to store transaction notification of type: " + type, e);
+                }
+            });
+        }
     }
 
     public void markAsShipped(String transactionId) {

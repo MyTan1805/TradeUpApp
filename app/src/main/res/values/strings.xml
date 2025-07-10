@@ -119,6 +119,7 @@
 
     <string name="kiem_tra_hop_thu_cua_ban">Kiểm tra hộp thư của bạn</string>
     <string name="quay_lai_dang_nhap">Quay lại Đăng nhập</string>
+    <string name="product_image">product_image</string>
 
 
     <!-- Reply Entries & Values for ListPreference -->

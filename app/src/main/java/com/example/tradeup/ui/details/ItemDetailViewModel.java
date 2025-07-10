@@ -1,5 +1,7 @@
 package com.example.tradeup.ui.details;
 
+import android.os.Bundle;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
@@ -26,6 +28,9 @@ import com.google.firebase.auth.FirebaseUser;
 import retrofit2.Call;
 import retrofit2.Response;
 
+import com.example.tradeup.data.repository.ChatRepository;
+import java.util.Arrays;
+
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.HashMap;
@@ -41,8 +46,15 @@ public class ItemDetailViewModel extends ViewModel {
     private final AuthRepository authRepository;
     private final NotificationApiService notificationApiService;
 
+    private final ChatRepository chatRepository;
+
+    private final MutableLiveData<Event<Bundle>> _navigateToChatEvent = new MutableLiveData<>();
+    public LiveData<Event<Bundle>> getNavigateToChatEvent() { return _navigateToChatEvent; }
+
     private final MediatorLiveData<ItemDetailViewState> _viewState = new MediatorLiveData<>();
     public LiveData<ItemDetailViewState> getViewState() { return _viewState; }
+
+
 
     private final MutableLiveData<Item> _item = new MutableLiveData<>();
     private final MutableLiveData<User> _seller = new MutableLiveData<>();
@@ -65,6 +77,7 @@ public class ItemDetailViewModel extends ViewModel {
             AppConfigRepository appConfigRepository,
             UserSavedItemsRepository userSavedItemsRepository,
             AuthRepository authRepository,
+            ChatRepository chatRepository,
             NotificationApiService notificationApiService,
             SavedStateHandle savedStateHandle
     ) {
@@ -73,6 +86,7 @@ public class ItemDetailViewModel extends ViewModel {
         this.appConfigRepository = appConfigRepository;
         this.userSavedItemsRepository = userSavedItemsRepository;
         this.authRepository = authRepository;
+        this.chatRepository = chatRepository;
         this.notificationApiService = notificationApiService;
 
         FirebaseUser user = authRepository.getCurrentUser();
@@ -101,6 +115,55 @@ public class ItemDetailViewModel extends ViewModel {
         loadAppConfigFromRepo();
         loadItemFromRepo(itemId);
         checkIfItemIsSaved(itemId);
+    }
+
+    public void onMessageSellerClicked() {
+        FirebaseUser currentUser = authRepository.getCurrentUser();
+        Item item = _item.getValue();
+        User seller = _seller.getValue();
+
+        if (currentUser == null) {
+            _toastMessage.postValue(new Event<>("Please log in to message the seller."));
+            return;
+        }
+        if (item == null || seller == null) {
+            _toastMessage.postValue(new Event<>("Item or seller information is not available."));
+            return;
+        }
+
+        // Không cho phép tự nhắn tin cho chính mình
+        if (currentUser.getUid().equals(seller.getUid())) {
+            _toastMessage.postValue(new Event<>("You cannot message yourself."));
+            return;
+        }
+
+        // Báo cho UI biết đang xử lý
+        _viewState.setValue(new ItemDetailViewState.Loading());
+
+        // Gọi repository để lấy hoặc tạo chat
+        chatRepository.getOrCreateChat(
+                Arrays.asList(currentUser.getUid(), seller.getUid()),
+                item.getItemId(),
+                new Callback<String>() {
+                    @Override
+                    public void onSuccess(String chatId) {
+                        // Tạo Bundle để truyền dữ liệu sang ChatDetailFragment
+                        Bundle args = new Bundle();
+                        args.putString("chatId", chatId);
+                        args.putString("otherUserName", seller.getDisplayName());
+
+                        // Gửi sự kiện điều hướng
+                        _navigateToChatEvent.postValue(new Event<>(args));
+                    }
+
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        // Quay lại trạng thái Success để UI hiển thị lại
+                        combineData(); // Hàm này sẽ post lại Success state
+                        _toastMessage.postValue(new Event<>("Could not start conversation: " + e.getMessage()));
+                    }
+                }
+        );
     }
 
     private void loadItemFromRepo(String itemId) {

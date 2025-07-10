@@ -8,8 +8,11 @@ import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.source.remote.FirebaseItemSource;
 import com.google.android.gms.tasks.Task;
+import com.google.android.gms.tasks.Tasks;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.Query;
 
+import java.util.ArrayList;
 import java.util.List;
 import javax.inject.Inject;
 import javax.inject.Singleton;
@@ -113,6 +116,20 @@ public class ItemRepositoryImpl implements ItemRepository {
                     callback.onFailure(e);
                     callback.onComplete();
                 });
+    }
+
+    @Override
+    public void getItemsByCategory(String categoryId, Callback<List<Item>> callback) {
+        firebaseItemSource.getItemsByCategory(categoryId)
+                .addOnSuccessListener(callback::onSuccess)
+                .addOnFailureListener(callback::onFailure);
+    }
+
+    @Override
+    public void getItemsByIds(List<String> itemIds, Callback<List<Item>> callback) {
+        firebaseItemSource.getItemsByIds(itemIds)
+                .addOnSuccessListener(callback::onSuccess)
+                .addOnFailureListener(callback::onFailure);
     }
 
     @Override

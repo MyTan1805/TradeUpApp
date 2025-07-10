@@ -117,7 +117,14 @@
         tools:layout="@layout/fragment_category_listings">
         <argument
             android:name="categoryId"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+        <argument
+            android:name="itemIds"
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
     <fragment
@@ -160,6 +167,18 @@
             app:argType="com.example.tradeup.data.model.Transaction" />
     </fragment>
 
+    <fragment
+        android:id="@+id/chatDetailFragment"
+        android:name="com.example.tradeup.ui.messages.ChatDetailFragment"
+        android:label="fragment_chat_detail"
+        tools:layout="@layout/fragment_chat_detail" >
+        <argument
+            android:name="chatId"
+            app:argType="string" />
+        <argument
+            android:name="otherUserName"
+            app:argType="string" />
+    </fragment>
 
     <!-- CÁC DIALOG / BOTTOMSHEET -->
     <dialog
@@ -263,5 +282,13 @@
     <action
         android:id="@+id/action_global_to_stripePaymentFragment"
         app:destination="@id/stripePaymentFragment" />
+
+    <action
+        android:id="@+id/action_messagesFragment_to_chatDetailFragment"
+        app:destination="@id/chatDetailFragment" />
+
+    <action
+        android:id="@+id/action_global_to_chatDetailFragment"
+        app:destination="@id/chatDetailFragment" />
 
 </navigation>

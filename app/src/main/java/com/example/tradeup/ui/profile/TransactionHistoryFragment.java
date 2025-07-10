@@ -141,7 +141,6 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
     @Override
     public void onTransactionClick(Transaction transaction) {
-        // Khi click vào 1 giao dịch, điều hướng đến trang chi tiết sản phẩm của giao dịch đó
         if (isAdded() && transaction.getItemId() != null) {
             Bundle args = new Bundle();
             args.putString("itemId", transaction.getItemId());
@@ -151,19 +150,15 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
     @Override
     public void onRateClick(Transaction transaction) {
-        // Điều hướng đến màn hình đánh giá
         if (isAdded() && FirebaseAuth.getInstance().getCurrentUser() != null) {
             String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
             boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
-
-            // Người được đánh giá là đối tác trong giao dịch
             String ratedUserId = isUserTheBuyer ? transaction.getSellerId() : transaction.getBuyerId();
 
             Bundle args = new Bundle();
             args.putString("transactionId", transaction.getTransactionId());
             args.putString("itemId", transaction.getItemId());
             args.putString("ratedUserId", ratedUserId);
-
             navController.navigate(R.id.action_global_to_submitReviewFragment, args);
         }
     }

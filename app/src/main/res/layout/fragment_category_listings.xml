@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -15,7 +16,7 @@
         android:background="?attr/colorSurface"
         app:elevation="0dp">
 
-        <!-- 1. Toolbar -->
+        <!-- Toolbar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -25,14 +26,14 @@
             app:title="Electronics"
             app:titleCentered="true"
             app:titleTextAppearance="?attr/textAppearanceHeadline6"
-            app:menu="@menu/category_listings_menu" /> <!-- Tạo menu này -->
+            app:menu="@menu/category_listings_menu" />
 
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?attr/colorOutline" />
 
-        <!-- 2. Danh mục con -->
+        <!-- Danh mục con -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -82,7 +83,7 @@
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
-        <!-- 3. Sắp xếp và chuyển đổi chế độ xem -->
+        <!-- Sắp xếp và chuyển đổi chế độ xem -->
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -125,7 +126,6 @@
                     app:icon="@drawable/ic_list_view"
                     app:iconPadding="0dp"/>
             </com.google.android.material.button.MaterialButtonToggleGroup>
-
         </androidx.constraintlayout.widget.ConstraintLayout>
 
         <View
@@ -136,15 +136,36 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- === DANH SÁCH KẾT QUẢ === -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewCategoryResults"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
-        android:clipToPadding="false"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        app:spanCount="2"
-        tools:listitem="@layout/item_product_card_v3" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewCategoryResults"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:padding="8dp"
+            android:clipToPadding="false"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+            app:spanCount="2"
+            tools:listitem="@layout/item_product" />
+
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone" />
+
+        <TextView
+            android:id="@+id/emptyView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="No products available"
+            android:textAppearance="?attr/textAppearanceBody1"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

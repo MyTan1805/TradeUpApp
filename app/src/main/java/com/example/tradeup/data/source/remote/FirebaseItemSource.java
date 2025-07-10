@@ -16,6 +16,7 @@ import com.google.android.gms.tasks.Task;
 import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.FieldPath;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.Query;
@@ -73,6 +74,21 @@ public class FirebaseItemSource {
         return itemsCollection.whereEqualTo("sellerId", sellerId)
                 .orderBy("createdAt", Query.Direction.DESCENDING).get()
                 .continueWith(task -> Objects.requireNonNull(task.getResult()).toObjects(Item.class));
+    }
+
+    public Task<List<Item>> getItemsByCategory(String categoryId) {
+        return itemsCollection.whereEqualTo("category", categoryId)
+                .whereEqualTo("status", "available").limit(50).get()
+                .continueWith(task -> task.getResult().toObjects(Item.class));
+    }
+
+    public Task<List<Item>> getItemsByIds(List<String> itemIds) {
+        if (itemIds == null || itemIds.isEmpty() || itemIds.size() > 30) {
+            return Tasks.forResult(new ArrayList<>());
+        }
+        return itemsCollection.whereIn(FieldPath.documentId(), itemIds)
+                .get()
+                .continueWith(task -> task.getResult().toObjects(Item.class));
     }
 
     public Task<List<Item>> searchByFilters(
