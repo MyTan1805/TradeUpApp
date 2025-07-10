@@ -2,6 +2,7 @@
 package com.example.tradeup.ui.messages;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.SavedStateHandle;
@@ -22,6 +23,11 @@ import dagger.hilt.android.lifecycle.HiltViewModel;
 import com.example.tradeup.data.model.User; // << THÊM IMPORT NÀY
 import com.example.tradeup.data.repository.UserRepository;
 
+import android.content.Context;
+import android.net.Uri;
+import com.example.tradeup.core.utils.CloudinaryUploader;
+import dagger.hilt.android.qualifiers.ApplicationContext;
+
 @HiltViewModel
 public class ChatDetailViewModel extends ViewModel {
 
@@ -31,6 +37,8 @@ public class ChatDetailViewModel extends ViewModel {
     private final String chatId;
     private final String currentUserId;
     private String otherUserId;
+
+    private final Context appContext;
 
     private final MutableLiveData<List<Message>> _messages = new MutableLiveData<>();
     public LiveData<List<Message>> getMessages() { return _messages; }
@@ -47,10 +55,12 @@ public class ChatDetailViewModel extends ViewModel {
     private ListenerRegistration messagesListener;
 
     @Inject
-    public ChatDetailViewModel(ChatRepository chatRepository, AuthRepository authRepository,UserRepository userRepository, SavedStateHandle savedStateHandle) {
+    public ChatDetailViewModel(ChatRepository chatRepository, AuthRepository authRepository,UserRepository userRepository, SavedStateHandle savedStateHandle,
+                               @ApplicationContext Context context) {
         this.chatRepository = chatRepository;
         this.authRepository = authRepository;
         this.userRepository = userRepository;
+        this.appContext = context;
 
         // Lấy chatId từ NavArgs
         this.chatId = savedStateHandle.get("chatId");
@@ -84,6 +94,53 @@ public class ChatDetailViewModel extends ViewModel {
             @Override
             public void onFailure(@NonNull Exception e) {
                 _toastMessage.postValue(new Event<>("Error loading messages: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void sendImageMessage(Uri imageUri) {
+        if (imageUri == null || currentUserId == null || otherUserId == null) {
+            _toastMessage.postValue(new Event<>("Error: Cannot send image."));
+            return;
+        }
+
+        _isSending.setValue(true);
+        _toastMessage.postValue(new Event<>("Uploading image..."));
+
+        // Tải ảnh lên Cloudinary
+        CloudinaryUploader.uploadImageDirectlyToCloudinary(appContext, imageUri, new CloudinaryUploader.CloudinaryUploadCallback() {
+            @Override
+            public void onSuccess(@NonNull String imageUrl) {
+                // Sau khi có URL, tạo message và gửi đi
+                Message imageMessage = new Message();
+                imageMessage.setImageUrl(imageUrl);
+                imageMessage.setSenderId(currentUserId);
+                imageMessage.setReceiverId(otherUserId);
+                imageMessage.setType("image");
+
+                chatRepository.sendMessage(chatId, imageMessage, new Callback<Void>() {
+                    @Override
+                    public void onSuccess(Void data) {
+                        _isSending.postValue(false);
+                    }
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        _isSending.postValue(false);
+                        _toastMessage.postValue(new Event<>("Failed to send image message."));
+                    }
+                });
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _isSending.postValue(false);
+                _toastMessage.postValue(new Event<>("Image upload failed: " + e.getMessage()));
+            }
+
+            @Override
+            public void onErrorResponse(int code, @Nullable String errorMessage) {
+                _isSending.postValue(false);
+                _toastMessage.postValue(new Event<>("Image upload failed. Error " + code));
             }
         });
     }

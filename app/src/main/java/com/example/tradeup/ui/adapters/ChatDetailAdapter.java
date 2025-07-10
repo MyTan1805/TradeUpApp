@@ -11,6 +11,8 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Message;
+import com.example.tradeup.databinding.ItemMessageImageReceivedBinding;
+import com.example.tradeup.databinding.ItemMessageImageSentBinding;
 import com.example.tradeup.databinding.ItemMessageReceivedBinding;
 import com.example.tradeup.databinding.ItemMessageSentBinding;
 
@@ -20,11 +22,14 @@ import java.util.Objects;
 
 public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHolder> {
 
-    private static final int VIEW_TYPE_SENT = 1;
-    private static final int VIEW_TYPE_RECEIVED = 2;
+    // === KHAI BÁO LẠI CÁC VIEWTYPE CHO CHÍNH XÁC ===
+    private static final int VIEW_TYPE_SENT_TEXT = 1;
+    private static final int VIEW_TYPE_RECEIVED_TEXT = 2;
+    private static final int VIEW_TYPE_SENT_IMAGE = 3;
+    private static final int VIEW_TYPE_RECEIVED_IMAGE = 4;
 
     private final String currentUserId;
-    private final String otherUserAvatarUrl; // URL ảnh của người đối diện
+    private final String otherUserAvatarUrl;
 
     public ChatDetailAdapter(String currentUserId, String otherUserAvatarUrl) {
         super(DIFF_CALLBACK);
@@ -35,10 +40,13 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
     @Override
     public int getItemViewType(int position) {
         Message message = getItem(position);
-        if (message.getSenderId().equals(currentUserId)) {
-            return VIEW_TYPE_SENT;
+        boolean isSentByMe = message.getSenderId().equals(currentUserId);
+        boolean isImageType = "image".equals(message.getType());
+
+        if (isSentByMe) {
+            return isImageType ? VIEW_TYPE_SENT_IMAGE : VIEW_TYPE_SENT_TEXT;
         } else {
-            return VIEW_TYPE_RECEIVED;
+            return isImageType ? VIEW_TYPE_RECEIVED_IMAGE : VIEW_TYPE_RECEIVED_TEXT;
         }
     }
 
@@ -46,34 +54,49 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
     @Override
     public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-        if (viewType == VIEW_TYPE_SENT) {
-            ItemMessageSentBinding binding = ItemMessageSentBinding.inflate(inflater, parent, false);
-            return new SentMessageViewHolder(binding);
-        } else { // VIEW_TYPE_RECEIVED
-            ItemMessageReceivedBinding binding = ItemMessageReceivedBinding.inflate(inflater, parent, false);
-            return new ReceivedMessageViewHolder(binding);
+        switch (viewType) {
+            case VIEW_TYPE_SENT_TEXT:
+                return new SentMessageViewHolder(ItemMessageSentBinding.inflate(inflater, parent, false));
+            case VIEW_TYPE_RECEIVED_TEXT:
+                return new ReceivedMessageViewHolder(ItemMessageReceivedBinding.inflate(inflater, parent, false));
+            case VIEW_TYPE_SENT_IMAGE:
+                return new SentImageViewHolder(ItemMessageImageSentBinding.inflate(inflater, parent, false));
+            case VIEW_TYPE_RECEIVED_IMAGE:
+                return new ReceivedImageViewHolder(ItemMessageImageReceivedBinding.inflate(inflater, parent, false));
+            default:
+                // Fallback, không nên xảy ra
+                throw new IllegalArgumentException("Invalid view type");
         }
     }
 
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Message message = getItem(position);
-        if (holder.getItemViewType() == VIEW_TYPE_SENT) {
-            ((SentMessageViewHolder) holder).bind(message);
-        } else {
-            ((ReceivedMessageViewHolder) holder).bind(message, otherUserAvatarUrl);
+        switch (holder.getItemViewType()) {
+            case VIEW_TYPE_SENT_TEXT:
+                ((SentMessageViewHolder) holder).bind(message);
+                break;
+            case VIEW_TYPE_RECEIVED_TEXT:
+                ((ReceivedMessageViewHolder) holder).bind(message, otherUserAvatarUrl);
+                break;
+            case VIEW_TYPE_SENT_IMAGE:
+                ((SentImageViewHolder) holder).bind(message);
+                break;
+            case VIEW_TYPE_RECEIVED_IMAGE:
+                ((ReceivedImageViewHolder) holder).bind(message, otherUserAvatarUrl);
+                break;
         }
     }
 
-    // ViewHolder cho tin nhắn gửi đi
+    // --- CÁC LỚP VIEWHOLDER (GIỮ NGUYÊN NHƯ BẠN ĐÃ CÓ) ---
+
+    // ViewHolder cho tin nhắn văn bản gửi đi
     static class SentMessageViewHolder extends RecyclerView.ViewHolder {
         private final ItemMessageSentBinding binding;
-
         SentMessageViewHolder(ItemMessageSentBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
-
         void bind(Message message) {
             binding.textViewMessage.setText(message.getText());
             if (message.getTimestamp() != null) {
@@ -83,39 +106,72 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
         }
     }
 
-    // ViewHolder cho tin nhắn nhận được
+    // ViewHolder cho tin nhắn văn bản nhận được
     static class ReceivedMessageViewHolder extends RecyclerView.ViewHolder {
         private final ItemMessageReceivedBinding binding;
-
         ReceivedMessageViewHolder(ItemMessageReceivedBinding binding) {
             super(binding.getRoot());
             this.binding = binding;
         }
-
         void bind(Message message, String avatarUrl) {
             binding.textViewMessage.setText(message.getText());
             if (message.getTimestamp() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
                 binding.textViewTimestamp.setText(sdf.format(message.getTimestamp().toDate()));
             }
-
-            Glide.with(itemView.getContext())
-                    .load(avatarUrl)
-                    .placeholder(R.drawable.ic_person)
-                    .into(binding.imageViewAvatar);
+            Glide.with(itemView.getContext()).load(avatarUrl).placeholder(R.drawable.ic_person).into(binding.imageViewAvatar);
         }
     }
 
-    // DiffUtil để RecyclerView cập nhật hiệu quả
+    // ViewHolder cho tin nhắn ảnh gửi đi
+    static class SentImageViewHolder extends RecyclerView.ViewHolder {
+        private final ItemMessageImageSentBinding binding;
+        SentImageViewHolder(ItemMessageImageSentBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+        void bind(Message message) {
+            Glide.with(itemView.getContext()).load(message.getImageUrl()).placeholder(R.color.grey_200).into(binding.imageViewSent);
+            if (message.getTimestamp() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                binding.textViewTimestamp.setText(sdf.format(message.getTimestamp().toDate()));
+            }
+        }
+    }
+
+    // ViewHolder cho tin nhắn ảnh nhận được
+    static class ReceivedImageViewHolder extends RecyclerView.ViewHolder {
+        private final ItemMessageImageReceivedBinding binding;
+        ReceivedImageViewHolder(ItemMessageImageReceivedBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
+        }
+        void bind(Message message, String avatarUrl) {
+            Glide.with(itemView.getContext()).load(message.getImageUrl()).placeholder(R.color.grey_200).into(binding.imageViewReceived);
+            Glide.with(itemView.getContext()).load(avatarUrl).placeholder(R.drawable.ic_person).into(binding.imageViewAvatar);
+            if (message.getTimestamp() != null) {
+                SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
+                binding.textViewTimestamp.setText(sdf.format(message.getTimestamp().toDate()));
+            }
+        }
+    }
+
+    // --- DiffUtil ---
     private static final DiffUtil.ItemCallback<Message> DIFF_CALLBACK = new DiffUtil.ItemCallback<Message>() {
         @Override
         public boolean areItemsTheSame(@NonNull Message oldItem, @NonNull Message newItem) {
-            return oldItem.getMessageId().equals(newItem.getMessageId());
+            // MessageId nên được tự động tạo bởi Firestore khi thêm document, không nên null
+            if (oldItem.getMessageId() != null && newItem.getMessageId() != null) {
+                return oldItem.getMessageId().equals(newItem.getMessageId());
+            }
+            // Fallback nếu vì lý do nào đó ID là null
+            return oldItem == newItem;
         }
 
         @Override
         public boolean areContentsTheSame(@NonNull Message oldItem, @NonNull Message newItem) {
             return Objects.equals(oldItem.getText(), newItem.getText()) &&
+                    Objects.equals(oldItem.getImageUrl(), newItem.getImageUrl()) &&
                     Objects.equals(oldItem.getTimestamp(), newItem.getTimestamp());
         }
     };

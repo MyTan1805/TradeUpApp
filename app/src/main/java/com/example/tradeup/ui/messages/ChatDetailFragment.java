@@ -1,6 +1,9 @@
 // File: src/main/java/com/example/tradeup/ui/messages/ChatDetailFragment.java
 package com.example.tradeup.ui.messages;
 
+import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -8,6 +11,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -16,8 +22,10 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
+import com.example.tradeup.R;
 import com.example.tradeup.databinding.FragmentChatDetailBinding;
 import com.example.tradeup.ui.adapters.ChatDetailAdapter;
+import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.firebase.auth.FirebaseAuth;
 
 import dagger.hilt.android.AndroidEntryPoint;
@@ -30,10 +38,23 @@ public class ChatDetailFragment extends Fragment {
     private ChatDetailAdapter adapter;
     private NavController navController;
 
+    private ActivityResultLauncher<Intent> imagePickerLauncher;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         viewModel = new ViewModelProvider(this).get(ChatDetailViewModel.class);
+
+        imagePickerLauncher = registerForActivityResult(
+                new ActivityResultContracts.StartActivityForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK && result.getData() != null) {
+                        Uri imageUri = result.getData().getData();
+                        if (imageUri != null) {
+                            viewModel.sendImageMessage(imageUri);
+                        }
+                    }
+                });
     }
 
     @Nullable
@@ -91,6 +112,26 @@ public class ChatDetailFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {}
+        });
+        binding.buttonAddAttachment.setOnClickListener(v -> {
+            ImagePicker.with(this)
+                    .galleryOnly()
+                    .compress(1024) // Nén ảnh dưới 1MB
+                    .createIntent(intent -> {
+                        imagePickerLauncher.launch(intent);
+                        return null;
+                    });
+        });
+
+        // << THÊM LISTENER CHO MENU TOOLBAR >>
+        binding.toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_view_profile) {
+                // TODO: Điều hướng đến trang public profile của otherUserId
+                Toast.makeText(getContext(), "View Profile Clicked", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            // ... xử lý các menu item khác
+            return false;
         });
         // Set trạng thái ban đầu
         binding.buttonSendMessage.setEnabled(false);
