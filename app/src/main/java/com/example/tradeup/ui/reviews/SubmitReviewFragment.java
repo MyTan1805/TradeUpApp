@@ -84,15 +84,21 @@ public class SubmitReviewFragment extends Fragment {
                 navigateBack();
             }
         });
+
+        viewModel.getItem().observe(getViewLifecycleOwner(), item -> {
+            if (item != null && binding != null) {
+                binding.textViewProductName.setText(item.getTitle());
+            }
+        });
     }
 
     private void bindUserInfo(User user) {
+        if (user == null || binding == null) return; // Kiểm tra an toàn
         Glide.with(this)
                 .load(user.getProfilePictureUrl())
                 .placeholder(R.drawable.ic_person)
                 .into(binding.imageViewUser);
         binding.textViewUserName.setText(user.getDisplayName());
-        // TODO: Hiển thị thêm tên sản phẩm nếu cần, bằng cách truyền itemId qua arguments
     }
 
     private void navigateBack() {

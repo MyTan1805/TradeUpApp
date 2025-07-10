@@ -16,6 +16,9 @@ import com.example.tradeup.data.repository.RatingRepository;
 import com.example.tradeup.data.repository.UserRepository;
 import com.google.firebase.auth.FirebaseUser;
 
+import com.example.tradeup.data.model.Item;
+import com.example.tradeup.data.repository.ItemRepository;
+
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
@@ -26,12 +29,17 @@ public class SubmitReviewViewModel extends ViewModel {
     private final AuthRepository authRepository;
     private final UserRepository userRepository;
 
+    private final ItemRepository itemRepository;
+
     // --- Dữ liệu nhận từ Navigation Args ---
     private final String transactionId;
     private final String ratedUserId; // Người được đánh giá
     private final String itemId;
 
     // --- LiveData cho UI ---
+
+    private final MutableLiveData<Item> _item = new MutableLiveData<>();
+    public LiveData<Item> getItem() { return _item; }
     private final MutableLiveData<User> _ratedUser = new MutableLiveData<>();
     public LiveData<User> getRatedUser() { return _ratedUser; }
 
@@ -50,11 +58,13 @@ public class SubmitReviewViewModel extends ViewModel {
             RatingRepository ratingRepository,
             AuthRepository authRepository,
             UserRepository userRepository,
+            ItemRepository itemRepository,
             SavedStateHandle savedStateHandle
     ) {
         this.ratingRepository = ratingRepository;
         this.authRepository = authRepository;
         this.userRepository = userRepository;
+        this.itemRepository = itemRepository;
 
         // Lấy dữ liệu được truyền qua
         this.transactionId = savedStateHandle.get("transactionId");
@@ -62,6 +72,23 @@ public class SubmitReviewViewModel extends ViewModel {
         this.itemId = savedStateHandle.get("itemId");
 
         loadRatedUserInfo();
+        loadItemInfo();
+    }
+
+    private void loadItemInfo() {
+        if (itemId == null) return;
+        itemRepository.getItemById(itemId, new Callback<Item>() {
+            @Override
+            public void onSuccess(Item item) {
+                if (item != null) {
+                    _item.postValue(item);
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _toastMessage.postValue(new Event<>("Failed to load item info."));
+            }
+        });
     }
 
     private void loadRatedUserInfo() {

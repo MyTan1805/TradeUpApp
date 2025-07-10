@@ -150,16 +150,32 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
     @Override
     public void onRateClick(Transaction transaction) {
-        if (isAdded() && FirebaseAuth.getInstance().getCurrentUser() != null) {
-            String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
-            String ratedUserId = isUserTheBuyer ? transaction.getSellerId() : transaction.getBuyerId();
+        if (!isAdded()) return; // Kiểm tra an toàn
 
-            Bundle args = new Bundle();
-            args.putString("transactionId", transaction.getTransactionId());
-            args.putString("itemId", transaction.getItemId());
-            args.putString("ratedUserId", ratedUserId);
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(getContext(), "You need to be logged in.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        String currentUserId = currentUser.getUid();
+        boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
+
+        // Người được đánh giá (ratedUser) là người còn lại trong giao dịch
+        String ratedUserId = isUserTheBuyer ? transaction.getSellerId() : transaction.getBuyerId();
+
+        // Tạo Bundle để truyền dữ liệu
+        Bundle args = new Bundle();
+        args.putString("transactionId", transaction.getTransactionId());
+        args.putString("itemId", transaction.getItemId());
+        args.putString("ratedUserId", ratedUserId);
+
+        // Sử dụng action toàn cục để điều hướng
+        try {
             navController.navigate(R.id.action_global_to_submitReviewFragment, args);
+        } catch (Exception e) {
+            Log.e(TAG, "Navigation to SubmitReviewFragment failed", e);
+            Toast.makeText(getContext(), "Could not open review screen.", Toast.LENGTH_SHORT).show();
         }
     }
     @Override
