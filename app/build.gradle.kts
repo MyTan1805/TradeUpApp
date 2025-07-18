@@ -119,6 +119,8 @@ dependencies {
 
     implementation("com.google.firebase:firebase-messaging-ktx")
 
+    implementation("androidx.emoji2:emoji2:1.4.0")
+
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging.interceptor)

@@ -64,4 +64,11 @@ public class UserRepositoryImpl implements UserRepository {
                 .addOnSuccessListener(aVoid -> callback.onSuccess(null))
                 .addOnFailureListener(callback::onFailure);
     }
+
+    @Override
+    public void blockUser(@NonNull String currentUserId, @NonNull String userToBlockId, Callback<Void> callback) {
+        firestoreUserSource.blockUser(currentUserId, userToBlockId)
+                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
+                .addOnFailureListener(callback::onFailure);
+    }
 }

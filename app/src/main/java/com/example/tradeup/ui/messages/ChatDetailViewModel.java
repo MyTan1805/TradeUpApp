@@ -52,6 +52,9 @@ public class ChatDetailViewModel extends ViewModel {
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
 
+    private final MutableLiveData<Event<String>> _navigateToUserProfileEvent = new MutableLiveData<>();
+    public LiveData<Event<String>> getNavigateToUserProfileEvent() { return _navigateToUserProfileEvent; }
+
     private ListenerRegistration messagesListener;
 
     @Inject
@@ -94,6 +97,35 @@ public class ChatDetailViewModel extends ViewModel {
             @Override
             public void onFailure(@NonNull Exception e) {
                 _toastMessage.postValue(new Event<>("Error loading messages: " + e.getMessage()));
+            }
+        });
+    }
+
+    public void onViewProfileClicked() {
+        if (otherUserId != null) {
+            _navigateToUserProfileEvent.setValue(new Event<>(otherUserId));
+        } else {
+            _toastMessage.setValue(new Event<>("Could not load user profile."));
+        }
+    }
+
+    public void onBlockUserClicked() {
+        if (currentUserId == null || otherUserId == null) {
+            _toastMessage.setValue(new Event<>("Error: Cannot identify users to block."));
+            return;
+        }
+
+        // Gọi đến repository để thực hiện việc block
+        userRepository.blockUser(currentUserId, otherUserId, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                _toastMessage.postValue(new Event<>("User blocked successfully."));
+                // TODO: Có thể thêm logic điều hướng người dùng ra khỏi màn hình chat này
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _toastMessage.postValue(new Event<>("Failed to block user: " + e.getMessage()));
             }
         });
     }

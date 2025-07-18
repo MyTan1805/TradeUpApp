@@ -1,6 +1,7 @@
 // THAY THẾ TOÀN BỘ FILE: src/main/java/com/example/tradeup/ui/home/HomeViewModel.java
 package com.example.tradeup.ui.home;
 
+import android.content.Context;
 import android.location.Location;
 import android.util.Log;
 import androidx.annotation.NonNull;
@@ -10,13 +11,17 @@ import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.Event;
+import com.example.tradeup.core.utils.NetworkUtils;
 import com.example.tradeup.data.model.Item;
+// === SỬA LỖI 1: SỬA LẠI IMPORT CHO ĐÚNG MODEL USER CỦA BẠN ===
+import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.model.config.AppConfig;
 import com.example.tradeup.data.model.config.DisplayCategoryConfig;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.AuthRepository;
 import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.data.repository.LocationRepository;
+import com.example.tradeup.data.repository.UserRepository;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
@@ -27,6 +32,7 @@ import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
+import dagger.hilt.android.qualifiers.ApplicationContext;
 
 @HiltViewModel
 public class HomeViewModel extends ViewModel {
@@ -34,13 +40,17 @@ public class HomeViewModel extends ViewModel {
     private static final String TAG = "HomeViewModel";
     private static final int PAGE_SIZE = 10;
 
+    private final Context appContext;
     private final AppConfigRepository appConfigRepository;
     private final ItemRepository itemRepository;
     private final LocationRepository locationRepository;
     private final AuthRepository authRepository;
     private final Executor backgroundExecutor;
+    private final UserRepository userRepository;
 
-    // --- LiveData cho UI ---
+    // Biến để lưu thông tin người dùng hiện tại, bao gồm cả danh sách block
+    private User currentUserData;
+
     private final MutableLiveData<HomeState> _state = new MutableLiveData<>();
     public LiveData<HomeState> getState() { return _state; }
 
@@ -53,25 +63,53 @@ public class HomeViewModel extends ViewModel {
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
 
-    // --- Biến quản lý nội bộ ---
     private String lastVisibleItemId = null;
     private boolean isLastPage = false;
     private boolean isRequestInProgress = false;
     private final String currentUserId;
 
     @Inject
-    public HomeViewModel(AppConfigRepository appConfigRepository, ItemRepository itemRepository, LocationRepository locationRepository, AuthRepository authRepository) {
+    public HomeViewModel(AppConfigRepository appConfigRepository, ItemRepository itemRepository,
+                         LocationRepository locationRepository, AuthRepository authRepository,
+                         UserRepository userRepository, @ApplicationContext Context context) {
         this.appConfigRepository = appConfigRepository;
         this.itemRepository = itemRepository;
         this.locationRepository = locationRepository;
         this.authRepository = authRepository;
         this.backgroundExecutor = Executors.newSingleThreadExecutor();
+        this.userRepository = userRepository;
+        this.appContext = context;
 
+        // === SỬA LỖI 2: LẤY ID NGƯỜI DÙNG TRƯỚC KHI SỬ DỤNG ===
         FirebaseUser user = authRepository.getCurrentUser();
         this.currentUserId = (user != null) ? user.getUid() : null;
+
+        // Tải thông tin người dùng hiện tại (bao gồm cả danh sách block)
+        if (this.currentUserId != null) {
+            loadCurrentUserInfo(this.currentUserId);
+        }
+    }
+
+    private void loadCurrentUserInfo(String userId) {
+        userRepository.getUserProfile(userId, new Callback<User>() {
+            @Override
+            public void onSuccess(User user) {
+                currentUserData = user;
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, "Failed to load current user profile", e);
+                // Nếu không tải được, coi như không có danh sách block
+                currentUserData = null;
+            }
+        });
     }
 
     public void refreshData() {
+        if (!NetworkUtils.isNetworkAvailable(appContext)) {
+            _state.postValue(new HomeState.Error("No internet connection. Please check your network."));
+            return;
+        }
         if (isRequestInProgress) {
             Log.d(TAG, "Refresh request ignored: A request is already in progress.");
             return;
@@ -88,7 +126,6 @@ public class HomeViewModel extends ViewModel {
                         ? config.getDisplayCategories() : Collections.emptyList();
                 fetchRecentItems(true, categories);
             }
-
             @Override
             public void onFailure(@NonNull Exception e) {
                 Log.e(TAG, "Failed to load app config.", e);
@@ -102,31 +139,39 @@ public class HomeViewModel extends ViewModel {
         itemRepository.getAllItems(PAGE_SIZE, lastVisibleItemId, new Callback<List<Item>>() {
             @Override
             public void onSuccess(List<Item> newItems) {
+                // === SỬA LỖI 3: ÁP DỤNG BỘ LỌC TRƯỚC KHI CẬP NHẬT UI ===
+                List<Item> filteredItems = newItems;
+                if (currentUserData != null && currentUserData.getBlockedUsers() != null && !currentUserData.getBlockedUsers().isEmpty()) {
+                    filteredItems = newItems.stream()
+                            .filter(item -> !currentUserData.getBlockedUsers().contains(item.getSellerId()))
+                            .collect(Collectors.toList());
+                }
+
+                final List<Item> finalItems = filteredItems; // Dùng biến final để an toàn trong thread
+
                 backgroundExecutor.execute(() -> {
                     if (isRefresh) {
-                        if (newItems == null || newItems.isEmpty()) {
+                        if (finalItems.isEmpty()) {
                             _state.postValue(new HomeState.Empty(categories));
                         } else {
-                            _state.postValue(new HomeState.Success(categories, newItems));
+                            _state.postValue(new HomeState.Success(categories, finalItems));
                         }
-                        // Sau khi luồng chính thành công, tải Nearby Items
                         loadNearbyItemsBasedOnLocation();
                     } else {
                         _isLoadingMore.postValue(false);
-                        if (_state.getValue() instanceof HomeState.Success && newItems != null) {
+                        if (_state.getValue() instanceof HomeState.Success) {
                             HomeState.Success currentState = (HomeState.Success) _state.getValue();
                             List<Item> currentItems = new ArrayList<>(currentState.recentItems);
-                            currentItems.addAll(newItems);
+                            currentItems.addAll(finalItems);
                             _state.postValue(new HomeState.Success(currentState.categories, currentItems));
                         }
                     }
 
-                    isLastPage = (newItems == null || newItems.size() < PAGE_SIZE);
-                    if (newItems != null && !newItems.isEmpty()) {
-                        lastVisibleItemId = newItems.get(newItems.size() - 1).getItemId();
+                    isLastPage = (finalItems.size() < PAGE_SIZE);
+                    if (!finalItems.isEmpty()) {
+                        lastVisibleItemId = finalItems.get(finalItems.size() - 1).getItemId();
                     }
 
-                    // Mở khóa request load more, nhưng giữ khóa cho refresh cho đến khi nearby xong
                     if (!isRefresh) {
                         isRequestInProgress = false;
                     }

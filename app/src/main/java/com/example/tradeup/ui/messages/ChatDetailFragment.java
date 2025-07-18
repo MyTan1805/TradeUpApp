@@ -28,7 +28,10 @@ import com.example.tradeup.ui.adapters.ChatDetailAdapter;
 import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.firebase.auth.FirebaseAuth;
 
+import com.example.tradeup.ui.report.ReportContentDialogFragment;
+
 import dagger.hilt.android.AndroidEntryPoint;
+
 
 @AndroidEntryPoint
 public class ChatDetailFragment extends Fragment {
@@ -37,6 +40,10 @@ public class ChatDetailFragment extends Fragment {
     private ChatDetailViewModel viewModel;
     private ChatDetailAdapter adapter;
     private NavController navController;
+
+    private String otherUserName;
+    private String chatId;
+
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
@@ -69,8 +76,10 @@ public class ChatDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         navController = NavHostFragment.findNavController(this);
 
-        // Lấy tên người dùng từ arguments và đặt làm title
-        String otherUserName = ChatDetailFragmentArgs.fromBundle(getArguments()).getOtherUserName();
+        ChatDetailFragmentArgs args = ChatDetailFragmentArgs.fromBundle(getArguments());
+        this.otherUserName = args.getOtherUserName();
+        this.chatId = args.getChatId();
+
         binding.toolbar.setTitle(otherUserName);
 
         setupRecyclerView();
@@ -125,18 +134,26 @@ public class ChatDetailFragment extends Fragment {
 
         // << THÊM LISTENER CHO MENU TOOLBAR >>
         binding.toolbar.setOnMenuItemClickListener(item -> {
-            if (item.getItemId() == R.id.action_view_profile) {
-                // TODO: Điều hướng đến trang public profile của otherUserId
-                Toast.makeText(getContext(), "View Profile Clicked", Toast.LENGTH_SHORT).show();
+            int itemId = item.getItemId();
+            if (itemId == R.id.action_view_profile) {
+                viewModel.onViewProfileClicked();
+                return true;
+            } else if (itemId == R.id.action_block_user) {
+                viewModel.onBlockUserClicked();
+                return true;
+            } else if (itemId == R.id.action_report_chat) {
+                // Mở dialog report
+                if (chatId != null) {
+                    ReportContentDialogFragment.newInstance(chatId, "chat", null) // reportedUserId có thể là null cho chat
+                            .show(getParentFragmentManager(), "ReportChatDialog");
+                }
                 return true;
             }
-            // ... xử lý các menu item khác
             return false;
         });
         // Set trạng thái ban đầu
         binding.buttonSendMessage.setEnabled(false);
     }
-
     private void observeViewModel() {
         viewModel.getMessages().observe(getViewLifecycleOwner(), messages -> {
             adapter.submitList(messages, () -> {
@@ -167,7 +184,23 @@ public class ChatDetailFragment extends Fragment {
             // Sau khi có adapter mới, cần submit lại list tin nhắn đã có
             adapter.submitList(viewModel.getMessages().getValue());
         });
+
+        viewModel.getNavigateToUserProfileEvent().observe(getViewLifecycleOwner(), event -> {
+            String userIdToView = event.getContentIfNotHandled();
+            if (userIdToView != null && isAdded()) {
+                // Tạo bundle và điều hướng
+                Bundle args = new Bundle();
+                args.putString("userId", userIdToView);
+                navController.navigate(R.id.action_chatDetailFragment_to_publicProfileFragment, args);
+            }
+        });
     }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+    }
+
 
     @Override
     public void onDestroyView() {

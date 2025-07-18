@@ -68,6 +68,9 @@ public class ItemDetailViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isViewingOwnItem = new MutableLiveData<>(false);
     public LiveData<Boolean> isViewingOwnItem() { return _isViewingOwnItem; }
 
+    private final MutableLiveData<Boolean> _isCreatingChat = new MutableLiveData<>(false);
+    public LiveData<Boolean> isCreatingChat() { return _isCreatingChat; }
+
     private final String currentUserId;
 
     @Inject
@@ -119,9 +122,10 @@ public class ItemDetailViewModel extends ViewModel {
 
     public void onMessageSellerClicked() {
         FirebaseUser currentUser = authRepository.getCurrentUser();
-        Item item = _item.getValue();
         User seller = _seller.getValue();
+        Item item = _item.getValue();
 
+        // 1. Kiểm tra các điều kiện cần thiết
         if (currentUser == null) {
             _toastMessage.postValue(new Event<>("Please log in to message the seller."));
             return;
@@ -130,23 +134,25 @@ public class ItemDetailViewModel extends ViewModel {
             _toastMessage.postValue(new Event<>("Item or seller information is not available."));
             return;
         }
-
-        // Không cho phép tự nhắn tin cho chính mình
         if (currentUser.getUid().equals(seller.getUid())) {
             _toastMessage.postValue(new Event<>("You cannot message yourself."));
             return;
         }
 
-        // Báo cho UI biết đang xử lý
-        _viewState.setValue(new ItemDetailViewState.Loading());
+        // 2. Vô hiệu hóa nút nhắn tin để tránh double-click
+        _isCreatingChat.setValue(true);
 
-        // Gọi repository để lấy hoặc tạo chat
+        // 3. Gọi repository để lấy hoặc tạo chat
+        // Lời gọi này đã được sửa lại để khớp với định nghĩa trong Repository
         chatRepository.getOrCreateChat(
                 Arrays.asList(currentUser.getUid(), seller.getUid()),
                 item.getItemId(),
                 new Callback<String>() {
                     @Override
                     public void onSuccess(String chatId) {
+                        // Kích hoạt lại nút
+                        _isCreatingChat.postValue(false);
+
                         // Tạo Bundle để truyền dữ liệu sang ChatDetailFragment
                         Bundle args = new Bundle();
                         args.putString("chatId", chatId);
@@ -158,8 +164,8 @@ public class ItemDetailViewModel extends ViewModel {
 
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        // Quay lại trạng thái Success để UI hiển thị lại
-                        combineData(); // Hàm này sẽ post lại Success state
+                        // Kích hoạt lại nút và thông báo lỗi
+                        _isCreatingChat.postValue(false);
                         _toastMessage.postValue(new Event<>("Could not start conversation: " + e.getMessage()));
                     }
                 }

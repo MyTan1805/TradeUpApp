@@ -209,56 +209,101 @@
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/seller_info_container"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="wrap_content"
+                android:background="?attr/selectableItemBackground"
+                android:padding="8dp">
 
                 <de.hdodenhof.circleimageview.CircleImageView
                     android:id="@+id/image_seller_avatar"
-                    android:layout_width="48dp"
-                    android:layout_height="48dp"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     tools:src="@tools:sample/avatars"/>
 
                 <TextView
                     android:id="@+id/text_seller_name"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
                     style="@style/TextAppearance.TradeUp.Headline16"
-                    app:drawableEndCompat="@drawable/ic_verified"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="16dp"
+                    android:layout_marginEnd="8dp"
                     android:drawablePadding="4dp"
+                    app:drawableEndCompat="@drawable/ic_verified"
                     app:layout_constraintStart_toEndOf="@id/image_seller_avatar"
+                    app:layout_constraintEnd_toStartOf="@+id/image_arrow_profile"
                     app:layout_constraintTop_toTopOf="@id/image_seller_avatar"
                     tools:text="Michael Smith"/>
 
+                <RatingBar
+                    android:id="@+id/rating_bar_seller"
+                    style="?android:attr/ratingBarStyleSmall"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:isIndicator="true"
+                    android:theme="@style/RatingBar"
+                    app:layout_constraintStart_toStartOf="@id/text_seller_name"
+                    app:layout_constraintTop_toBottomOf="@id/text_seller_name"
+                    tools:rating="4.8"/>
+
+                <TextView
+                    android:id="@+id/text_seller_rating_count"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="4dp"
+                    android:textAppearance="?attr/textAppearanceCaption"
+                    android:textColor="?android:attr/textColorSecondary"
+                    app:layout_constraintBottom_toBottomOf="@+id/rating_bar_seller"
+                    app:layout_constraintStart_toEndOf="@+id/rating_bar_seller"
+                    app:layout_constraintTop_toTopOf="@+id/rating_bar_seller"
+                    tools:text="(125 reviews)"/>
+
+                <!-- === PHẦN ĐƯỢC THÊM LẠI === -->
                 <TextView
                     android:id="@+id/text_seller_location"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:drawablePadding="4dp"
                     android:textAppearance="?attr/textAppearanceCaption"
                     android:textColor="?android:attr/textColorSecondary"
                     app:drawableStartCompat="@drawable/ic_location_on"
                     app:drawableTint="?android:attr/textColorSecondary"
-                    android:drawablePadding="4dp"
                     app:layout_constraintStart_toStartOf="@id/text_seller_name"
-                    app:layout_constraintTop_toBottomOf="@id/text_seller_name"
+                    app:layout_constraintTop_toBottomOf="@id/rating_bar_seller"
                     tools:text="San Francisco, CA"/>
 
                 <TextView
                     android:id="@+id/text_member_since"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
+                    android:layout_marginStart="12dp"
+                    android:drawablePadding="4dp"
                     android:textAppearance="?attr/textAppearanceCaption"
                     android:textColor="?android:attr/textColorSecondary"
                     app:drawableStartCompat="@drawable/ic_time"
                     app:drawableTint="?android:attr/textColorSecondary"
-                    android:drawablePadding="4dp"
+                    app:layout_constraintBaseline_toBaselineOf="@id/text_seller_location"
+                    app:layout_constraintStart_toEndOf="@id/text_seller_location"
+                    tools:text="Member since 2021"/>
+                <!-- === KẾT THÚC PHẦN THÊM LẠI === -->
+
+                <ImageView
+                    android:id="@+id/image_arrow_profile"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_arrow_forward"
+                    app:tint="?android:attr/textColorSecondary"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    tools:text="Member since 2021"/>
+                    android:contentDescription="View profile" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
+
+            <!-- Đường kẻ phân cách -->
+            <View style="@style/ProfileDivider" android:layout_marginTop="8dp" android:layout_marginBottom="16dp"/>
 
             <!-- Mô tả -->
             <TextView

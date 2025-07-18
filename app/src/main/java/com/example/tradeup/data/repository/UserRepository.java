@@ -12,4 +12,5 @@ public interface UserRepository {
     void updateUserProfile(String uid, Map<String, Object> updates, Callback<Void> callback);
     void deactivateUser(String uid, Callback<Void> callback);
     void deleteUser(String uid, Callback<Void> callback);
+    void blockUser(@NonNull String currentUserId, @NonNull String userToBlockId, Callback<Void> callback);
 }

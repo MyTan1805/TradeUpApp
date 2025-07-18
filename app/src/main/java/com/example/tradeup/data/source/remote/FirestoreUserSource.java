@@ -86,5 +86,8 @@ public class FirestoreUserSource {
         return usersCollection.document(uid).delete();
     }
 
-
+    public Task<Void> blockUser(@NonNull String currentUserId, @NonNull String userToBlockId) {
+        return usersCollection.document(currentUserId)
+                .update("blockedUsers", FieldValue.arrayUnion(userToBlockId));
+    }
 }

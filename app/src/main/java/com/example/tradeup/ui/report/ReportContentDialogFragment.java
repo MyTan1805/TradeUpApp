@@ -33,6 +33,8 @@ import dagger.hilt.android.AndroidEntryPoint;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.repository.UserRepository;
 
+import android.text.Html;
+
 @AndroidEntryPoint
 public class ReportContentDialogFragment extends BottomSheetDialogFragment {
 
@@ -152,10 +154,27 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
                 }
             });
 
+        } else if ("chat".equalsIgnoreCase(contentType) && contentId != null) {
+            // === PHẦN LOGIC MỚI CHO REPORT CHAT ===
+            binding.reportedItemContainer.setVisibility(View.VISIBLE);
+            binding.textViewReportingHeader.setText("You are reporting this conversation:");
+
+            // Ẩn các view không cần thiết
+            binding.imageViewProduct.setVisibility(View.GONE);
+            binding.textViewPrice.setVisibility(View.GONE);
+            binding.textViewSellerName.setVisibility(View.GONE);
+
+            // Chỉ hiển thị ID của cuộc trò chuyện
+            String chatInfoText = "Conversation ID: <b>" + contentId + "</b>";
+            binding.textViewProductName.setText(Html.fromHtml(chatInfoText));
+            // === KẾT THÚC PHẦN LOGIC MỚI ===
+
         } else {
+            // Mặc định ẩn đi nếu không có thông tin
             if (binding != null) {
                 binding.reportedItemContainer.setVisibility(View.GONE);
             }
+
         }
     }
 

@@ -6,6 +6,7 @@ import com.google.firebase.firestore.DocumentId;
 import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.List;
+import java.util.ArrayList;
 
 public class User {
     @DocumentId
@@ -23,6 +24,7 @@ public class User {
     private double sumOfStars;
     private int totalTransactions;
     private int totalListings;
+    private List<String> blockedUsers;
     @Nullable
     private List<String> fcmTokens; // List of FCM tokens
     @Nullable
@@ -50,6 +52,7 @@ public class User {
         this.totalListings = 0;
         this.reviewCount = 0L;
         this.isDeactivated = false;
+        this.blockedUsers = new ArrayList<>();
         // Các trường nullable mặc định là null
     }
 
@@ -116,4 +119,11 @@ public class User {
     // === FIX: THÊM GETTER/SETTER CHO reviewCount ===
     public long getReviewCount() { return reviewCount; }
     public void setReviewCount(long reviewCount) { this.reviewCount = reviewCount; }
+
+    public List<String> getBlockedUsers() {
+        return blockedUsers != null ? blockedUsers : new ArrayList<>();
+    }
+    public void setBlockedUsers(List<String> blockedUsers) {
+        this.blockedUsers = blockedUsers;
+    }
 }

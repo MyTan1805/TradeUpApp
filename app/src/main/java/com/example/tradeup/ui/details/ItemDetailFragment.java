@@ -181,14 +181,34 @@ public class ItemDetailFragment extends Fragment {
         Glide.with(this)
                 .load(seller.getProfilePictureUrl())
                 .placeholder(R.drawable.ic_person)
-                .error(R.drawable.ic_error_image)
-                .diskCacheStrategy(com.bumptech.glide.load.engine.DiskCacheStrategy.ALL)
+                .error(R.drawable.ic_person)
                 .into(binding.imageSellerAvatar);
+
         binding.textSellerName.setText(seller.getDisplayName());
+
+        // Hiển thị rating
+        binding.ratingBarSeller.setRating((float) seller.getAverageRating());
+        String ratingCountText = String.format(Locale.getDefault(), "(%d reviews)", seller.getTotalRatingCount());
+        binding.textSellerRatingCount.setText(ratingCountText);
+
+        if (seller.getTotalRatingCount() > 0) {
+            binding.ratingBarSeller.setVisibility(View.VISIBLE);
+            binding.textSellerRatingCount.setVisibility(View.VISIBLE);
+        } else {
+            binding.ratingBarSeller.setVisibility(View.GONE);
+            binding.textSellerRatingCount.setVisibility(View.GONE);
+        }
+
+        // === PHẦN LOGIC BIND ĐƯỢC THÊM LẠI ===
+        // Hiển thị vị trí của người bán (lấy từ thông tin sản phẩm)
         binding.textSellerLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
+        binding.textSellerLocation.setVisibility(View.VISIBLE);
+
+        // Hiển thị ngày tham gia của người bán
         if (seller.getCreatedAt() != null) {
-            SimpleDateFormat sdf = new SimpleDateFormat("MM/yyyy", Locale.getDefault());
-            binding.textMemberSince.setText("Thành viên từ " + sdf.format(seller.getCreatedAt().toDate()));
+            SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
+            binding.textMemberSince.setText("Member since " + sdf.format(seller.getCreatedAt().toDate()));
+            binding.textMemberSince.setVisibility(View.VISIBLE);
         } else {
             binding.textMemberSince.setVisibility(View.GONE);
         }
@@ -244,8 +264,10 @@ public class ItemDetailFragment extends Fragment {
             Boolean isOwnItem = viewModel.isViewingOwnItem().getValue();
             if (isOwnItem != null) {
                 if (isOwnItem) {
+                    // Nếu là sản phẩm của mình, có thể điều hướng về tab profile
                     navController.navigate(R.id.navigation_profile);
                 } else {
+                    // Nếu là của người khác, điều hướng đến trang public profile của họ
                     Bundle args = new Bundle();
                     args.putString("userId", seller.getUid());
                     navController.navigate(R.id.action_global_to_publicProfileFragment, args);

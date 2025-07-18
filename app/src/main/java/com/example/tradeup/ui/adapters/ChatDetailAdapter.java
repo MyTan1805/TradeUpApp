@@ -16,6 +16,8 @@ import com.example.tradeup.databinding.ItemMessageImageSentBinding;
 import com.example.tradeup.databinding.ItemMessageReceivedBinding;
 import com.example.tradeup.databinding.ItemMessageSentBinding;
 
+import androidx.emoji2.text.EmojiCompat;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 import java.util.Objects;
@@ -98,7 +100,15 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
             this.binding = binding;
         }
         void bind(Message message) {
-            binding.textViewMessage.setText(message.getText());
+            // << SỬA Ở ĐÂY >>
+            // Chỉ hiển thị text nếu nó không null
+            if (message.getText() != null) {
+                // Xử lý chuỗi để chuyển các ký tự emoji thành hình ảnh có thể vẽ được
+                binding.textViewMessage.setText(EmojiCompat.get().process(message.getText()));
+            } else {
+                binding.textViewMessage.setText("");
+            }
+
             if (message.getTimestamp() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
                 binding.textViewTimestamp.setText(sdf.format(message.getTimestamp().toDate()));
@@ -114,7 +124,13 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
             this.binding = binding;
         }
         void bind(Message message, String avatarUrl) {
-            binding.textViewMessage.setText(message.getText());
+            // << SỬA Ở ĐÂY >>
+            if (message.getText() != null) {
+                binding.textViewMessage.setText(EmojiCompat.get().process(message.getText()));
+            } else {
+                binding.textViewMessage.setText("");
+            }
+
             if (message.getTimestamp() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
                 binding.textViewTimestamp.setText(sdf.format(message.getTimestamp().toDate()));

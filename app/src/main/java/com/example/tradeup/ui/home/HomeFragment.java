@@ -135,6 +135,9 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
             } else if (state instanceof HomeState.Error) {
                 binding.layoutEmptyStateHome.setVisibility(View.VISIBLE);
                 binding.textViewEmptyMessage.setText(((HomeState.Error) state).message);
+                binding.buttonRetry.setVisibility(View.VISIBLE);
+            }else {
+                binding.buttonRetry.setVisibility(View.GONE);
             }
         });
 

@@ -291,4 +291,8 @@
         android:id="@+id/action_global_to_chatDetailFragment"
         app:destination="@id/chatDetailFragment" />
 
+    <action
+        android:id="@+id/action_chatDetailFragment_to_publicProfileFragment"
+        app:destination="@id/publicProfileFragment" />
+
 </navigation>
