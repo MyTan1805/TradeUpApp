@@ -1,8 +1,8 @@
 // File: src/main/java/com/example/tradeup/ui/report/ReportContentDialogFragment.java
-
 package com.example.tradeup.ui.report;
 
 import android.os.Bundle;
+import android.text.Html;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,10 +17,9 @@ import androidx.lifecycle.ViewModelProvider;
 
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
-import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.Item;
+import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.model.config.ReportReasonConfig;
-import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.databinding.DialogReportContentBinding;
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 
@@ -28,12 +27,7 @@ import java.text.NumberFormat;
 import java.util.List;
 import java.util.Locale;
 
-import javax.inject.Inject; // *** THÊM IMPORT NÀY ***
 import dagger.hilt.android.AndroidEntryPoint;
-import com.example.tradeup.data.model.User;
-import com.example.tradeup.data.repository.UserRepository;
-
-import android.text.Html;
 
 @AndroidEntryPoint
 public class ReportContentDialogFragment extends BottomSheetDialogFragment {
@@ -45,11 +39,9 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
     private DialogReportContentBinding binding;
     private ReportViewModel viewModel;
 
-    // Inject ItemRepository để lấy thông tin sản phẩm
-    @Inject
-    ItemRepository itemRepository;
-    @Inject
-    UserRepository userRepository;
+    // *** XÓA BỎ VIỆC INJECT REPOSITORY VÀO FRAGMENT ***
+    // @Inject ItemRepository itemRepository;
+    // @Inject UserRepository userRepository;
 
     private String contentId;
     private String contentType;
@@ -91,91 +83,8 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
         super.onViewCreated(view, savedInstanceState);
         setupClickListeners();
         observeViewModel();
-        // Tải thông tin của nội dung bị báo cáo (sản phẩm, người dùng,...)
-        loadReportedContentInfo();
-    }
-
-    private void loadReportedContentInfo() {
-        if ("listing".equalsIgnoreCase(contentType) && contentId != null) {
-            binding.reportedItemContainer.setVisibility(View.VISIBLE);
-            binding.textViewReportingHeader.setText("You are reporting this listing:");
-
-            itemRepository.getItemById(contentId, new Callback<Item>() {
-                @Override
-                public void onSuccess(Item item) {
-                    // Kiểm tra xem fragment/context còn tồn tại không trước khi cập nhật UI
-                    if (item != null && getContext() != null && binding != null) {
-                        binding.textViewProductName.setText(item.getTitle());
-                        String priceText = NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(item.getPrice());
-                        binding.textViewPrice.setText(priceText);
-                        binding.textViewSellerName.setText("by " + item.getSellerDisplayName());
-
-                        if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
-                            Glide.with(getContext())
-                                    .load(item.getImageUrls().get(0))
-                                    .placeholder(R.drawable.ic_placeholder_image)
-                                    .into(binding.imageViewProduct);
-                        }
-                    }
-                }
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    if (binding != null) {
-                        binding.reportedItemContainer.setVisibility(View.GONE);
-                    }
-                }
-            });
-        } else if ("profile".equalsIgnoreCase(contentType) && contentId != null) {
-            binding.reportedItemContainer.setVisibility(View.VISIBLE);
-            binding.textViewReportingHeader.setText("You are reporting this user:");
-
-            // Dùng userRepository để lấy thông tin người bị report
-            userRepository.getUserProfile(contentId, new Callback<User>() {
-                @Override
-                public void onSuccess(User user) {
-                    if (user != null && getContext() != null && binding != null) {
-                        binding.textViewProductName.setText(user.getDisplayName());
-                        // Ẩn giá và tên người bán
-                        binding.textViewPrice.setVisibility(View.GONE);
-                        binding.textViewSellerName.setVisibility(View.GONE);
-
-                        Glide.with(getContext())
-                                .load(user.getProfilePictureUrl())
-                                .placeholder(R.drawable.ic_person) // Dùng icon person làm placeholder
-                                .into(binding.imageViewProduct);
-                    }
-                }
-
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    if (binding != null) {
-                        binding.reportedItemContainer.setVisibility(View.GONE);
-                    }
-                }
-            });
-
-        } else if ("chat".equalsIgnoreCase(contentType) && contentId != null) {
-            // === PHẦN LOGIC MỚI CHO REPORT CHAT ===
-            binding.reportedItemContainer.setVisibility(View.VISIBLE);
-            binding.textViewReportingHeader.setText("You are reporting this conversation:");
-
-            // Ẩn các view không cần thiết
-            binding.imageViewProduct.setVisibility(View.GONE);
-            binding.textViewPrice.setVisibility(View.GONE);
-            binding.textViewSellerName.setVisibility(View.GONE);
-
-            // Chỉ hiển thị ID của cuộc trò chuyện
-            String chatInfoText = "Conversation ID: <b>" + contentId + "</b>";
-            binding.textViewProductName.setText(Html.fromHtml(chatInfoText));
-            // === KẾT THÚC PHẦN LOGIC MỚI ===
-
-        } else {
-            // Mặc định ẩn đi nếu không có thông tin
-            if (binding != null) {
-                binding.reportedItemContainer.setVisibility(View.GONE);
-            }
-
-        }
+        // *** SỬA Ở ĐÂY: Gọi ViewModel để tải dữ liệu ***
+        viewModel.loadReportedContentInfo(contentId, contentType);
     }
 
     private void setupClickListeners() {
@@ -192,7 +101,7 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
             if (fragmentView == null) return;
 
             RadioButton selectedRadioButton = fragmentView.findViewById(selectedRadioButtonId);
-            if (selectedRadioButton == null) return;
+            if (selectedRadioButton == null || selectedRadioButton.getTag() == null) return;
 
             String reasonId = (String) selectedRadioButton.getTag();
             String details = binding.editTextAdditionalDetails.getText() != null ?
@@ -203,6 +112,21 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
     }
 
     private void observeViewModel() {
+        // *** THÊM OBSERVER MỚI NÀY ***
+        viewModel.getReportedContentInfo().observe(getViewLifecycleOwner(), content -> {
+            if (content instanceof Item) {
+                bindItemInfo((Item) content);
+            } else if (content instanceof User) {
+                bindUserInfo((User) content);
+            } else if ("chat".equalsIgnoreCase(contentType)) {
+                bindChatInfo();
+            } else {
+                if (binding != null) {
+                    binding.reportedItemContainer.setVisibility(View.GONE);
+                }
+            }
+        });
+
         viewModel.getAppConfig().observe(getViewLifecycleOwner(), appConfig -> {
             if (appConfig != null && appConfig.getReportReasons() != null) {
                 this.reportReasons = appConfig.getReportReasons();
@@ -232,18 +156,58 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
         });
     }
 
+    // *** CÁC HÀM BIND ĐƯỢC TÁCH RA ***
+    private void bindItemInfo(Item item) {
+        if (item == null || getContext() == null || binding == null) {
+            if (binding != null) binding.reportedItemContainer.setVisibility(View.GONE);
+            return;
+        }
+        binding.reportedItemContainer.setVisibility(View.VISIBLE);
+        binding.textViewReportingHeader.setText("You are reporting this listing:");
+        binding.textViewProductName.setText(item.getTitle());
+        String priceText = NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(item.getPrice());
+        binding.textViewPrice.setText(priceText);
+        binding.textViewSellerName.setText("by " + item.getSellerDisplayName());
+        if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
+            Glide.with(getContext()).load(item.getImageUrls().get(0)).placeholder(R.drawable.ic_placeholder_image).into(binding.imageViewProduct);
+        }
+    }
+
+    private void bindUserInfo(User user) {
+        if (user == null || getContext() == null || binding == null) {
+            if (binding != null) binding.reportedItemContainer.setVisibility(View.GONE);
+            return;
+        }
+        binding.reportedItemContainer.setVisibility(View.VISIBLE);
+        binding.textViewReportingHeader.setText("You are reporting this user:");
+        binding.textViewProductName.setText(user.getDisplayName());
+        binding.textViewPrice.setVisibility(View.GONE);
+        binding.textViewSellerName.setVisibility(View.GONE);
+        Glide.with(getContext()).load(user.getProfilePictureUrl()).placeholder(R.drawable.ic_person).into(binding.imageViewProduct);
+    }
+
+    private void bindChatInfo() {
+        if (getContext() == null || binding == null) return;
+        binding.reportedItemContainer.setVisibility(View.VISIBLE);
+        binding.textViewReportingHeader.setText("You are reporting this conversation:");
+        binding.imageViewProduct.setVisibility(View.GONE);
+        binding.textViewPrice.setVisibility(View.GONE);
+        binding.textViewSellerName.setVisibility(View.GONE);
+        String chatInfoText = "Conversation ID: <b>" + contentId + "</b>";
+        binding.textViewProductName.setText(Html.fromHtml(chatInfoText, Html.FROM_HTML_MODE_LEGACY));
+    }
+
+
     private void populateReportReasons(List<ReportReasonConfig> reasons) {
         if (getContext() == null || binding == null) return;
-
         RadioGroup radioGroup = binding.radioGroupReasons;
         radioGroup.removeAllViews();
-
         for (ReportReasonConfig reason : reasons) {
             RadioButton radioButton = new RadioButton(getContext());
             radioButton.setText(reason.getName());
             radioButton.setId(View.generateViewId());
             radioButton.setTag(reason.getId());
-            radioButton.setPadding(0, 24, 0, 24); // Tăng padding cho dễ nhấn hơn
+            radioButton.setPadding(0, 24, 0, 24);
             radioGroup.addView(radioButton);
         }
     }

@@ -153,6 +153,17 @@
                     android:text="Follow" />
             </LinearLayout>
 
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/buttonReactivate"
+                style="?attr/materialButtonStyle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:text="Reactivate Account"
+                app:backgroundTint="@color/status_success"
+                android:visibility="gone"
+                tools:visibility="visible"/>
+
             <!-- Danh sách sản phẩm -->
             <TextView
                 android:id="@+id/textViewListingsTitle"

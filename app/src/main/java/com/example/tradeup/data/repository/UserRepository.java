@@ -2,15 +2,15 @@
 package com.example.tradeup.data.repository;
 
 import androidx.annotation.NonNull;
-import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.User;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public interface UserRepository {
-    void createUserProfile(@NonNull User user, Callback<Void> callback);
-    void getUserProfile(String uid, Callback<User> callback);
-    void updateUserProfile(String uid, Map<String, Object> updates, Callback<Void> callback);
-    void deactivateUser(String uid, Callback<Void> callback);
-    void deleteUser(String uid, Callback<Void> callback);
-    void blockUser(@NonNull String currentUserId, @NonNull String userToBlockId, Callback<Void> callback);
+    CompletableFuture<Void> createUserProfile(@NonNull User user);
+    CompletableFuture<User> getUserProfile(String uid);
+    CompletableFuture<Void> updateUserProfile(String uid, Map<String, Object> updates);
+    CompletableFuture<Void> deactivateUser(String uid);
+    CompletableFuture<Void> deleteUser(String uid);
+    CompletableFuture<Void> blockUser(@NonNull String currentUserId, @NonNull String userToBlockId);
 }

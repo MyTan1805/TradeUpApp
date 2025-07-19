@@ -29,6 +29,8 @@ public class ProfileFragment extends Fragment {
     private ProfileTabsAdapter profileTabsAdapter;
     private NavController navController;
 
+    // Không cần inject UserRoleManager ở đây nữa
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -51,6 +53,15 @@ public class ProfileFragment extends Fragment {
         setupViewPagerAndTabs();
         setupClickListeners();
         observeViewModel();
+
+        // Không còn logic kiểm tra quyền admin ở đây
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Tải lại dữ liệu mỗi khi quay lại màn hình này để cập nhật thông tin mới nhất
+        viewModel.loadAllData();
     }
 
     private void setupViewPagerAndTabs() {
@@ -64,28 +75,26 @@ public class ProfileFragment extends Fragment {
 
     private void setupClickListeners() {
         binding.buttonEditProfile.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this).navigate(R.id.action_global_to_editProfileFragment);
+            navController.navigate(R.id.action_global_to_editProfileFragment);
         });
 
         binding.buttonSettings.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this).navigate(R.id.action_global_to_settingsFragment);
+            navController.navigate(R.id.action_global_to_settingsFragment);
         });
 
         // Listener cho FAB đổi ảnh
         binding.fabChangeProfilePicture.setOnClickListener(v -> {
-            NavHostFragment.findNavController(this).navigate(R.id.action_global_to_editProfileFragment);
+            navController.navigate(R.id.action_global_to_editProfileFragment);
         });
 
         binding.buttonMyOffers.setOnClickListener(v -> {
             if (isAdded()) {
-                // Sử dụng action vừa tạo trong nav_graph
                 navController.navigate(R.id.action_profileFragment_to_offersFragment);
             }
         });
 
         binding.buttonMyTransactions.setOnClickListener(v -> {
             if (isAdded()) {
-                // Sử dụng action toàn cục đã có
                 navController.navigate(R.id.action_global_to_transactionHistoryFragment);
             }
         });
@@ -96,33 +105,24 @@ public class ProfileFragment extends Fragment {
             }
         });
 
-        // *** THÊM LOGIC ĐIỀU HƯỚNG CHO "MY LISTINGS" Ở ĐÂY ***
-        View listingsStatLayout = binding.layoutStats.getChildAt(0);
-        listingsStatLayout.setOnClickListener(v -> {
-            try {
-                // Sử dụng action đã định nghĩa trong nav_graph
-                navController.navigate(R.id.action_profileFragment_to_myListingsFragment);
-            } catch (Exception e) {
-                // Phòng trường hợp action không tồn tại hoặc lỗi khác
-                Toast.makeText(getContext(), "Cannot open My Listings.", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // Xóa listener cho nút admin dashboard
 
-        View activeListingsStat = binding.layoutStats.getChildAt(0);
+        // Các listener cho các ô thống kê
+        View activeListingsStat = binding.layoutStats.getChildAt(0); // Vị trí 0 là Active Listings
         activeListingsStat.setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putInt("defaultTabIndex", 0); // 0 là tab "Active"
             navController.navigate(R.id.action_global_to_myListingsFragment, args);
         });
 
-        View itemsSoldStat = binding.layoutStats.getChildAt(2);
+        View itemsSoldStat = binding.layoutStats.getChildAt(2); // Vị trí 2 là Items Sold
         itemsSoldStat.setOnClickListener(v -> {
             Bundle args = new Bundle();
             args.putInt("defaultTabIndex", 1); // 1 là tab "Sold"
             navController.navigate(R.id.action_global_to_myListingsFragment, args);
         });
 
-        View followersStat = binding.layoutStats.getChildAt(4);
+        View followersStat = binding.layoutStats.getChildAt(4); // Vị trí 4 là Followers
         followersStat.setOnClickListener(v -> {
             Toast.makeText(getContext(), "Followers list coming soon!", Toast.LENGTH_SHORT).show();
         });
@@ -130,9 +130,6 @@ public class ProfileFragment extends Fragment {
 
     private void observeViewModel() {
         viewModel.getHeaderState().observe(getViewLifecycleOwner(), state -> {
-            // Có thể thêm ProgressBar ở đây
-            // binding.progressBar.setVisibility(state instanceof ProfileHeaderState.Loading ? View.VISIBLE : View.GONE);
-
             if (state instanceof ProfileHeaderState.Success) {
                 bindHeaderData(((ProfileHeaderState.Success) state).user, ((ProfileHeaderState.Success) state).isCurrentUserProfile);
             } else if (state instanceof ProfileHeaderState.Error) {
@@ -151,7 +148,6 @@ public class ProfileFragment extends Fragment {
         binding.textViewUserName.setText(user.getDisplayName());
         binding.ratingBarUser.setRating((float) user.getAverageRating());
 
-        // Sửa lỗi: Cập nhật totalRatingCount từ model User
         String reviewCountText = String.format(Locale.getDefault(), "%d Reviews", user.getTotalRatingCount());
         binding.textViewReviewCount.setText(reviewCountText);
 

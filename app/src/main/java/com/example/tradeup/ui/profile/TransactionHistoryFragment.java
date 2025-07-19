@@ -1,3 +1,4 @@
+// File: src/main/java/com/example/tradeup/ui/profile/TransactionHistoryFragment.java
 package com.example.tradeup.ui.profile;
 
 import android.os.Bundle;
@@ -53,13 +54,7 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
         super.onViewCreated(view, savedInstanceState);
         navController = NavHostFragment.findNavController(this);
 
-        FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
-        if (user != null) {
-            Log.d("ID_DEBUG", "Current User ID in Fragment: " + user.getUid());
-        } else {
-            Log.d("ID_DEBUG", "Current User in Fragment is NULL.");
-        }
-
+        // Các hàm setup giữ nguyên
         setupToolbar();
         setupRecyclerView();
         setupChipListeners();
@@ -71,13 +66,11 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
     }
 
     private void setupRecyclerView() {
-        // Lấy userId một cách an toàn
         String currentUserId = "";
         if (FirebaseAuth.getInstance().getCurrentUser() != null) {
             currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
         } else {
             Log.e(TAG, "FATAL: Current user is null. Cannot setup adapter correctly.");
-            // Có thể hiển thị một lỗi và quay lại
             Toast.makeText(getContext(), "User session expired. Please log in again.", Toast.LENGTH_LONG).show();
             navController.navigateUp();
             return;
@@ -89,16 +82,13 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
     }
 
     private void setupChipListeners() {
-        // Mặc định chọn chip "All" khi vào màn hình
         binding.chipGroupFilters.check(R.id.chipAll);
-
         binding.chipGroupFilters.setOnCheckedChangeListener((group, checkedId) -> {
             if (checkedId == R.id.chipAll) {
                 viewModel.onAllFilterClicked();
             } else if (checkedId == R.id.chipPurchases) {
                 viewModel.onPurchasesFilterClicked();
-            }
-            else if (checkedId == R.id.chipSales) {
+            } else if (checkedId == R.id.chipSales) {
                 viewModel.onSalesFilterClicked();
             }
         });
@@ -106,21 +96,32 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
     private void observeViewModel() {
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            // Hiển thị ProgressBar toàn màn hình khi đang tải và danh sách rỗng
-            if (isLoading && transactionAdapter.getItemCount() == 0) {
-                //binding.progressBar.setVisibility(View.VISIBLE); // Giả sử có ProgressBar
+            // **FIX LOGIC HIỂN THỊ Ở ĐÂY**
+            // Chỉ hiển thị ProgressBar khi đang tải VÀ danh sách hiện tại rỗng
+            // Điều này tránh ProgressBar che mất danh sách khi tải thêm trang
+            boolean isListCurrentlyEmpty = transactionAdapter.getCurrentList() == null || transactionAdapter.getCurrentList().isEmpty();
+            if (isLoading && isListCurrentlyEmpty) {
+                binding.progressBar.setVisibility(View.VISIBLE);
+                binding.recyclerViewTransactions.setVisibility(View.GONE);
+                binding.layoutEmptyState.setVisibility(View.GONE);
             } else {
-                //binding.progressBar.setVisibility(View.GONE);
+                binding.progressBar.setVisibility(View.GONE);
             }
         });
 
         viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
-            Log.d(TAG, "Observer received " + (transactions != null ? transactions.size() : "null") + " transactions.");
+            // **FIX LOGIC HIỂN THỊ Ở ĐÂY**
+            boolean isLoading = viewModel.getIsLoading().getValue() != null && viewModel.getIsLoading().getValue();
+
             transactionAdapter.submitList(transactions);
 
-            // Hiển thị trạng thái empty view nếu danh sách rỗng
             boolean isEmpty = transactions == null || transactions.isEmpty();
-            //binding.emptyView.setVisibility(isEmpty ? View.VISIBLE : View.GONE); // Giả sử có emptyView
+
+            // Chỉ quyết định hiển thị EmptyState hoặc RecyclerView khi KHÔNG còn loading
+            if (!isLoading) {
+                binding.layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
+                binding.recyclerViewTransactions.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
+            }
         });
 
         viewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
@@ -134,11 +135,10 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        binding = null; // Tránh memory leak
+        binding = null;
     }
 
-    // --- Callbacks từ Adapter ---
-
+    // --- Callbacks từ Adapter (Giữ nguyên, đã rất tốt) ---
     @Override
     public void onTransactionClick(Transaction transaction) {
         if (isAdded() && transaction.getItemId() != null) {
@@ -150,7 +150,7 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
     @Override
     public void onRateClick(Transaction transaction) {
-        if (!isAdded()) return; // Kiểm tra an toàn
+        if (!isAdded()) return;
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser == null) {
@@ -160,17 +160,13 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
         String currentUserId = currentUser.getUid();
         boolean isUserTheBuyer = transaction.getBuyerId().equals(currentUserId);
-
-        // Người được đánh giá (ratedUser) là người còn lại trong giao dịch
         String ratedUserId = isUserTheBuyer ? transaction.getSellerId() : transaction.getBuyerId();
 
-        // Tạo Bundle để truyền dữ liệu
         Bundle args = new Bundle();
         args.putString("transactionId", transaction.getTransactionId());
         args.putString("itemId", transaction.getItemId());
         args.putString("ratedUserId", ratedUserId);
 
-        // Sử dụng action toàn cục để điều hướng
         try {
             navController.navigate(R.id.action_global_to_submitReviewFragment, args);
         } catch (Exception e) {
@@ -178,9 +174,9 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
             Toast.makeText(getContext(), "Could not open review screen.", Toast.LENGTH_SHORT).show();
         }
     }
+
     @Override
     public void onMarkAsShippedClick(Transaction transaction) {
-        // Gọi hàm từ ViewModel của fragment này
         viewModel.markAsShipped(transaction.getTransactionId());
     }
 
@@ -192,11 +188,8 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
     @Override
     public void onProceedToPaymentClick(Transaction transaction) {
         if (isAdded() && transaction != null) {
-            // Mở dialog chọn phương thức thanh toán
             PaymentSelectionFragment.newInstance(transaction)
                     .show(getParentFragmentManager(), PaymentSelectionFragment.TAG);
         }
     }
-
-
 }

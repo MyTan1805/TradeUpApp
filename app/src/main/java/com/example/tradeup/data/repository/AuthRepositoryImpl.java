@@ -1,19 +1,16 @@
+// File: src/main/java/com/example/tradeup/data/repository/AuthRepositoryImpl.java
 package com.example.tradeup.data.repository;
 
 import androidx.annotation.NonNull;
-import com.example.tradeup.core.utils.Callback;
+import com.example.tradeup.core.utils.TaskToFuture;
 import com.example.tradeup.data.source.remote.FirebaseAuthSource;
-import com.google.android.gms.tasks.Tasks;
-import com.google.firebase.auth.AuthCredential;
-import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.AuthResult;
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException;
 import com.google.firebase.auth.FirebaseAuthInvalidUserException;
 import com.google.firebase.auth.FirebaseAuthUserCollisionException;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.firebase.auth.EmailAuthProvider;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.auth.AuthResult;
 
+import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
@@ -33,48 +30,42 @@ public class AuthRepositoryImpl implements AuthRepository {
     }
 
     @Override
-    public void registerUser(String email, String password, final Callback<FirebaseUser> callback) {
-        firebaseAuthSource.registerUser(email, password)
-                .addOnSuccessListener(authResult -> {
-                    FirebaseUser user = authResult.getUser();
-                    if (user != null) {
-                        callback.onSuccess(user);
+    public CompletableFuture<FirebaseUser> registerUser(String email, String password) {
+        CompletableFuture<FirebaseUser> future = new CompletableFuture<>();
+        TaskToFuture.toCompletableFuture(firebaseAuthSource.registerUser(email, password))
+                .whenComplete((authResult, throwable) -> {
+                    if (throwable != null) {
+                        // Xử lý và bọc lỗi bằng một exception có thông điệp rõ ràng hơn
+                        if (throwable.getCause() instanceof FirebaseAuthUserCollisionException) {
+                            future.completeExceptionally(new Exception("Địa chỉ email này đã được sử dụng."));
+                        } else if (throwable.getCause() instanceof FirebaseAuthInvalidCredentialsException) {
+                            future.completeExceptionally(new Exception("Định dạng email hoặc mật khẩu không hợp lệ."));
+                        } else {
+                            future.completeExceptionally(throwable);
+                        }
                     } else {
-                        // Trường hợp này hiếm khi xảy ra nếu task thành công
-                        callback.onFailure(new Exception("Registration successful but user is null."));
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    // Bạn có thể xử lý các exception cụ thể ở đây để đưa ra thông báo lỗi tốt hơn
-                    if (e instanceof FirebaseAuthUserCollisionException) {
-                        callback.onFailure(new Exception("Địa chỉ email này đã được sử dụng."));
-                    } else if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                        callback.onFailure(new Exception("Định dạng email hoặc mật khẩu không hợp lệ."));
-                    }
-                    else {
-                        callback.onFailure(e);
+                        future.complete(authResult.getUser());
                     }
                 });
+        return future;
     }
 
     @Override
-    public void loginUser(String email, String password, final Callback<FirebaseUser> callback) {
-        firebaseAuthSource.loginUser(email, password)
-                .addOnSuccessListener(authResult -> {
-                    FirebaseUser user = authResult.getUser();
-                    if (user != null) {
-                        callback.onSuccess(user);
+    public CompletableFuture<FirebaseUser> loginUser(String email, String password) {
+        CompletableFuture<FirebaseUser> future = new CompletableFuture<>();
+        TaskToFuture.toCompletableFuture(firebaseAuthSource.loginUser(email, password))
+                .whenComplete((authResult, throwable) -> {
+                    if (throwable != null) {
+                        if (throwable.getCause() instanceof FirebaseAuthInvalidUserException || throwable.getCause() instanceof FirebaseAuthInvalidCredentialsException) {
+                            future.completeExceptionally(new Exception("Email hoặc mật khẩu không đúng."));
+                        } else {
+                            future.completeExceptionally(throwable);
+                        }
                     } else {
-                        callback.onFailure(new Exception("Login successful but user is null."));
-                    }
-                })
-                .addOnFailureListener(e -> {
-                    if (e instanceof FirebaseAuthInvalidUserException || e instanceof FirebaseAuthInvalidCredentialsException) {
-                        callback.onFailure(new Exception("Email hoặc mật khẩu không đúng."));
-                    } else {
-                        callback.onFailure(e);
+                        future.complete(authResult.getUser());
                     }
                 });
+        return future;
     }
 
     @Override
@@ -83,50 +74,36 @@ public class AuthRepositoryImpl implements AuthRepository {
     }
 
     @Override
-    public void sendPasswordResetEmail(String email, final Callback<Void> callback) {
-        firebaseAuthSource.sendPasswordResetEmail(email)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null)) // Tham số của onSuccess cho Void là null
-                .addOnFailureListener(callback::onFailure); // Tham chiếu phương thức
+    public CompletableFuture<Void> sendPasswordResetEmail(String email) {
+        return TaskToFuture.toCompletableFuture(firebaseAuthSource.sendPasswordResetEmail(email));
     }
 
     @Override
-    public void sendEmailVerification(@NonNull FirebaseUser user, final Callback<Void> callback) {
-        firebaseAuthSource.sendEmailVerification(user)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+    public CompletableFuture<Void> sendEmailVerification(@NonNull FirebaseUser user) {
+        return TaskToFuture.toCompletableFuture(firebaseAuthSource.sendEmailVerification(user));
     }
 
     @Override
-    public void loginWithGoogle(String idToken, Callback<FirebaseUser> callback) {
-        firebaseAuthSource.loginWithGoogle(idToken)
-                .addOnSuccessListener(authResult -> {
-                    FirebaseUser user = authResult.getUser();
-                    if (user != null) {
-                        callback.onSuccess(user);
-                    } else {
-                        callback.onFailure(new Exception("Google login successful but user is null."));
-                    }
-                })
-                .addOnFailureListener(callback::onFailure);
+    public CompletableFuture<FirebaseUser> loginWithGoogle(String idToken) {
+        return TaskToFuture.toCompletableFuture(firebaseAuthSource.loginWithGoogle(idToken))
+                .thenApply(AuthResult::getUser);
     }
+
     @Override
-    public void reauthenticateAndDeleteCurrentUser(String password, Callback<Void> callback) {
-        // Gọi đến phương thức của DataSource (nơi thực sự làm việc với Firebase)
-        // Giả sử hàm này trong `firebaseAuthSource` trả về một Task<Void>
-        firebaseAuthSource.reauthenticateAndDeleteCurrentUser(password)
-                .addOnSuccessListener(aVoid -> {
-                    // Khi Task thành công, gọi callback.onSuccess
-                    callback.onSuccess(null);
-                })
-                .addOnFailureListener(e -> {
-                    // Khi Task thất bại, xử lý lỗi và gọi callback.onFailure
-                    if (e instanceof FirebaseAuthInvalidCredentialsException) {
-                        callback.onFailure(new Exception("Mật khẩu không đúng. Vui lòng thử lại."));
+    public CompletableFuture<Void> reauthenticateAndDeleteCurrentUser(String password) {
+        CompletableFuture<Void> future = new CompletableFuture<>();
+        TaskToFuture.toCompletableFuture(firebaseAuthSource.reauthenticateAndDeleteCurrentUser(password))
+                .whenComplete((aVoid, throwable) -> {
+                    if (throwable != null) {
+                        if (throwable.getCause() instanceof FirebaseAuthInvalidCredentialsException) {
+                            future.completeExceptionally(new Exception("Mật khẩu không đúng. Vui lòng thử lại."));
+                        } else {
+                            future.completeExceptionally(new Exception("Lỗi xóa tài khoản: " + throwable.getMessage()));
+                        }
                     } else {
-                        String errorMessage = e.getMessage() != null ? e.getMessage() : "An unknown error occurred";
-                        callback.onFailure(new Exception("Lỗi xóa tài khoản: " + errorMessage));
+                        future.complete(null);
                     }
                 });
+        return future;
     }
-
 }

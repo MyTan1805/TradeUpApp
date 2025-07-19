@@ -33,6 +33,7 @@ import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 import retrofit2.Call;
 import retrofit2.Response;
+import java.util.concurrent.atomic.AtomicInteger;
 
 @HiltViewModel
 public class OffersViewModel extends ViewModel {
@@ -47,11 +48,11 @@ public class OffersViewModel extends ViewModel {
 
     private final String currentUserId;
 
-    private final MutableLiveData<List<Offer>> _receivedOffers = new MutableLiveData<>();
-    public LiveData<List<Offer>> getReceivedOffers() { return _receivedOffers; }
+    private final MutableLiveData<List<OfferViewData>> _receivedOffers = new MutableLiveData<>();
+    public LiveData<List<OfferViewData>> getReceivedOffers() { return _receivedOffers; }
 
-    private final MutableLiveData<List<Offer>> _sentOffers = new MutableLiveData<>();
-    public LiveData<List<Offer>> getSentOffers() { return _sentOffers; }
+    private final MutableLiveData<List<OfferViewData>> _sentOffers = new MutableLiveData<>();
+    public LiveData<List<OfferViewData>> getSentOffers() { return _sentOffers; }
 
     private final MutableLiveData<List<Transaction>> _transactions = new MutableLiveData<>();
     public LiveData<List<Transaction>> getTransactions() { return _transactions; }
@@ -106,6 +107,67 @@ public class OffersViewModel extends ViewModel {
                 showError("Could not mark item as sold: " + e.getMessage());
             }
         });
+    }
+
+    private void processOffers(List<Offer> offers, MutableLiveData<List<OfferViewData>> targetLiveData) {
+        if (offers == null || offers.isEmpty()) {
+            targetLiveData.postValue(Collections.emptyList());
+            _isLoading.postValue(false); // Đảm bảo tắt loading
+            return;
+        }
+
+        List<Offer> validOffers = new ArrayList<>();
+        for (Offer offer : offers) {
+            if (isOfferExpired(offer)) {
+                handleExpiredOffer(offer);
+            } else {
+                validOffers.add(offer);
+            }
+        }
+
+        // Nếu không còn offer hợp lệ nào, post list rỗng
+        if (validOffers.isEmpty()) {
+            targetLiveData.postValue(Collections.emptyList());
+            _isLoading.postValue(false);
+            return;
+        }
+
+        // Tải thông tin item tương ứng
+        loadRelatedItemsForOffers(validOffers, targetLiveData);
+    }
+
+    // HÀM MỚI ĐỂ TẢI ITEM
+    private void loadRelatedItemsForOffers(List<Offer> offers, MutableLiveData<List<OfferViewData>> targetLiveData) {
+        final List<OfferViewData> viewDataList = Collections.synchronizedList(new ArrayList<>());
+        final AtomicInteger counter = new AtomicInteger(offers.size());
+
+        for (Offer offer : offers) {
+            itemRepository.getItemById(offer.getItemId(), new Callback<Item>() {
+                @Override
+                public void onSuccess(Item item) {
+                    // Thêm vào list, dù item có là null (đã bị xóa)
+                    viewDataList.add(new OfferViewData(offer, item));
+                    if (counter.decrementAndGet() == 0) {
+                        // Khi tất cả đã xong, sắp xếp và post lên LiveData
+                        viewDataList.sort((o1, o2) -> o2.offer.getUpdatedAt().compareTo(o1.offer.getUpdatedAt()));
+                        targetLiveData.postValue(viewDataList);
+                        _isLoading.postValue(false);
+                    }
+                }
+
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    // Vẫn thêm vào list với item là null và tiếp tục
+                    viewDataList.add(new OfferViewData(offer, null));
+                    Log.w(TAG, "Failed to fetch item " + offer.getItemId() + " for offer.", e);
+                    if (counter.decrementAndGet() == 0) {
+                        viewDataList.sort((o1, o2) -> o2.offer.getUpdatedAt().compareTo(o1.offer.getUpdatedAt()));
+                        targetLiveData.postValue(viewDataList);
+                        _isLoading.postValue(false);
+                    }
+                }
+            });
+        }
     }
 
     private void updateOfferStatusAndCreateTransaction(Offer offer) {
@@ -655,24 +717,6 @@ public class OffersViewModel extends ViewModel {
             }
         });
     }
-
-    private void processOffers(List<Offer> offers, MutableLiveData<List<Offer>> targetLiveData) {
-        List<Offer> validOffers = new ArrayList<>();
-
-        if (offers != null) {
-            for (Offer offer : offers) {
-                if (isOfferExpired(offer)) {
-                    handleExpiredOffer(offer);
-                } else {
-                    validOffers.add(offer);
-                }
-            }
-        }
-
-        targetLiveData.postValue(validOffers);
-        _isLoading.postValue(false);
-    }
-
     private boolean isOfferExpired(Offer offer) {
         return offer.getExpiresAt() != null &&
                 offer.getExpiresAt().toDate().before(new Date()) &&

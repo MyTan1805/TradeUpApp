@@ -1,6 +1,8 @@
 package com.example.tradeup.core.di;
 
 // Import các interface Repository (phiên bản Java)
+import com.example.tradeup.data.repository.AdminRepository;
+import com.example.tradeup.data.repository.AdminRepositoryImpl;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.AuthRepository;
 import com.example.tradeup.data.repository.ChatRepository;
@@ -87,4 +89,8 @@ public abstract class RepositoryModule { // Giữ nguyên abstract class cho @Bi
     @Binds
     @Singleton
     public abstract NotificationRepository bindNotificationRepository(NotificationRepositoryImpl impl);
+
+    @Binds
+    @Singleton
+    public abstract AdminRepository bindAdminRepository(AdminRepositoryImpl impl);
 }

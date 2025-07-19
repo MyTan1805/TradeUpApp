@@ -1,7 +1,9 @@
+// File: app/src/main/java/com/example/tradeup/core/di/AppModule.java
 package com.example.tradeup.core.di;
 
 import android.content.Context;
 import com.example.tradeup.core.utils.SessionManager;
+import com.example.tradeup.core.utils.UserRoleManager;
 import com.example.tradeup.data.network.StripeApiService;
 import com.example.tradeup.data.network.NotificationApiService;
 import dagger.Module;
@@ -21,6 +23,12 @@ import retrofit2.converter.gson.GsonConverterFactory;
 public class AppModule {
 
     private static final String BASE_URL = "http://10.0.2.2:4242/"; // Chung cho Stripe và Notification
+
+    @Provides
+    @Singleton // <-- FIX: BỎ COMMENT DÒNG NÀY ĐỂ ĐẢM BẢO CHỈ CÓ 1 INSTANCE
+    public UserRoleManager provideUserRoleManager() {
+        return new UserRoleManager();
+    }
 
     @Provides
     @Singleton

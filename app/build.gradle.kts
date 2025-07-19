@@ -66,71 +66,70 @@ android {
         buildConfig = true
     }
 }
-
 dependencies {
-    implementation(libs.hilt.android)
+    // Core & UI
+    implementation(libs.core.ktx)
+    implementation(libs.appcompat)
+    implementation(libs.material) // *** CHỈ DÙNG MỘT ALIAS DUY NHẤT ***
+    implementation(libs.constraintlayout)
+    implementation(libs.activity)
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // Navigation
     implementation(libs.navigation.fragment.ktx)
     implementation(libs.navigation.ui)
-    implementation(libs.google.material)
+
+    // Hilt
+    implementation(libs.hilt.android)
     kapt(libs.hilt.compiler)
 
-    implementation(libs.preference)
-
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
-
-    implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
-    implementation("com.google.firebase:firebase-analytics")
-    implementation("com.google.firebase:firebase-auth-ktx")
-
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
-
-    // Lifecycle components
+    // Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.7.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
 
-    implementation("de.hdodenhof:circleimageview:3.1.0")
-    implementation("com.github.bumptech.glide:glide:4.16.0")
+    // Firebase
+    implementation(platform("com.google.firebase:firebase-bom:33.1.0")) // Có thể nâng lên 33.5.1
+    implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-auth-ktx")
+    implementation(libs.firebase.firestore.ktx)
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
-    implementation("com.github.dhaval2404:imagepicker:2.1")
-    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+    // Coroutines (Vẫn cần cho một số thư viện của Google dù bạn code Java)
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.1")
 
+    // Google Services
+    implementation("com.google.android.gms:play-services-auth:20.7.0") // Có thể nâng lên 21.x
     implementation("com.google.android.libraries.places:places:3.5.0")
     implementation("com.google.android.gms:play-services-location:21.2.0")
 
-    implementation("com.google.android.gms:play-services-auth:20.7.0")
-
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
-    implementation("ch.hsr:geohash:1.4.0")
-    implementation("io.grpc:grpc-okhttp:1.58.0")
-
-    implementation("com.firebase:geofire-android-common:3.2.0")
-    implementation(platform("com.google.firebase:firebase-bom:33.5.1"))
-
-    implementation("com.stripe:stripe-android:20.39.0") // Luôn kiểm tra phiên bản mới nhất
-
-    // Thư viện Retrofit để gọi API đến server
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
-
-    implementation("com.google.firebase:firebase-messaging-ktx")
-
-    implementation("androidx.emoji2:emoji2:1.4.0")
-
+    // Networking (Retrofit & OkHttp)
     implementation(libs.retrofit.core)
     implementation(libs.retrofit.converter.gson)
     implementation(libs.okhttp.logging.interceptor)
+    implementation("com.squareup.okhttp3:okhttp:4.10.0")
 
-    implementation(libs.appcompat)
-    implementation(libs.material)
-    implementation(libs.activity)
-    implementation(libs.constraintlayout)
-    implementation(libs.firebase.firestore.ktx)
-    implementation(libs.core.ktx)
+    // Geo & Location
+    implementation("ch.hsr:geohash:1.4.0")
+    implementation("com.firebase:geofire-android-common:3.2.0")
+
+    // Payment (Stripe)
+    implementation("com.stripe:stripe-android:20.39.0")
+
+    // UI Utilities
+    implementation("de.hdodenhof:circleimageview:3.1.0")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.github.dhaval2404:imagepicker:2.1")
+    implementation("androidx.emoji2:emoji2:1.4.0")
+
+    // Preference
+    implementation(libs.preference)
+
+    // GRPC (cần cho Firestore)
+    implementation("io.grpc:grpc-okhttp:1.58.0")
+
+    // Testing
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)

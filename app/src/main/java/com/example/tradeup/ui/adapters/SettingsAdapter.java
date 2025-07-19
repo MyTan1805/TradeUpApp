@@ -126,7 +126,6 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         private final int defaultTextColor;
         private final int defaultIconColor;
 
-
         NavigationViewHolder(@NonNull View itemView, OnSettingItemClickListener listener) {
             super(itemView);
             this.context = itemView.getContext();
@@ -136,27 +135,27 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             value = itemView.findViewById(R.id.value);
             arrow = itemView.findViewById(R.id.arrow);
 
-            // Lấy màu mặc định từ theme để reset
-            defaultTextColor = getThemeColor(context, android.R.attr.textColorPrimary);
-            defaultIconColor = getThemeColor(context, android.R.attr.textColorSecondary);
+            defaultTextColor = title.getCurrentTextColor();
+            defaultIconColor = getThemeColor(context, com.google.android.material.R.attr.colorOnSurfaceVariant);
         }
 
         void bind(SettingItem.Navigation item) {
-            Log.d("NavigationViewHolder", "Binding title: " + (item.title != null ? item.title : "null"));
             title.setText(item.title);
             value.setVisibility(View.GONE);
             arrow.setVisibility(View.VISIBLE);
             itemView.setClickable(true);
 
+            // *** SỬA LỖI Ở ĐÂY: Gán listener cho item ***
+            itemView.setOnClickListener(v -> listener.onNavigationItemClick(item.tag));
+
             if (item.iconResId != 0) {
                 icon.setImageResource(item.iconResId);
                 icon.setVisibility(View.VISIBLE);
-                ((ConstraintLayout.LayoutParams) title.getLayoutParams()).startToEnd = R.id.icon;
             } else {
                 icon.setVisibility(View.GONE);
-                ((ConstraintLayout.LayoutParams) title.getLayoutParams()).startToStart = ConstraintLayout.LayoutParams.PARENT_ID;
             }
 
+            // Xử lý màu sắc
             if (item.textColor != 0) {
                 title.setTextColor(ContextCompat.getColor(context, item.textColor));
             } else {
@@ -171,13 +170,12 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
 
         void bindInfo(SettingItem.Info item) {
-            // Thiết lập trạng thái cho item thông tin
             title.setText(item.title);
             value.setText(item.value);
             value.setVisibility(View.VISIBLE);
             arrow.setVisibility(View.GONE);
-            itemView.setClickable(false);
-            itemView.setOnClickListener(null);
+            itemView.setClickable(false); // Item thông tin không cần click
+            itemView.setOnClickListener(null); // Xóa listener cũ
 
             if (item.iconResId != 0) {
                 icon.setImageResource(item.iconResId);
@@ -186,12 +184,11 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
                 icon.setVisibility(View.GONE);
             }
 
-            // Reset màu sắc về mặc định
+            // Reset màu sắc
             title.setTextColor(defaultTextColor);
             icon.setImageTintList(ColorStateList.valueOf(defaultIconColor));
         }
 
-        // Hàm tiện ích để lấy màu từ theme attribute
         private int getThemeColor(Context context, @AttrRes int attr) {
             TypedValue typedValue = new TypedValue();
             context.getTheme().resolveAttribute(attr, typedValue, true);

@@ -93,18 +93,15 @@ public class SubmitReviewViewModel extends ViewModel {
 
     private void loadRatedUserInfo() {
         if (ratedUserId == null) return;
-        userRepository.getUserProfile(ratedUserId, new Callback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                if (user != null) {
-                    _ratedUser.postValue(user);
-                }
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                _toastMessage.postValue(new Event<>("Failed to load user info."));
-            }
-        });
+        // *** SỬA Ở ĐÂY: Chuyển sang dùng CompletableFuture ***
+        userRepository.getUserProfile(ratedUserId)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        _toastMessage.postValue(new Event<>("Failed to load user info."));
+                    } else if (user != null) {
+                        _ratedUser.postValue(user);
+                    }
+                });
     }
 
     public void submitReview(int stars, String feedbackText) {

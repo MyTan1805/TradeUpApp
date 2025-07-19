@@ -2,18 +2,17 @@
 package com.example.tradeup.data.repository;
 
 import androidx.annotation.NonNull;
-import com.example.tradeup.core.utils.Callback;
+import com.example.tradeup.core.utils.TaskToFuture;
 import com.example.tradeup.data.model.User;
-// << FIX: Cần import FirestoreUserSource >>
 import com.example.tradeup.data.source.remote.FirestoreUserSource;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 
-@Singleton // << Rất nên có @Singleton cho Repository >>
+@Singleton
 public class UserRepositoryImpl implements UserRepository {
 
-    // << FIX: Inject FirestoreUserSource thay vì FirebaseFirestore >>
     private final FirestoreUserSource firestoreUserSource;
 
     @Inject
@@ -22,53 +21,44 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     @Override
-    public void createUserProfile(@NonNull User user, @NonNull Callback<Void> callback) {
-        firestoreUserSource.createUserProfile(user)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+    public CompletableFuture<Void> createUserProfile(@NonNull User user) {
+        return TaskToFuture.toCompletableFuture(firestoreUserSource.createUserProfile(user));
     }
 
     @Override
-    public void getUserProfile(String uid, @NonNull Callback<User> callback) {
-        firestoreUserSource.getUserProfile(uid)
-                .addOnSuccessListener(user -> {
-                    if (user != null) {
-                        callback.onSuccess(user);
+    public CompletableFuture<User> getUserProfile(String uid) {
+        CompletableFuture<User> future = new CompletableFuture<>();
+        TaskToFuture.toCompletableFuture(firestoreUserSource.getUserProfile(uid))
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        future.completeExceptionally(throwable);
+                    } else if (user == null) {
+                        // Trả về null để ViewModel xử lý logic tạo user mới
+                        future.complete(null);
                     } else {
-                        // Trường hợp user không tồn tại trong Firestore
-                        callback.onFailure(new Exception("User profile not found in database."));
+                        future.complete(user);
                     }
-                })
-                .addOnFailureListener(callback::onFailure);
+                });
+        return future;
     }
 
     @Override
-    public void updateUserProfile(String uid, Map<String, Object> updates, @NonNull Callback<Void> callback) {
-        firestoreUserSource.updateUserFields(uid, updates)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
-    }
-
-    // << FIX: THÊM CÁC PHƯƠNG THỨC CÒN THIẾU >>
-
-    @Override
-    public void deactivateUser(String uid, Callback<Void> callback) {
-        firestoreUserSource.deactivateUser(uid)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+    public CompletableFuture<Void> updateUserProfile(String uid, Map<String, Object> updates) {
+        return TaskToFuture.toCompletableFuture(firestoreUserSource.updateUserFields(uid, updates));
     }
 
     @Override
-    public void deleteUser(String uid, Callback<Void> callback) {
-        firestoreUserSource.deleteUser(uid)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+    public CompletableFuture<Void> deactivateUser(String uid) {
+        return TaskToFuture.toCompletableFuture(firestoreUserSource.deactivateUser(uid));
     }
 
     @Override
-    public void blockUser(@NonNull String currentUserId, @NonNull String userToBlockId, Callback<Void> callback) {
-        firestoreUserSource.blockUser(currentUserId, userToBlockId)
-                .addOnSuccessListener(aVoid -> callback.onSuccess(null))
-                .addOnFailureListener(callback::onFailure);
+    public CompletableFuture<Void> deleteUser(String uid) {
+        return TaskToFuture.toCompletableFuture(firestoreUserSource.deleteUser(uid));
+    }
+
+    @Override
+    public CompletableFuture<Void> blockUser(@NonNull String currentUserId, @NonNull String userToBlockId) {
+        return TaskToFuture.toCompletableFuture(firestoreUserSource.blockUser(currentUserId, userToBlockId));
     }
 }

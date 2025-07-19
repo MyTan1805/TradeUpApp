@@ -3,6 +3,8 @@ package com.example.tradeup.ui.profile;
 
 import android.app.Application;
 import android.net.Uri;
+import android.os.Build;
+
 import androidx.annotation.NonNull;
 import androidx.lifecycle.AndroidViewModel;
 import androidx.lifecycle.LiveData;
@@ -12,11 +14,12 @@ import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.data.model.ContactInfo;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.repository.AuthRepository;
-import com.example.tradeup.data.repository.StorageRepository; // Import StorageRepository (phiên bản Cloudinary)
+import com.example.tradeup.data.repository.StorageRepository;
 import com.example.tradeup.data.repository.UserRepository;
 import com.google.firebase.auth.FirebaseUser;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture; // Thêm import này
 import javax.inject.Inject;
 import dagger.hilt.android.lifecycle.HiltViewModel;
 
@@ -25,7 +28,7 @@ public class EditProfileViewModel extends AndroidViewModel {
 
     private final UserRepository userRepository;
     private final AuthRepository authRepository;
-    private final StorageRepository storageRepository; // Chèn StorageRepository
+    private final StorageRepository storageRepository;
 
     private final MutableLiveData<User> _user = new MutableLiveData<>();
     public LiveData<User> getUser() { return _user; }
@@ -40,12 +43,7 @@ public class EditProfileViewModel extends AndroidViewModel {
     private Uri newProfilePictureUri = null;
 
     @Inject
-    public EditProfileViewModel(
-            Application application,
-            UserRepository userRepository,
-            AuthRepository authRepository,
-            StorageRepository storageRepository // Hilt sẽ chèn phiên bản Cloudinary vào đây
-    ) {
+    public EditProfileViewModel(Application application, UserRepository userRepository, AuthRepository authRepository, StorageRepository storageRepository) {
         super(application);
         this.userRepository = userRepository;
         this.authRepository = authRepository;
@@ -57,12 +55,15 @@ public class EditProfileViewModel extends AndroidViewModel {
         FirebaseUser firebaseUser = authRepository.getCurrentUser();
         if (firebaseUser != null) {
             currentUserId = firebaseUser.getUid();
-            userRepository.getUserProfile(currentUserId, new Callback<User>() {
-                @Override
-                public void onSuccess(User user) { _user.postValue(user); }
-                @Override
-                public void onFailure(@NonNull Exception e) { _errorEvent.postValue(new Event<>("Failed to load user data: " + e.getMessage())); }
-            });
+            // Sử dụng CompletableFuture ở đây luôn cho nhất quán
+            userRepository.getUserProfile(currentUserId)
+                    .whenComplete((user, throwable) -> {
+                        if (throwable != null) {
+                            _errorEvent.postValue(new Event<>("Failed to load user data: " + throwable.getMessage()));
+                        } else {
+                            _user.postValue(user);
+                        }
+                    });
         } else {
             _errorEvent.postValue(new Event<>("No authenticated user found."));
         }
@@ -77,60 +78,63 @@ public class EditProfileViewModel extends AndroidViewModel {
         }
         _isLoading.postValue(true);
 
+        // Bước 1: Chuẩn bị CompletableFuture cho URL ảnh
+        CompletableFuture<String> imageUrlFuture;
         if (newProfilePictureUri != null) {
-            // Bước 1: Tải ảnh lên Cloudinary thông qua StorageRepository
-            storageRepository.uploadProfilePicture(currentUserId, newProfilePictureUri, new Callback<String>() {
-                @Override
-                public void onSuccess(String imageUrl) {
-                    // Bước 2: Sau khi có URL từ Cloudinary, cập nhật Firestore
-                    updateUserDocument(newDisplayName, newBio, newPhoneNumber, imageUrl);
-                }
-
-                @Override
-                public void onFailure(@NonNull Exception e) {
-                    _isLoading.postValue(false);
-                    _errorEvent.postValue(new Event<>("Failed to upload new profile picture: " + e.getMessage()));
-                }
-            });
+            // Nếu có ảnh mới, tạo Future để tải ảnh lên
+            imageUrlFuture = uploadProfilePictureAsync(currentUserId, newProfilePictureUri);
         } else {
-            // Trường hợp không đổi ảnh: Cập nhật Firestore với URL cũ
-            updateUserDocument(newDisplayName, newBio, newPhoneNumber, _user.getValue().getProfilePictureUrl());
+            // Nếu không, dùng URL cũ và bọc trong một Future đã hoàn thành
+            imageUrlFuture = CompletableFuture.completedFuture(_user.getValue().getProfilePictureUrl());
         }
+
+        // Bước 2: Xâu chuỗi việc cập nhật Firestore sau khi có URL ảnh
+        imageUrlFuture.thenCompose(imageUrl -> {
+            // Bước 3: Cập nhật tài liệu người dùng
+            return updateUserDocument(newDisplayName, newBio, newPhoneNumber, imageUrl);
+        }).whenComplete((aVoid, throwable) -> {
+            _isLoading.postValue(false);
+            if (throwable != null) {
+                _errorEvent.postValue(new Event<>("Failed to save profile: " + throwable.getMessage()));
+            } else {
+                _saveSuccessEvent.postValue(new Event<>(true));
+                loadCurrentUser(); // Tải lại dữ liệu mới
+            }
+        });
     }
 
-    private void updateUserDocument(String displayName, String bio, String phoneNumber, String profilePictureUrl) {
-        // Lấy đối tượng User hiện tại để không làm mất các thông tin khác trong contactInfo (nếu có)
-        User currentUserData = _user.getValue();
-        if (currentUserData == null) return; // Kiểm tra an toàn
+    private CompletableFuture<String> uploadProfilePictureAsync(String userId, Uri imageUri) {
+        CompletableFuture<String> future = new CompletableFuture<>();
+        storageRepository.uploadProfilePicture(userId, imageUri, new Callback<String>() {
+            @Override
+            public void onSuccess(String data) {
+                future.complete(data);
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                future.completeExceptionally(e);
+            }
+        });
+        return future;
+    }
 
-        // Tạo hoặc cập nhật đối tượng ContactInfo
-        ContactInfo contactInfo = currentUserData.getContactInfo();
-        if (contactInfo == null) {
-            contactInfo = new ContactInfo();
+    private CompletableFuture<Void> updateUserDocument(String displayName, String bio, String phoneNumber, String profilePictureUrl) {
+        User currentUserData = _user.getValue();
+        if (currentUserData == null) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                return CompletableFuture.failedFuture(new IllegalStateException("User data not available."));
+            }
         }
+
+        ContactInfo contactInfo = currentUserData.getContactInfo() != null ? currentUserData.getContactInfo() : new ContactInfo();
         contactInfo.setPhone(phoneNumber);
-        // Nếu có các trường khác như zalo, facebook, chúng sẽ được giữ nguyên
 
         Map<String, Object> updates = new HashMap<>();
         updates.put("displayName", displayName);
         updates.put("bio", bio);
         updates.put("profilePictureUrl", profilePictureUrl);
-        updates.put("contactInfo", contactInfo); // << SỬA Ở ĐÂY: Cập nhật cả object
+        updates.put("contactInfo", contactInfo);
 
-        userRepository.updateUserProfile(currentUserId, updates, new Callback<Void>() {
-            @Override
-            public void onSuccess(Void result) {
-                _isLoading.postValue(false);
-                _saveSuccessEvent.postValue(new Event<>(true));
-                // Tùy chọn: Tải lại dữ liệu người dùng sau khi cập nhật thành công
-                loadCurrentUser();
-            }
-
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                _isLoading.postValue(false);
-                _errorEvent.postValue(new Event<>("Failed to save profile: " + e.getMessage()));
-            }
-        });
+        return userRepository.updateUserProfile(currentUserId, updates);
     }
 }

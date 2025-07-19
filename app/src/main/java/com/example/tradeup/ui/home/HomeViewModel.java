@@ -91,29 +91,29 @@ public class HomeViewModel extends ViewModel {
     }
 
     private void loadCurrentUserInfo(String userId) {
-        userRepository.getUserProfile(userId, new Callback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                currentUserData = user;
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Failed to load current user profile", e);
-                // Nếu không tải được, coi như không có danh sách block
-                currentUserData = null;
-            }
-        });
+        userRepository.getUserProfile(userId)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        Log.e(TAG, "Failed to load current user profile", throwable);
+                        currentUserData = null;
+                    } else {
+                        currentUserData = user;
+                    }
+                });
     }
 
     public void refreshData() {
+
         if (!NetworkUtils.isNetworkAvailable(appContext)) {
-            _state.postValue(new HomeState.Error("No internet connection. Please check your network."));
-            return;
+            _state.postValue(new HomeState.Error("No internet connection. Please try again."));
+            return; // Dừng lại ngay lập tức
         }
+
         if (isRequestInProgress) {
             Log.d(TAG, "Refresh request ignored: A request is already in progress.");
             return;
         }
+
         isRequestInProgress = true;
         _state.postValue(new HomeState.Loading());
         lastVisibleItemId = null;

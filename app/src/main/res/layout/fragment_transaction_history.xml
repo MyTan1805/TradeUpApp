@@ -4,6 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:background="?android:attr/windowBackground"
     tools:context=".ui.profile.TransactionHistoryFragment">
 
@@ -80,12 +81,56 @@
     </com.google.android.material.appbar.AppBarLayout>
 
     <!-- === DANH SÁCH GIAO DỊCH === -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerViewTransactions"
+    <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-        tools:listitem="@layout/item_transaction" />
+        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+
+        <!-- DANH SÁCH GIAO DỊCH (GIỮ NGUYÊN) -->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerViewTransactions"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+            tools:listitem="@layout/item_transaction" />
+
+        <!-- THÊM PROGRESSBAR Ở ĐÂY -->
+        <ProgressBar
+            android:id="@+id/progressBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:visibility="gone"
+            tools:visibility="visible"/>
+
+        <!-- THÊM EMPTY STATE VIEW Ở ĐÂY -->
+        <LinearLayout
+            android:id="@+id/layoutEmptyState"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="center"
+            android:visibility="gone"
+            android:layout_gravity="center"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:src="@drawable/ic_receipt_long"
+                app:tint="?android:attr/textColorHint"
+                android:contentDescription="No transactions"/>
+
+            <TextView
+                android:id="@+id/textViewEmptyMessage"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="No transactions yet"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textColor="?android:attr/textColorSecondary"/>
+        </LinearLayout>
+
+    </FrameLayout>
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

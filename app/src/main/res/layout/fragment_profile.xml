@@ -194,6 +194,8 @@
             app:icon="@drawable/ic_bookmark_border"
             app:iconPadding="8dp"
             app:iconSize="20dp"/>
+
+
     </LinearLayout>
 
     <com.google.android.material.tabs.TabLayout

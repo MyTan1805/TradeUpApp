@@ -119,21 +119,18 @@ public class ProfileViewModel extends ViewModel {
     }
 
     private void loadUserProfile(String userId) {
-        userRepository.getUserProfile(userId, new Callback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                if (user != null) {
-                    loadedUser = user;
-                    combineAndPostState();
-                } else {
-                    _headerState.postValue(new ProfileHeaderState.Error("User profile not found."));
-                }
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                _headerState.postValue(new ProfileHeaderState.Error("Error loading profile: " + e.getMessage()));
-            }
-        });
+        // *** SỬA Ở ĐÂY: Chuyển sang dùng CompletableFuture ***
+        userRepository.getUserProfile(userId)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        _headerState.postValue(new ProfileHeaderState.Error("Error loading profile: " + throwable.getMessage()));
+                    } else if (user != null) {
+                        loadedUser = user;
+                        combineAndPostState();
+                    } else {
+                        _headerState.postValue(new ProfileHeaderState.Error("User profile not found."));
+                    }
+                });
     }
 
     private void loadUserListings(String userId) {

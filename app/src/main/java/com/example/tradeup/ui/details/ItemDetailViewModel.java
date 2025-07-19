@@ -234,15 +234,16 @@ public class ItemDetailViewModel extends ViewModel {
     }
 
     private void loadSellerProfile(String sellerId) {
-        userRepository.getUserProfile(sellerId, new Callback<User>() {
-            @Override
-            public void onSuccess(User user) {
-                if (user != null) { _seller.postValue(user); }
-                else { _viewState.postValue(new ItemDetailViewState.Error("Không tìm thấy thông tin người bán.")); }
-            }
-            @Override
-            public void onFailure(@NonNull Exception e) { _viewState.postValue(new ItemDetailViewState.Error("Lỗi tải thông tin người bán: " + e.getMessage())); }
-        });
+        userRepository.getUserProfile(sellerId)
+                .whenComplete((user, throwable) -> {
+                    if (throwable != null) {
+                        _viewState.postValue(new ItemDetailViewState.Error("Lỗi tải thông tin người bán: " + throwable.getMessage()));
+                    } else if (user != null) {
+                        _seller.postValue(user);
+                    } else {
+                        _viewState.postValue(new ItemDetailViewState.Error("Không tìm thấy thông tin người bán."));
+                    }
+                });
     }
 
     private void loadAppConfigFromRepo() {

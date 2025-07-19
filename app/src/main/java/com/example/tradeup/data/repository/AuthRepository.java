@@ -1,25 +1,24 @@
+// File: src/main/java/com/example/tradeup/data/repository/AuthRepository.java
 package com.example.tradeup.data.repository;
 
-import androidx.annotation.NonNull; // Để chỉ rõ tham số không được null
-import com.example.tradeup.core.utils.Callback; // Import Callback
+import androidx.annotation.NonNull;
 import com.google.firebase.auth.FirebaseUser;
-import com.google.android.gms.tasks.Task; // Import Task
-import com.google.firebase.auth.AuthResult; // Import AuthResult
+import java.util.concurrent.CompletableFuture;
 
 public interface AuthRepository {
-    FirebaseUser getCurrentUser(); // Đồng bộ, trả về trực tiếp
+    FirebaseUser getCurrentUser();
 
-    void registerUser(String email, String password, Callback<FirebaseUser> callback); // Thay Result bằng Callback
+    CompletableFuture<FirebaseUser> registerUser(String email, String password);
 
-    void loginUser(String email, String password, Callback<FirebaseUser> callback); // Thay Result bằng Callback
+    CompletableFuture<FirebaseUser> loginUser(String email, String password);
 
-    void logoutUser(); // Đồng bộ
+    void logoutUser();
 
-    void loginWithGoogle(String idToken, Callback<FirebaseUser> callback);
+    CompletableFuture<FirebaseUser> loginWithGoogle(String idToken);
 
-    void sendPasswordResetEmail(String email, Callback<Void> callback); // Thay Result bằng Callback
+    CompletableFuture<Void> sendPasswordResetEmail(String email);
 
-    void sendEmailVerification(@NonNull FirebaseUser user, Callback<Void> callback); // Thay Result bằng Callback
+    CompletableFuture<Void> sendEmailVerification(@NonNull FirebaseUser user);
 
-    void reauthenticateAndDeleteCurrentUser(String password, Callback<Void> callback);
+    CompletableFuture<Void> reauthenticateAndDeleteCurrentUser(String password);
 }

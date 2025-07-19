@@ -44,22 +44,27 @@ public class ReceivedOffersFragment extends Fragment implements OfferAdapter.OnO
     }
 
     private void setupRecyclerView() {
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser() != null
-                ? FirebaseAuth.getInstance().getCurrentUser().getUid()
-                : "";
+        String currentUserId = "";
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
 
-        adapter = new OfferAdapter(currentUserId, this, requireContext());
+        // Khởi tạo adapter mới, không cần context
+        adapter = new OfferAdapter(currentUserId, this);
 
         binding.recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerView.setAdapter(adapter);
     }
+
     private void observeViewModel() {
-        viewModel.getReceivedOffers().observe(getViewLifecycleOwner(), offers -> {
-            adapter.submitList(offers != null ? offers : Collections.emptyList());
-            binding.textViewEmpty.setVisibility(offers == null || offers.isEmpty() ? View.VISIBLE : View.GONE);
+        // Lắng nghe LiveData chứa OfferViewData
+        viewModel.getReceivedOffers().observe(getViewLifecycleOwner(), offersData -> {
+            adapter.submitList(offersData != null ? offersData : Collections.emptyList());
+            binding.textViewEmpty.setVisibility(offersData == null || offersData.isEmpty() ? View.VISIBLE : View.GONE);
             binding.textViewEmpty.setText("You have no received offers.");
         });
 
+        // Các observer khác giữ nguyên
         viewModel.getOpenCounterOfferDialogEvent().observe(getViewLifecycleOwner(), event -> {
             Offer offerToCounter = event.getContentIfNotHandled();
             if (offerToCounter != null && isAdded()) {
@@ -80,24 +85,30 @@ public class ReceivedOffersFragment extends Fragment implements OfferAdapter.OnO
         });
     }
 
+    // Cập nhật các hàm listener để dùng OfferViewData
     @Override
-    public void onAcceptClick(Offer offer) {
-        viewModel.accept(offer);
+    public void onAcceptClick(OfferViewData data) {
+        viewModel.accept(data.offer);
     }
 
     @Override
-    public void onRejectClick(Offer offer) {
-        viewModel.reject(offer);
+    public void onRejectClick(OfferViewData data) {
+        viewModel.reject(data.offer);
     }
 
     @Override
-    public void onCounterClick(Offer offer) {
-        viewModel.counter(offer);
+    public void onCounterClick(OfferViewData data) {
+        viewModel.counter(data.offer);
     }
 
     @Override
-    public void onItemClick(Offer offer) {
-        Toast.makeText(getContext(), "Clicked on item: " + offer.getItemId(), Toast.LENGTH_SHORT).show();
+    public void onItemClick(OfferViewData data) {
+        if(data.relatedItem != null) {
+            Toast.makeText(getContext(), "Clicked on item: " + data.relatedItem.getTitle(), Toast.LENGTH_SHORT).show();
+            // TODO: Thêm logic điều hướng đến chi tiết sản phẩm
+        } else {
+            Toast.makeText(getContext(), "This item is no longer available.", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override

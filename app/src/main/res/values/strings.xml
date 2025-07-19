@@ -1,136 +1,317 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <!-- ===================================================================== -->
+    <!-- === 1. GENERAL & CONFIGURATION STRINGS ============================== -->
+    <!-- ===================================================================== -->
     <string name="app_name">TradeUp</string>
-
-    <string name="cloudinary_cloud_name">your_cloud_name</string>
-    <string name="nominatim_user_agent">TradeUp/1.0 (your.email@example.com)</string>
-
     <string name="default_web_client_id" translatable="false">960286397695-4l5a86tu0o77gpgvn4hhdpvquefl84du.apps.googleusercontent.com</string>
+    <string name="cloudinary_cloud_name" translatable="false">your_cloud_name</string>
+    <string name="nominatim_user_agent" translatable="false">TradeUp/1.0 (your.email@example.com)</string>
 
-    <string name="dddd">Button</string>
-    <string name="logo_ng_d_ng">Logo ứng dụng</string>
-    <string name="nh_p_t_n_ng_nh_p">Nhập tên đăng nhập</string>
-    <string name="nh_p_m_t_kh_u">Nhập mật khẩu</string>
-    <string name="ng_nh_p_b_ng_google">Đăng nhập bằng Google</string>
-    <string name="nh_p_a_ch_email">Nhập địa chỉ email</string>
-    <string name="nh_p_s_i_n_tho_i">Nhập số điện thoại</string>
-    <string name="nh_p_l_i_m_t_kh_u">Nhập lại mật khẩu</string>
-    <!-- TODO: Remove or change this placeholder text -->
+    <!-- Common Actions & Labels -->
+    <string name="label_or_register_with">Or register with</string>
+    <string name="label_or_login_with">Or login with</string>
+    <string name="action_cancel">Cancel</string>
+    <string name="action_delete">Delete</string>
+    <string name="action_save_changes">Save Changes</string>
+    <string name="action_submit">Submit</string>
+    <string name="action_retry">Try Again</string>
+    <string name="action_skip">Skip</string>
+    <string name="action_edit">Edit</string>
+    <string name="action_sort">Sort</string>
+    <string name="action_filter">Filter</string>
+    <string name="action_share">Share</string>
+    <string name="action_report">Report</string>
+    <string name="action_search">Search</string>
+    <string name="label_loading">Loading…</string>
+    <string name="placeholder_todo">TODO</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
 
-    // Lỗi
-    <string name="error_ten_hien_thi_trong">Tên hiển thị không được để trống</string>
-    <string name="error_email_trong">Email không được để trống</string>
-    <string name="error_email_khong_hop_le">Email không hợp lệ</string>
-    <string name="error_sdt_trong">Số điện thoại không được để trống</string>
-    <string name="error_sdt_khong_hop_le">Số điện thoại không hợp lệ</string>
-    <string name="error_mat_khau_trong">Mật khẩu không được để trống</string>
-    <string name="error_mat_khau_qua_ngan">Mật khẩu phải có ít nhất 6 ký tự</string>
-    <string name="error_nhap_lai_mat_khau_trong">Vui lòng nhập lại mật khẩu</string>
-    <string name="error_mat_khau_khong_khop">Mật khẩu không khớp</string>
+    <!-- ===================================================================== -->
+    <!-- === 2. AUTHENTICATION FLOW ========================================== -->
+    <!-- ===================================================================== -->
+    <!-- Common -->
+    <string name="auth_logo_content_desc">Application Logo</string>
 
-    //Login
-    <string name="dang_nhap">Đăng nhập</string>
-    <string name="ghi_nho_dang_nhap">Ghi nhớ đăng nhập</string>
-    <string name="quen_mat_khau">Quên mật khẩu?</string>
-    <string name="hoac_dang_nhap_voi">Hoặc đăng nhập với</string>
-    <string name="chua_co_tai_khoan">Chưa có tài khoản?</string>
-    <string name="dang_ky">Đăng ký</string>
+    <!-- Login Screen -->
+    <string name="login_title">Login</string> <!-- dang_nhap -->
+    <string name="login_email_hint">Enter your email</string> <!-- nhap_a_ch_email -->
+    <string name="login_password_hint">Enter your password</string> <!-- nhap_m_t_kh_u -->
+    <string name="login_remember_me">Remember me</string> <!-- ghi_nho_dang_nhap -->
+    <string name="login_forgot_password">Forgot Password?</string> <!-- quen_mat_khau -->
+    <string name="login_no_account">Don\'t have an account?</string> <!-- chua_co_tai_khoan -->
+    <string name="login_register_now">Register</string> <!-- dang_ky -->
+    <string name="login_with_google">Login with Google</string> <!-- ng_nh_p_b_ng_google -->
 
-    // Quên mật khẩu
-    <string name="quen_mat_khau_title">Quên Mật Khẩu</string>
-    <string name="nhap_email_de_dat_lai_mat_khau">Nhập email của bạn để đặt lại mật khẩu</string>
-    <string name="gui_email_dat_lai">Gửi Email Đặt Lại</string>
-    <string name="nho_mat_khau_quay_lai_dang_nhap">Nhớ mật khẩu? Quay lại đăng nhập</string>
-    <string name="email_dat_lai_da_duoc_gui">Email hướng dẫn đặt lại mật khẩu đã được gửi. Vui lòng kiểm tra hộp thư của bạn.</string>
-    <string name="loi_gui_email_dat_lai">Lỗi khi gửi email đặt lại mật khẩu. Vui lòng thử lại.</string>
-    <string name="email_khong_ton_tai">Địa chỉ email này không tồn tại trong hệ thống.</string>
+    <!-- Register Screen -->
+    <string name="register_title">Register</string> <!-- dang_ky -->
+    <string name="register_display_name_hint">Enter your display name</string> <!-- nhap_t_n_ng_nh_p -->
+    <string name="register_email_hint">Enter your email address</string> <!-- nhap_a_ch_email -->
+    <string name="register_phone_hint">Enter your phone number</string> <!-- nhap_s_i_n_tho_i -->
+    <string name="register_password_hint">Enter a password</string> <!-- nhap_m_t_kh_u -->
+    <string name="register_confirm_password_hint">Confirm your password</string> <!-- nhap_l_i_m_t_kh_u -->
+    <string name="register_has_account">Already have an account?</string> <!-- Đã có tài khoản? -->
+    <string name="register_login_now">Login</string> <!-- Đăng nhập -->
 
-    // user profile
-    <string name="ho_so_cua_toi">Hồ Sơ Của Tôi</string>
-    <string name="cai_dat">Cài đặt</string>
-    <string name="chinh_sua_ho_so">Chỉnh sửa hồ sơ</string>
-    <string name="danh_gia">Đánh giá</string>
-    <string name="giao_dich">Giao dịch</string>
-    <string name="san_pham_dang">Sản phẩm</string> <!-- Hoặc "Đã đăng" -->
-    <string name="thong_tin_lien_he">Thông Tin Liên Hệ</string>
-    <string name="san_pham_cua_toi">Sản Phẩm Của Tôi</string>
-    <string name="lich_su_giao_dich">Lịch Sử Giao Dịch</string>
-    <string name="san_pham_da_luu">Sản Phẩm Đã Lưu</string>
-    <string name="anh_dai_dien">Ảnh đại diện</string>
-    <string name="nhan_tin">Nhắn tin</string>
-    <string name="san_pham_dang_ban">Sản phẩm đang bán</string>
-    <string name="hinh_anh_san_pham">Hình ảnh sản phẩm</string>
+    <!-- Forgot Password Screen -->
+    <string name="forgot_password_title">Forgot Password</string> <!-- quen_mat_khau_title -->
+    <string name="forgot_password_instruction">Enter your email to reset your password</string> <!-- nhap_email_de_dat_lai_mat_khau -->
+    <string name="forgot_password_send_email">Send Reset Email</string> <!-- gui_email_dat_lai -->
+    <string name="forgot_password_back_to_login">Remember password? Back to Login</string> <!-- nho_mat_khau_quay_lai_dang_nhap -->
+    <string name="forgot_password_success_title">Check your inbox</string> <!-- kiem_tra_hop_thu_cua_ban -->
+    <string name="forgot_password_success_action">Back to Login</string> <!-- quay_lai_dang_nhap -->
 
-    // edit profile
-    <string name="chinh_sua_ho_so_title">Chỉnh Sửa Hồ Sơ</string>
-    <string name="anh_dai_dien_co_the_thay_doi">Ảnh đại diện (có thể thay đổi)</string>
-    <string name="thay_doi_anh_dai_dien">Thay đổi ảnh đại diện</string>
-    <string name="ten_hien_thi">Tên hiển thị</string>
-    <string name="tieu_su">Tiểu sử</string>
-    <string name="thong_tin_lien_he_chinh_sua">Thông tin liên hệ</string>
-    <string name="so_dien_thoai">Số điện thoại</string>
-    <string name="zalo_lien_ket_hoac_sdt">Zalo (Liên kết hoặc SĐT)</string>
-    <string name="facebook_link_profile">Facebook (Link Profile)</string>
-    <string name="huy_bo">Hủy</string>
-    <string name="luu_thay_doi">Lưu Thay Đổi</string>
-    <string name="cap_nhat_thanh_cong">Cập nhật hồ sơ thành công!</string>
-    <string name="loi_cap_nhat_ho_so">Lỗi khi cập nhật hồ sơ. Vui lòng thử lại.</string>
-    <string name="vui_long_chon_anh">Vui lòng chọn ảnh</string>
-    <string name="loi_tai_anh">Lỗi khi tải ảnh lên</string>
-    <string name="app_name_or_home_title">TradeUp</string>
-    <string name="tat_ca_danh_muc">Tất cả danh mục</string>
-    <string name="sap_xep">Sắp xếp</string>
-    <string name="loc">Lọc</string>
-    <string name="tim_kiem">Tìm Kiếm</string>
-    <string name="khong_co_san_pham">"Không có sản phẩm "</string>
-    <string name="khong_tim_thay_san_pham_phu_hop">Không tìm thấy sản phẩm phù hợp</string>
-    <string name="thu_lai">Thử lại</string>
+    <!-- Validation Errors -->
+    <string name="error_display_name_empty">Display name cannot be empty</string> <!-- error_ten_hien_thi_trong -->
+    <string name="error_email_empty">Email cannot be empty</string> <!-- error_email_trong -->
+    <string name="error_email_invalid">Invalid email format</string> <!-- error_email_khong_hop_le -->
+    <string name="error_phone_empty">Phone number cannot be empty</string> <!-- error_sdt_trong -->
+    <string name="error_phone_invalid">Invalid phone number</string> <!-- error_sdt_khong_hop_le -->
+    <string name="error_password_empty">Password cannot be empty</string> <!-- error_mat_khau_trong -->
+    <string name="error_password_too_short">Password must be at least 6 characters</string> <!-- error_mat_khau_qua_ngan -->
+    <string name="error_password_confirm_empty">Please confirm your password</string> <!-- error_nhap_lai_mat_khau_trong -->
+    <string name="error_password_mismatch">Passwords do not match</string> <!-- error_mat_khau_khong_khop -->
 
-    <string name="bottom_nav_home">Trang chủ</string>
-    <string name="bottom_nav_messages">Tin nhắn</string>
-    <string name="bottom_nav_post_item">Đăng tin</string>
-    <string name="bottom_nav_notifications">Thông báo</string>
-    <string name="bottom_nav_profile">Hồ sơ</string>
-    <string name="bottom_nav_add_item">Đăng tin mới</string>
-
-    <string name="san_pham_cua_prefix">Sản phẩm\n</string>
-
-    <string name="messages_header">Tin nhắn</string>
-    <string name="sync_header">Đồng bộ</string>
-
-    <!-- Messages Preferences -->
-    <string name="signature_title">Chữ ký của bạn</string>
-    <string name="reply_title">Hành động trả lời mặc định</string>
-
-    <!-- Sync Preferences -->
-    <string name="sync_title">Đồng bộ email định kỳ</string>
-    <string name="attachment_title">Tải xuống tệp đính kèm</string>
-    <string name="attachment_summary_on">Tự động tải xuống các tệp đính kèm cho thư đến</string>
-    <string name="attachment_summary_off">Chỉ tải xuống các tệp đính kèm khi có yêu cầu</string>
-
-    <string name="khong_co_san_pham_nao">Không có sản phẩm nào</string>
-    <string name="featured_items">featured items</string>
-    <string name="recent_listings">recent listings</string>
-    <string name="search_items_hint">search items hint</string>
-    <string name="luu_san_pham">"Lưu sản phẩm "</string>
-    <string name="todo">TODO</string>
-    <string name="xoa_anh">Xóa ảnh</string>
-    <string name="bo_luu_san_pham">bỏ lưu sản phẩm</string>
-
-    <string name="kiem_tra_hop_thu_cua_ban">Kiểm tra hộp thư của bạn</string>
-    <string name="quay_lai_dang_nhap">Quay lại Đăng nhập</string>
-    <string name="product_image">product_image</string>
+    <!-- Auth Toasts -->
+    <string name="toast_register_success">Registration successful! Please check your email to verify your account.</string>
+    <string name="toast_reset_email_sent">Password reset email has been sent. Please check your inbox.</string> <!-- email_dat_lai_da_duoc_gui -->
+    <string name="toast_reset_email_fail">Error sending reset email. Please try again.</string> <!-- loi_gui_email_dat_lai -->
+    <string name="toast_email_not_found">This email address does not exist in our system.</string> <!-- email_khong_ton_tai -->
 
 
-    <!-- Reply Entries & Values for ListPreference -->
-    <string-array name="reply_entries">
-        <item>Trả lời</item>
-        <item>Trả lời tất cả</item>
-    </string-array>
+    <!-- ===================================================================== -->
+    <!-- === 3. BOTTOM NAVIGATION ============================================ -->
+    <!-- ===================================================================== -->
+    <string name="bottom_nav_home">Home</string> <!-- bottom_nav_home -->
+    <string name="bottom_nav_messages">Messages</string> <!-- bottom_nav_messages -->
+    <string name="bottom_nav_post_item">Post</string> <!-- bottom_nav_post_item -->
+    <string name="bottom_nav_notifications">Notifications</string> <!-- bottom_nav_notifications -->
+    <string name="bottom_nav_profile">Profile</string> <!-- bottom_nav_profile -->
 
-    <string-array name="reply_values">
-        <item>reply</item>
-        <item>reply_all</item>
-    </string-array>
+
+    <!-- ===================================================================== -->
+    <!-- === 4. HOME SCREEN ================================================== -->
+    <!-- ===================================================================== -->
+    <string name="home_search_hint">Search for products, brands…</string> <!-- search_items_hint -->
+    <string name="home_featured_items">Featured Items</string> <!-- featured_items -->
+    <string name="home_recent_listings">Recent Listings</string> <!-- recent_listings -->
+    <string name="home_empty_title">No Products Found</string> <!-- khong_co_san_pham_nao -->
+    <string name="home_empty_message">There are no products matching your criteria.</string> <!-- khong_tim_thay_san_pham_phu_hop -->
+
+
+    <!-- ===================================================================== -->
+    <!-- === 5. LISTING & ITEM DETAILS ======================================= -->
+    <!-- ===================================================================== -->
+    <!-- Add/Edit Item -->
+    <string name="add_item_title">New Listing</string> <!-- bottom_nav_add_item -->
+    <string name="edit_item_title">Edit Listing</string>
+    <string name="add_item_photos">Photos</string>
+    <string name="add_item_field_title">Title</string>
+    <string name="add_item_field_title_hint">What are you selling?</string>
+    <string name="add_item_field_price">Price</string>
+    <string name="add_item_field_price_hint">0.00</string>
+    <string name="add_item_field_category">Category</string>
+    <string name="add_item_field_category_select">Select category</string>
+    <string name="add_item_field_condition">Condition</string>
+    <string name="add_item_field_condition_select">Select condition</string>
+    <string name="add_item_field_trading_method">Trading Method</string>
+    <string name="add_item_field_trading_method_select">Select method</string>
+    <string name="add_item_field_location">Location</string>
+    <string name="add_item_field_location_current">Current Location</string>
+    <string name="add_item_field_location_change">Change</string>
+    <string name="add_item_field_description">Description</string>
+    <string name="add_item_field_description_hint">Describe your item in detail…</string>
+    <string name="add_item_field_tags">Tags (Select up to 5)</string>
+    <string name="add_item_tags_instruction">Please select a category first to see suggested tags.</string>
+    <string name="add_item_post_button">Post Listing</string>
+    <string name="add_item_draft_button">Draft</string>
+
+    <!-- Item Details -->
+    <string name="item_detail_title">Item Details</string>
+    <string name="item_detail_description">Description</string>
+    <string name="item_detail_details">Details</string>
+    <string name="item_detail_brand">Brand</string>
+    <string name="item_detail_material">Material</string>
+    <string name="item_detail_color">Color</string>
+    <string name="item_detail_dimensions">Dimensions</string>
+    <string name="item_detail_message_seller">Message Seller</string> <!-- nhan_tin -->
+    <string name="item_detail_make_offer">Make Offer</string>
+
+    <!-- Content Descriptions for Images -->
+    <string name="content_desc_product_image">Product image</string> <!-- hinh_anh_san_pham -->
+    <string name="content_desc_remove_image">Remove image</string> <!-- xoa_anh -->
+    <string name="content_desc_save_item">Save item</string> <!-- luu_san_pham -->
+    <string name="content_desc_unsave_item">Unsave item</string> <!-- bo_luu_san_pham -->
+
+
+    <!-- ===================================================================== -->
+    <!-- === 6. PROFILE & RELATED SCREENS ==================================== -->
+    <!-- ===================================================================== -->
+    <!-- Profile Screen -->
+    <string name="profile_title">My Profile</string> <!-- ho_so_cua_toi -->
+    <string name="profile_edit_button">Edit Profile</string> <!-- chinh_sua_ho_so -->
+    <string name="profile_settings_button">Settings</string> <!-- cai_dat -->
+    <string name="profile_stat_listings">Active Listings</string>
+    <string name="profile_stat_sold">Items Sold</string>
+    <string name="profile_stat_followers">Followers</string>
+    <string name="profile_stat_reviews">Reviews</string> <!-- danh_gia -->
+    <string name="profile_stat_transactions">Transactions</string> <!-- giao_dich -->
+    <string name="profile_my_offers">My Offers</string>
+    <string name="profile_my_transactions">History</string> <!-- lich_su_giao_dich -->
+    <string name="profile_saved_items">Saved Items</string> <!-- san_pham_da_luu -->
+    <string name="profile_tab_listings">Listings</string> <!-- san_pham_dang -->
+    <string name="profile_tab_sold">Sold</string>
+    <string name="profile_tab_reviews">Reviews</string>
+
+    <!-- Edit Profile Screen -->
+    <string name="edit_profile_title">Edit Profile</string> <!-- chinh_sua_ho_so_title -->
+    <string name="edit_profile_change_avatar">Change Profile Picture</string> <!-- thay_doi_anh_dai_dien -->
+    <string name="edit_profile_display_name">Display Name</string> <!-- ten_hien_thi -->
+    <string name="edit_profile_bio">Bio</string> <!-- tieu_su -->
+    <string name="edit_profile_phone">Phone Number</string> <!-- so_dien_thoai -->
+
+    <!-- Public Profile Screen -->
+    <string name="public_profile_title">Seller Profile</string>
+    <string name="public_profile_message_button">Message %s</string> <!-- Format: Message Sarah -->
+    <string name="public_profile_follow_button">Follow</string>
+    <string name="public_profile_stat_member_since">Member Since</string>
+    <string name="public_profile_active_listings_title">Active Listings (%d)</string>
+
+    <!-- My Listings Screen -->
+    <string name="my_listings_title">My Listings</string> <!-- san_pham_cua_toi -->
+    <string name="my_listings_tab_active">Active</string>
+    <string name="my_listings_tab_sold">Sold</string>
+    <string name="my_listings_tab_paused">Paused</string>
+    <string name="my_listings_empty_active">You have no active listings.</string>
+    <string name="my_listings_empty_sold">You have no sold listings yet.</string>
+    <string name="my_listings_empty_paused">You have no paused listings.</string>
+
+    <!-- Saved Items Screen -->
+    <string name="saved_items_title">Saved Items</string>
+
+    <!-- Transaction History Screen -->
+    <string name="transaction_history_title">Transaction History</string>
+    <string name="transaction_filter_all">All</string>
+    <string name="transaction_filter_purchases">Purchases</string>
+    <string name="transaction_filter_sales">Sales</string>
+    <string name="transaction_partner_sold_by">Sold by: %s</string>
+    <string name="transaction_partner_bought_by">Bought by: %s</string>
+
+
+    <!-- ===================================================================== -->
+    <!-- === 7. OFFERS & TRANSACTIONS ======================================== -->
+    <!-- ===================================================================== -->
+    <!-- Offers Screen -->
+    <string name="offers_title">Offers</string>
+    <string name="offers_tab_received">Received</string>
+    <string name="offers_tab_sent">Sent</string>
+    <string name="offers_empty_received">You have no received offers.</string>
+    <string name="offers_empty_sent">You haven\'t sent any offers.</string>
+
+    <!-- Make Offer Dialog -->
+    <string name="make_offer_dialog_title">Make an Offer</string>
+    <string name="make_offer_original_price">Original price: %s</string>
+    <string name="make_offer_your_offer">Your Offer</string>
+    <string name="make_offer_amount_hint">Enter amount</string>
+    <string name="make_offer_message_label">Message to Seller (Optional)</string>
+    <string name="make_offer_message_hint">Write a short message…</string>
+    <string name="make_offer_info">The seller will respond to your offer within 24 hours.</string>
+    <string name="make_offer_send_button">Send Offer</string>
+
+    <!-- Counter Offer Dialog -->
+    <string name="counter_offer_dialog_title">Make a Counter Offer</string>
+    <string name="counter_offer_price_hint">New Price</string>
+    <string name="counter_offer_message_hint">Message to buyer (Optional)</string>
+    <string name="counter_offer_send_button">Send Counter Offer</string>
+
+    <!-- Payment Selection Dialog -->
+    <string name="payment_select_title">Select Payment Method</string>
+    <string name="payment_cod">Cash on Delivery (COD)</string>
+    <string name="payment_online">Online Payment</string>
+    <string name="payment_delivery_address_hint">Delivery Address</string>
+    <string name="payment_confirm_button">Confirm Selection</string>
+
+
+    <!-- ===================================================================== -->
+    <!-- === 8. MESSAGES & NOTIFICATIONS ===================================== -->
+    <!-- ===================================================================== -->
+    <!-- Messages Screen -->
+    <string name="messages_title">Messages</string>
+    <string name="messages_search_hint">Search by username or item</string>
+    <string name="messages_empty_state">No conversations yet</string>
+
+    <!-- Chat Detail Screen -->
+    <string name="chat_detail_message_hint">Type a message…</string>
+    <string name="chat_detail_menu_view_profile">View Profile</string>
+    <string name="chat_detail_menu_block_user">Block User</string>
+    <string name="chat_detail_menu_report">Report Conversation</string>
+
+    <!-- Notifications Screen -->
+    <string name="notifications_title">Notifications</string>
+    <string name="notifications_mark_all_read">Mark all as read</string>
+    <string name="notifications_filter_all">All</string>
+
+
+    <!-- ===================================================================== -->
+    <!-- === 9. SETTINGS & REPORTING ========================================= -->
+    <!-- ===================================================================== -->
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_header_admin">ADMINISTRATION</string>
+    <string name="settings_admin_dashboard">Admin Dashboard</string>
+    <string name="settings_header_account">ACCOUNT</string>
+    <string name="settings_edit_profile">Edit Profile</string>
+    <string name="settings_change_password">Change Password</string>
+    <string name="settings_header_notifications">NOTIFICATION PREFERENCES</string>
+    <string name="settings_pref_messages">New Messages</string>
+    <string name="settings_pref_offers">Offers</string>
+    <string name="settings_header_management">ACCOUNT MANAGEMENT</string>
+    <string name="settings_deactivate_account">Deactivate Account</string>
+    <string name="settings_delete_account">Delete Account</string>
+    <string name="settings_header_support">SUPPORT</string>
+    <string name="settings_help">Help &amp; Support</string>
+    <string name="settings_about">About TradeUp</string>
+    <string name="settings_logout">Log Out</string>
+    <string name="settings_app_version">v1.0.0</string> <!-- Ví dụ -->
+
+    <!-- Report Dialog -->
+    <string name="report_dialog_title">Report Content</string>
+    <string name="report_dialog_reporting_listing">You are reporting this listing:</string>
+    <string name="report_dialog_reporting_user">You are reporting this user:</string>
+    <string name="report_dialog_reporting_chat">You are reporting this conversation:</string>
+    <string name="report_dialog_reason_label">Select a reason for reporting</string>
+    <string name="report_dialog_details_label">Additional Details (Optional)</string>
+    <string name="report_dialog_details_hint">Please provide any additional information…</string>
+    <string name="report_dialog_submit_button">Submit Report</string>
+
+    <!-- Submit Review Screen -->
+    <string name="review_screen_title">Rate Your Experience</string>
+    <string name="review_header">Rate your transaction with</string>
+    <string name="review_prompt">How was your experience?</string>
+    <string name="review_tap_to_rate">Tap to rate</string>
+    <string name="review_feedback_hint">Share your experience with other users (optional)</string>
+    <string name="review_submit_button">Submit Review</string>
+    <string name="review_skip_button">Skip this step</string>
+
+    <!-- Dialogs -->
+    <string name="dialog_confirm_deactivate_title">Deactivate Account</string>
+    <string name="dialog_confirm_deactivate_message">Are you sure? You can reactivate your account by logging in again.</string>
+    <string name="dialog_confirm_delete_title">Delete Account</string>
+    <string name="dialog_confirm_delete_message">This action is permanent and cannot be undone. You will need to re-enter your password to continue.</string>
+    <string name="dialog_confirm_logout_title">Log Out</string>
+    <string name="dialog_confirm_logout_message">Are you sure you want to log out?</string>
+    <string name="dialog_reauth_title">Confirm Deletion</string>
+    <string name="dialog_reauth_message">Please enter your password to confirm.</string>
+    <string name="dialog_reauth_positive_button">Delete Forever</string>
+
+    <!-- Unused or legacy strings -->
+    <!--<string name="dddd">Button</string>-->
+    <!--<string name="sync_header">Đồng bộ</string>-->
+    <!--<string name="signature_title">Chữ ký của bạn</string>-->
+    <!--<string name="reply_title">Hành động trả lời mặc định</string>-->
+    <!--<string name="sync_title">Đồng bộ email định kỳ</string>-->
+    <!--<string name="attachment_title">Tải xuống tệp đính kèm</string>-->
+    <!--<string name="attachment_summary_on">Tự động tải xuống các tệp đính kèm cho thư đến</string>-->
+    <!--<string name="attachment_summary_off">Chỉ tải xuống các tệp đính kèm khi có yêu cầu</string>-->
 
 </resources>

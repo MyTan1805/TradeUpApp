@@ -15,51 +15,28 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Chat;
-import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.ParticipantInfoDetail;
-import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.databinding.ItemChatConversationBinding;
+import com.example.tradeup.ui.messages.ChatViewData;
 import com.google.firebase.auth.FirebaseAuth;
 
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.atomic.AtomicReference;
 
-import javax.inject.Inject;
-
-import dagger.hilt.EntryPoint;
-import dagger.hilt.InstallIn;
-import dagger.hilt.android.EntryPointAccessors;
-import dagger.hilt.components.SingletonComponent;
-
-public class ChatAdapter extends ListAdapter<Chat, ChatAdapter.ChatViewHolder> {
+// *** ĐẢM BẢO Generic Type là ChatViewData ***
+public class ChatAdapter extends ListAdapter<ChatViewData, ChatAdapter.ChatViewHolder> {
 
     private final OnChatClickListener listener;
     private final String currentUserId;
-    private final ItemRepository itemRepository;
 
     public interface OnChatClickListener {
         void onChatClick(Chat chat);
-    }
-
-    // EntryPoint để lấy ItemRepository từ Hilt
-    @EntryPoint
-    @InstallIn(SingletonComponent.class)
-    public interface AdapterEntryPoint {
-        ItemRepository itemRepository();
     }
 
     public ChatAdapter(Context context, OnChatClickListener listener) {
         super(DIFF_CALLBACK);
         this.listener = listener;
         this.currentUserId = Objects.requireNonNull(FirebaseAuth.getInstance().getCurrentUser()).getUid();
-
-        // Lấy ItemRepository từ Hilt
-        AdapterEntryPoint hiltEntryPoint = EntryPointAccessors.fromApplication(
-                context.getApplicationContext(),
-                AdapterEntryPoint.class
-        );
-        this.itemRepository = hiltEntryPoint.itemRepository();
     }
 
     @NonNull
@@ -68,7 +45,8 @@ public class ChatAdapter extends ListAdapter<Chat, ChatAdapter.ChatViewHolder> {
         ItemChatConversationBinding binding = ItemChatConversationBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false
         );
-        return new ChatViewHolder(binding, listener, currentUserId, itemRepository);
+        // *** SỬA LỖI Ở ĐÂY: Truyền đúng 3 tham số ***
+        return new ChatViewHolder(binding, listener, currentUserId);
     }
 
     @Override
@@ -80,20 +58,20 @@ public class ChatAdapter extends ListAdapter<Chat, ChatAdapter.ChatViewHolder> {
         private final ItemChatConversationBinding binding;
         private final OnChatClickListener listener;
         private final String currentUserId;
-        private final ItemRepository itemRepository;
 
-        ChatViewHolder(ItemChatConversationBinding binding, OnChatClickListener listener, String currentUserId, ItemRepository itemRepository) {
+        // *** SỬA LỖI Ở ĐÂY: Constructor nhận đúng 3 tham số ***
+        ChatViewHolder(ItemChatConversationBinding binding, OnChatClickListener listener, String currentUserId) {
             super(binding.getRoot());
             this.binding = binding;
             this.listener = listener;
             this.currentUserId = currentUserId;
-            this.itemRepository = itemRepository;
         }
 
-        void bind(final Chat chat) {
+        void bind(final ChatViewData data) {
+            final Chat chat = data.chat;
+
             itemView.setOnClickListener(v -> listener.onChatClick(chat));
 
-            // Tìm thông tin của người đối diện
             String otherUserId = chat.getParticipants().stream()
                     .filter(id -> !id.equals(currentUserId))
                     .findFirst()
@@ -110,10 +88,8 @@ public class ChatAdapter extends ListAdapter<Chat, ChatAdapter.ChatViewHolder> {
                 }
             }
 
-            // Hiển thị tin nhắn cuối
             binding.textViewLastMessage.setText(chat.getLastMessageText());
 
-            // Hiển thị thời gian
             if (chat.getLastMessageTimestamp() != null) {
                 binding.textViewTimestamp.setText(
                         DateUtils.getRelativeTimeSpanString(
@@ -123,7 +99,6 @@ public class ChatAdapter extends ListAdapter<Chat, ChatAdapter.ChatViewHolder> {
                 );
             }
 
-            // === PHẦN XỬ LÝ UNREAD COUNT (ĐÃ ĐƯỢC SỬA GỌN) ===
             Map<String, Integer> unreadCountMap = chat.getUnreadCount();
             Integer unreadCount = (unreadCountMap != null) ? unreadCountMap.get(currentUserId) : null;
 
@@ -135,50 +110,32 @@ public class ChatAdapter extends ListAdapter<Chat, ChatAdapter.ChatViewHolder> {
                 binding.unreadCountBadge.setVisibility(View.GONE);
                 binding.textViewLastMessage.setTypeface(null, Typeface.NORMAL);
             }
-            // === KẾT THÚC PHẦN SỬA ===
 
-            // Hiển thị context về sản phẩm (nếu có)
-            if (chat.getRelatedItemId() != null && !chat.getRelatedItemId().isEmpty()) {
+            if (data.relatedItem != null) {
                 binding.groupItemContext.setVisibility(View.VISIBLE);
-                itemRepository.getItemById(chat.getRelatedItemId(), new com.example.tradeup.core.utils.Callback<Item>() {
-                    @Override
-                    public void onSuccess(Item item) {
-                        if (binding == null) return;
-                        if (item != null) {
-                            binding.textViewItemName.setText(item.getTitle());
-                            if (currentUserId.equals(item.getSellerId())) {
-                                binding.textViewContext.setText("selling: ");
-                            } else {
-                                binding.textViewContext.setText("buying: ");
-                            }
-                        } else {
-                            binding.groupItemContext.setVisibility(View.GONE);
-                        }
-                    }
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        if (binding != null) {
-                            binding.groupItemContext.setVisibility(View.GONE);
-                        }
-                    }
-                });
+                binding.textViewItemName.setText(data.relatedItem.getTitle());
+                if (currentUserId.equals(data.relatedItem.getSellerId())) {
+                    binding.textViewContext.setText("selling: ");
+                } else {
+                    binding.textViewContext.setText("buying: ");
+                }
             } else {
                 binding.groupItemContext.setVisibility(View.GONE);
             }
         }
     }
 
-    private static final DiffUtil.ItemCallback<Chat> DIFF_CALLBACK = new DiffUtil.ItemCallback<Chat>() {
+    private static final DiffUtil.ItemCallback<ChatViewData> DIFF_CALLBACK = new DiffUtil.ItemCallback<ChatViewData>() {
         @Override
-        public boolean areItemsTheSame(@NonNull Chat oldItem, @NonNull Chat newItem) {
-            return oldItem.getChatId().equals(newItem.getChatId());
+        public boolean areItemsTheSame(@NonNull ChatViewData oldItem, @NonNull ChatViewData newItem) {
+            return oldItem.chat.getChatId().equals(newItem.chat.getChatId());
         }
 
         @Override
-        public boolean areContentsTheSame(@NonNull Chat oldItem, @NonNull Chat newItem) {
-            return Objects.equals(oldItem.getLastMessageText(), newItem.getLastMessageText()) &&
-                    Objects.equals(oldItem.getLastMessageTimestamp(), newItem.getLastMessageTimestamp()) &&
-                    Objects.equals(oldItem.getUnreadCount(), newItem.getUnreadCount());
+        public boolean areContentsTheSame(@NonNull ChatViewData oldItem, @NonNull ChatViewData newItem) {
+            return Objects.equals(oldItem.chat.getLastMessageText(), newItem.chat.getLastMessageText()) &&
+                    Objects.equals(oldItem.chat.getLastMessageTimestamp(), newItem.chat.getLastMessageTimestamp()) &&
+                    Objects.equals(oldItem.chat.getUnreadCount(), newItem.chat.getUnreadCount());
         }
     };
 }

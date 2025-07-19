@@ -2,7 +2,6 @@
 package com.example.tradeup.ui.messages;
 
 import androidx.annotation.NonNull;
-import com.example.tradeup.data.model.Chat;
 import java.util.List;
 
 public abstract class ChatState {
@@ -11,12 +10,12 @@ public abstract class ChatState {
     // Trạng thái đang tải dữ liệu lần đầu
     public static final class Loading extends ChatState {}
 
-    // Trạng thái tải thành công, chứa danh sách các cuộc trò chuyện
+    // Trạng thái tải thành công, chứa danh sách các cuộc trò chuyện đã được xử lý
     public static final class Success extends ChatState {
         @NonNull
-        public final List<Chat> chats;
+        public final List<ChatViewData> chats; // *** SỬA Ở ĐÂY: Dùng ChatViewData ***
 
-        public Success(@NonNull List<Chat> chats) {
+        public Success(@NonNull List<ChatViewData> chats) { // *** SỬA Ở ĐÂY: Dùng ChatViewData ***
             this.chats = chats;
         }
     }

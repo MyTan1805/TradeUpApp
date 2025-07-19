@@ -1,3 +1,4 @@
+// File: src/main/java/com/example/tradeup/ui/settings/SettingsFragment.java
 package com.example.tradeup.ui.settings;
 
 import android.os.Bundle;
@@ -11,12 +12,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.navigation.fragment.NavHostFragment;
+import androidx.navigation.NavController; // *** THÊM IMPORT NÀY ***
+import androidx.navigation.fragment.NavHostFragment; // *** THÊM IMPORT NÀY ***
 import androidx.navigation.ui.AppBarConfiguration;
 import androidx.navigation.ui.NavigationUI;
 import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.tradeup.R;
+import com.example.tradeup.core.utils.UserRoleManager;
 import com.example.tradeup.databinding.FragmentSettingsBinding;
 import com.example.tradeup.ui.adapters.SettingsAdapter;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
@@ -25,6 +28,7 @@ import com.google.android.material.textfield.TextInputEditText;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.inject.Inject;
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
@@ -32,6 +36,10 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
 
     private FragmentSettingsBinding binding;
     private SettingsViewModel viewModel;
+    private NavController navController; // *** KHAI BÁO BIẾN Ở ĐÂY ***
+
+    @Inject
+    UserRoleManager userRoleManager;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -49,7 +57,9 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
-        // << FIX: Không cần bind lại binding ở đây >>
+
+        // *** KHỞI TẠO NAVCONTROLLER Ở ĐÂY ***
+        navController = NavHostFragment.findNavController(this);
 
         setupToolbar();
         setupRecyclerView();
@@ -59,14 +69,14 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
     private void setupToolbar() {
         binding.toolbar.setNavigationOnClickListener(v -> {
             if (isAdded()) {
-                NavigationUI.navigateUp(NavHostFragment.findNavController(this), (AppBarConfiguration) null);
+                // Sử dụng NavController đã khởi tạo
+                navController.navigateUp();
             }
         });
     }
 
     private void setupRecyclerView() {
-        List<SettingItem> settingItems = createSettingItems();
-        SettingsAdapter adapter = new SettingsAdapter(settingItems, this);
+        SettingsAdapter adapter = new SettingsAdapter(createSettingItems(), this);
         binding.recyclerViewSettings.setLayoutManager(new LinearLayoutManager(getContext()));
         binding.recyclerViewSettings.setAdapter(adapter);
     }
@@ -92,18 +102,19 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
         viewModel.getNavigationEvent().observe(getViewLifecycleOwner(), event -> {
             Boolean shouldNavigate = event.getContentIfNotHandled();
             if (shouldNavigate != null && shouldNavigate && isAdded()) {
-                // << FIX: SỬ DỤNG ĐÚNG ACTION ĐIỀU HƯỚNG VỀ LUỒNG AUTH >>
-                // Action này đã được định nghĩa trong root_nav.xml
-                NavHostFragment.findNavController(this).navigate(R.id.action_global_to_auth_nav);
+                navController.navigate(R.id.action_global_to_auth_nav);
             }
         });
     }
 
-    // --- Xử lý sự kiện click từ Adapter ---
     @Override
     public void onNavigationItemClick(String tag) {
-        Log.d("SettingsFragment", "Clicked tag: " + tag);
+        if (!isAdded()) return; // Kiểm tra an toàn trước khi điều hướng
+
         switch (tag) {
+            case "admin_dashboard":
+                navController.navigate(R.id.action_settingsFragment_to_adminDashboardFragment);
+                break;
             case "deactivate_account":
                 showConfirmationDialog(
                         "Deactivate Account",
@@ -129,14 +140,11 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
                 );
                 break;
             case "change_password":
-                // Thêm logic xử lý cho Change Password, ví dụ:
                 Toast.makeText(getContext(), "Change Password clicked", Toast.LENGTH_SHORT).show();
                 break;
             case "edit_profile":
-                // Thêm logic cho Edit Profile
-                Toast.makeText(getContext(), "Edit Profile clicked", Toast.LENGTH_SHORT).show();
+                navController.navigate(R.id.action_global_to_editProfileFragment);
                 break;
-            // Thêm các case khác nếu cần
             default:
                 Log.d("SettingsFragment", "Unhandled tag: " + tag);
                 break;
@@ -146,10 +154,8 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
     @Override
     public void onSwitchItemChanged(String tag, boolean isChecked) {
         Toast.makeText(getContext(), "Switch " + tag + " is now " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
-        // TODO: Lưu trạng thái mới này vào ViewModel hoặc SharedPreferences
     }
 
-    // << THÊM LẠI CÁC HÀM TIỆN ÍCH >>
     private void showConfirmationDialog(String title, String message, String positiveButtonText, Runnable positiveAction) {
         if (getContext() == null) return;
         new MaterialAlertDialogBuilder(getContext())
@@ -180,35 +186,32 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
     private List<SettingItem> createSettingItems() {
         List<SettingItem> items = new ArrayList<>();
 
-        // << FIX: Các mục này không có icon, truyền 0 >>
-        items.add(new SettingItem.Navigation("edit_profile", 0, "Edit Profile"));
-        items.add(new SettingItem.Navigation("change_password", 0, "Change Password"));
+        if (userRoleManager.isAdmin()) {
+            items.add(new SettingItem.GroupHeader("ADMINISTRATION"));
+            items.add(new SettingItem.Navigation("admin_dashboard", R.drawable.ic_admin_panel, "Admin Dashboard"));
+        }
+
+        items.add(new SettingItem.GroupHeader("ACCOUNT"));
+        items.add(new SettingItem.Navigation("edit_profile", R.drawable.ic_person, "Edit Profile"));
+        items.add(new SettingItem.Navigation("change_password", R.drawable.ic_lock, "Change Password"));
 
         items.add(new SettingItem.GroupHeader("NOTIFICATION PREFERENCES"));
         items.add(new SettingItem.Switch("switch_messages", "New Messages", true));
         items.add(new SettingItem.Switch("switch_offers", "Offers", true));
-        items.add(new SettingItem.Switch("switch_app_updates", "App Updates", false));
-
-        // << FIX: Mục này có icon >>
-        items.add(new SettingItem.Navigation("location_settings", R.drawable.ic_location_on, "Location Settings"));
 
         items.add(new SettingItem.GroupHeader("ACCOUNT MANAGEMENT"));
-        // Dùng constructor đầy đủ để truyền màu
-        items.add(new SettingItem.Navigation("deactivate_account", 0, "Deactivate Account", R.color.status_warning, 0));
-        items.add(new SettingItem.Navigation("delete_account", 0, "Delete Account", R.color.status_error, 0));
+        // *** SỬA Ở ĐÂY: Truyền màu cho cả icon (tham số thứ 5) ***
+        items.add(new SettingItem.Navigation("deactivate_account", R.drawable.ic_block, "Deactivate Account", R.color.status_warning, R.color.status_warning));
+        items.add(new SettingItem.Navigation("delete_account", R.drawable.ic_delete, "Delete Account", R.color.status_error, R.color.status_error));
 
         items.add(new SettingItem.GroupHeader("SUPPORT"));
-        // << FIX: Mục này không có icon >>
-        items.add(new SettingItem.Navigation("help_support", 0, "Help & Support"));
-
-        // << FIX: Mục này không có icon >>
-        items.add(new SettingItem.Info(0, "About TradeUp", "v1.0.0"));
+        items.add(new SettingItem.Navigation("help_support", R.drawable.ic_help, "Help & Support"));
+        items.add(new SettingItem.Info(R.drawable.ic_info, "About TradeUp", "v1.0.0"));
 
         items.add(new SettingItem.Logout());
 
         return items;
     }
-
 
     @Override
     public void onDestroyView() {

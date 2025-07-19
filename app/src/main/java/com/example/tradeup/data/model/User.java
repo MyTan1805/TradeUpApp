@@ -40,6 +40,10 @@ public class User {
     private Timestamp lastLoginAt;
     private long reviewCount;
 
+    private String displayName_lowercase;
+
+    private String role;
+
     // Constructor rỗng cần thiết cho Firestore
     public User() {
         this.uid = "";
@@ -53,10 +57,14 @@ public class User {
         this.reviewCount = 0L;
         this.isDeactivated = false;
         this.blockedUsers = new ArrayList<>();
+        this.role = "user";
         // Các trường nullable mặc định là null
     }
 
     // Getters and Setters
+    public String getRole() { return role; }
+    public void setRole(String role) { this.role = role; }
+
     public String getUid() { return uid; }
     public void setUid(String uid) { this.uid = uid; }
 
@@ -64,7 +72,15 @@ public class User {
     public void setEmail(String email) { this.email = email; }
 
     public String getDisplayName() { return displayName; }
-    public void setDisplayName(String displayName) { this.displayName = displayName; }
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+        if (displayName != null) {
+            this.displayName_lowercase = displayName.toLowerCase(); // Tự động tạo
+        }
+    }
+
+    public String getDisplayName_lowercase() { return displayName_lowercase; }
+    public void setDisplayName_lowercase(String displayName_lowercase) { this.displayName_lowercase = displayName_lowercase; }
 
     @Nullable
     public String getProfilePictureUrl() { return profilePictureUrl; }
@@ -119,6 +135,8 @@ public class User {
     // === FIX: THÊM GETTER/SETTER CHO reviewCount ===
     public long getReviewCount() { return reviewCount; }
     public void setReviewCount(long reviewCount) { this.reviewCount = reviewCount; }
+
+
 
     public List<String> getBlockedUsers() {
         return blockedUsers != null ? blockedUsers : new ArrayList<>();
