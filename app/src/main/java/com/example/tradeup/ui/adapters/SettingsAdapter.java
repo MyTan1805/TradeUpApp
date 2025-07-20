@@ -109,10 +109,16 @@ public class SettingsAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         TextView title;
         GroupHeaderViewHolder(@NonNull View itemView) {
             super(itemView);
-            title = (TextView) itemView;
+            if (itemView instanceof TextView) {
+                title = (TextView) itemView;
+            } else {
+                title = itemView.findViewById(R.id.title);
+            }
         }
         void bind(SettingItem.GroupHeader item) {
-            title.setText(item.title);
+            if (title != null) {
+                title.setText(item.title);
+            }
         }
     }
 

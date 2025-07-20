@@ -22,18 +22,15 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back_inset"
             app:navigationIconTint="?attr/colorOnSurface"
-            app:title="Seller Profile"
+            app:title="@string/public_profile_title"
             app:titleCentered="true"
             app:titleTextAppearance="?attr/textAppearanceHeadline6"
             app:menu="@menu/public_profile_menu" />
 
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline" />
+            style="@style/Divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
-
 
     <!-- === NỘI DUNG CUỘN === -->
     <androidx.core.widget.NestedScrollView
@@ -113,17 +110,17 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:orientation="horizontal"
-                android:baselineAligned="false">
+                android:baselineAligned="false"
+                android:orientation="horizontal">
 
                 <LinearLayout style="@style/ProfileStatItemLayout">
                     <TextView android:id="@+id/textStatListings" style="@style/ProfileStatValue" tools:text="156"/>
-                    <TextView style="@style/ProfileStatLabel" android:text="Active Listings"/>
+                    <TextView style="@style/ProfileStatLabel" android:text="@string/profile_stat_listings"/>
                 </LinearLayout>
 
                 <LinearLayout style="@style/ProfileStatItemLayout">
                     <TextView android:id="@+id/textStatMemberSince" style="@style/ProfileStatValue" tools:text="March 2023"/>
-                    <TextView style="@style/ProfileStatLabel" android:text="Member Since"/>
+                    <TextView style="@style/ProfileStatLabel" android:text="@string/public_profile_stat_member_since"/>
                 </LinearLayout>
             </LinearLayout>
 
@@ -141,7 +138,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:layout_weight="1"
-                    android:text="Message Sarah" />
+                    tools:text="Message Sarah" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/buttonFollow"
@@ -150,7 +147,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginStart="8dp"
                     android:layout_weight="1"
-                    android:text="Follow" />
+                    android:text="@string/public_profile_follow_button" />
             </LinearLayout>
 
             <com.google.android.material.button.MaterialButton
@@ -159,7 +156,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Reactivate Account"
+                android:text="@string/admin_reactivate_account"
                 app:backgroundTint="@color/status_success"
                 android:visibility="gone"
                 tools:visibility="visible"/>

@@ -105,7 +105,8 @@
             app:layout_constraintTop_toBottomOf="@+id/textViewUserName"
             app:layout_constraintVertical_bias="1.0"
             tools:text="Proceed to Payment"
-            tools:visibility="visible" />
+            tools:visibility="visible"
+            tools:ignore="VisualLintButtonSize" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </com.google.android.material.card.MaterialCardView>

@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scaleType="centerCrop"
-            android:contentDescription="@string/hinh_anh_san_pham"
+            android:contentDescription="@string/content_desc_product_image"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent"
@@ -26,18 +26,21 @@
             app:layout_constraintEnd_toEndOf="parent"
             tools:srcCompat="@drawable/ic_placeholder_image" />
 
+        <!-- === THAY THẾ NÚT YÊU THÍCH Ở ĐÂY === -->
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonFavorite"
-            style="@style/Widget.Material3.Button.IconButton.Filled"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            app:icon="@drawable/ic_favorite_border"
-            app:iconTint="?attr/colorOnSurface"
-            app:backgroundTint="#80FFFFFF"
+            android:checkable="true"
+            android:contentDescription="@string/content_desc_save_item"
+            app:backgroundTint="#99FFFFFF"
+            app:icon="@drawable/selector_favorite_icon"
+            app:iconTint="@color/selector_favorite_icon_tint"
+            app:iconPadding="0dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="ContentDescription" />
+            app:layout_constraintTop_toTopOf="parent"/>
 
         <TextView
             android:id="@+id/textViewProductName"

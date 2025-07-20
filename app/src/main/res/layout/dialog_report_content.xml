@@ -25,7 +25,7 @@
             android:id="@+id/textViewDialogTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Report Content"
+            android:text="@string/report_dialog_title"
             android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
             android:textAppearance="?attr/textAppearanceHeadline6"
@@ -45,7 +45,7 @@
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="parent"
             android:layout_marginEnd="8dp"
-            android:contentDescription="Close"/>
+            android:contentDescription="@string/action_cancel"/>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -58,8 +58,7 @@
     <!-- 2. NỘI DUNG CUỘN -->
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1"> <!-- Để ScrollView chiếm phần không gian còn lại -->
+        android:layout_height="wrap_content"> <!-- Sửa thành wrap_content để vừa với nội dung -->
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -67,16 +66,14 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- ========================================================= -->
-            <!-- === PHẦN THÔNG TIN SẢN PHẨM/NGƯỜI DÙNG (ĐÃ BỔ SUNG) === -->
-            <!-- ========================================================= -->
             <TextView
                 android:id="@+id/textViewReportingHeader"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
-                tools:text="You are reporting:"/>
+                tools:text="@string/report_dialog_reporting_listing"/>
 
+            <!-- *** SỬA NỘI DUNG BÊN TRONG LINEARLAYOUT NÀY *** -->
             <LinearLayout
                 android:id="@+id/reported_item_container"
                 android:layout_width="match_parent"
@@ -96,8 +93,9 @@
                     tools:srcCompat="@drawable/ic_placeholder_image"/>
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
+                    android:layout_weight="1"
                     android:orientation="vertical"
                     android:layout_marginStart="16dp">
                     <TextView
@@ -106,6 +104,8 @@
                         android:layout_height="wrap_content"
                         android:textAppearance="?attr/textAppearanceBody1"
                         android:textStyle="bold"
+                        android:maxLines="2"
+                        android:ellipsize="end"
                         tools:text="Vintage Canon AE-1 Camera"/>
                     <TextView
                         android:id="@+id/textViewPrice"
@@ -124,18 +124,13 @@
             </LinearLayout>
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:layout_marginVertical="24dp"
-                android:background="?attr/colorOutline"/>
-            <!-- ========================================================= -->
+                style="@style/Divider"
+                android:layout_marginVertical="24dp"/>
 
-
-            <!-- Lý do báo cáo -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Select a reason for reporting"
+                android:text="@string/report_dialog_reason_label"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
                 android:textStyle="bold"/>
 
@@ -145,12 +140,11 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"/>
 
-            <!-- Chi tiết bổ sung -->
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Additional Details (Optional)"
+                android:text="@string/report_dialog_details_label"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
                 android:textStyle="bold"/>
 
@@ -167,9 +161,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
+                    android:hint="@string/report_dialog_details_hint"
+                    android:inputType="textMultiLine|textCapSentences"
                     android:lines="4"
-                    android:hint="Please provide any additional information..."
-                    android:inputType="textMultiLine|textCapSentences" />
+                    tools:ignore="TextContrastCheck,VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
 
         </LinearLayout>
@@ -181,11 +176,12 @@
         style="?attr/materialButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Submit Report"
+        android:text="@string/report_dialog_submit_button"
         android:backgroundTint="?attr/colorError"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginTop="8dp"
-        android:layout_marginBottom="16dp"/>
+        android:layout_marginBottom="16dp"
+        tools:ignore="VisualLintButtonSize" />
 
 </LinearLayout>

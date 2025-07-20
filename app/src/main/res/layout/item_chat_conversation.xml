@@ -93,6 +93,7 @@
             app:layout_constraintBaseline_toBaselineOf="@id/textViewContext"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toEndOf="@id/textViewContext"
+            tools:ignore="TextContrastCheck"
             tools:text="Vintage Leather Jacket" />
 
         <TextView

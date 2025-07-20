@@ -3,12 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true"
     tools:context=".ui.saved.SavedItemsFragment">
 
-    <!-- === HEADER === -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -16,31 +15,27 @@
         android:background="?attr/colorSurface"
         app:elevation="0dp">
 
-        <!-- 1. Toolbar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:menu="@menu/saved_items_menu"
             app:navigationIcon="@drawable/ic_arrow_back_inset"
             app:navigationIconTint="?attr/colorOnSurface"
-            app:title="Saved Items"
+            app:title="@string/saved_items_title"
             app:titleCentered="true"
-            app:titleTextAppearance="?attr/textAppearanceHeadline6"
-            app:menu="@menu/saved_items_menu" /> <!-- Tạo menu này -->
+            app:titleTextAppearance="?attr/textAppearanceHeadline6" />
 
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline" />
+            style="@style/Divider" />
 
-        <!-- 2. Filter Chips -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:paddingVertical="8dp"
+            android:clipToPadding="false"
             android:paddingHorizontal="12dp"
-            android:clipToPadding="false">
+            android:paddingVertical="8dp"
+            android:scrollbars="none">
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupFilters"
@@ -54,51 +49,48 @@
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All Items"
                     android:checkable="true"
                     android:checked="true"
-                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
-                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+                    android:text="@string/saved_items_filter_all"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipRecentlySaved"
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Recently Saved"
                     android:checkable="true"
-                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
-                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+                    android:text="@string/saved_items_filter_recently_saved"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipPriceLowHigh"
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Price: Low to High"
                     android:checkable="true"
-                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
-                    android:textColor="@color/subcategory_chip_text_color_selector"/>
+                    android:text="@string/saved_items_filter_price_asc"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector" />
 
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline" />
+            style="@style/Divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- === DANH SÁCH SẢN PHẨM ĐÃ LƯU === -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewSavedItems"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:padding="8dp"
         android:clipToPadding="false"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        android:padding="8dp"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:spanCount="2"
         tools:listitem="@layout/item_saved_product" />
 

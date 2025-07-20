@@ -72,10 +72,10 @@ public class ForgotPasswordFragment extends Fragment {
 
     private boolean validateEmail(String email) {
         if (email.isEmpty()) {
-            binding.tilEmailForgotPassword.setError(getString(R.string.error_email_trong));
+            binding.tilEmailForgotPassword.setError(getString(R.string.error_email_empty));
             return false;
         } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmailForgotPassword.setError(getString(R.string.error_email_khong_hop_le));
+            binding.tilEmailForgotPassword.setError(getString(R.string.error_email_invalid));
             return false;
         } else {
             binding.tilEmailForgotPassword.setError(null);
@@ -111,8 +111,8 @@ public class ForgotPasswordFragment extends Fragment {
         binding.buttonResetPassword.setVisibility(View.GONE);
 
         // Thay đổi nội dung của các text view để thông báo
-        binding.textViewInstruction.setText(R.string.kiem_tra_hop_thu_cua_ban); // Tạo string này trong strings.xml
-        binding.textViewBackToLogin.setText(R.string.quay_lai_dang_nhap); // Tạo string này
+        binding.textViewInstruction.setText(R.string.forgot_password_success_title);
+        binding.textViewBackToLogin.setText(R.string.forgot_password_success_action);
     }
 
     @Override

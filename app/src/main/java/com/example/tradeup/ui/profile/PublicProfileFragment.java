@@ -140,8 +140,9 @@ public class PublicProfileFragment extends Fragment {
             }
 
             @Override
-            public void onFavoriteClick(Item item, boolean isCurrentlyFavorite) {
+            public void onFavoriteClick(Item item) {
                 // TODO: Xử lý logic lưu sản phẩm sau
+                Toast.makeText(getContext(), "Favorite clicked on: " + item.getTitle(), Toast.LENGTH_SHORT).show();
             }
         });
         binding.recyclerViewUserListings.setLayoutManager(new GridLayoutManager(getContext(), 2));

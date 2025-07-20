@@ -55,7 +55,7 @@
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All Electronics"
+                    android:text="@string/all_electronics"
                     android:checkable="true"
                     android:checked="true"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"
@@ -66,7 +66,7 @@
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Smartphones"
+                    android:text="@string/smartphones"
                     android:checkable="true"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"
                     android:textColor="@color/subcategory_chip_text_color_selector"/>
@@ -76,7 +76,7 @@
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Laptops"
+                    android:text="@string/laptops"
                     android:checkable="true"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"
                     android:textColor="@color/subcategory_chip_text_color_selector"/>
@@ -96,7 +96,7 @@
                 android:id="@+id/textViewSortBy"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sort: Recent First"
+                tools:text="Sort: Recent First"
                 android:textAppearance="?attr/textAppearanceBody2"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent"
@@ -129,14 +129,10 @@
             </com.google.android.material.button.MaterialButtonToggleGroup>
         </androidx.constraintlayout.widget.ConstraintLayout>
 
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline" />
+        <View style="@style/Divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- === DANH SÁCH KẾT QUẢ === -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -164,7 +160,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="No products available"
+            android:text="@string/home_empty_title"
             android:textAppearance="?attr/textAppearanceBody1"
             android:visibility="gone" />
     </FrameLayout>

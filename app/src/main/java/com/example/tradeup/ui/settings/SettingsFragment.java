@@ -109,7 +109,7 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
 
     @Override
     public void onNavigationItemClick(String tag) {
-        if (!isAdded()) return; // Kiểm tra an toàn trước khi điều hướng
+        if (!isAdded()) return;
 
         switch (tag) {
             case "admin_dashboard":
@@ -117,25 +117,25 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
                 break;
             case "deactivate_account":
                 showConfirmationDialog(
-                        "Deactivate Account",
-                        "Are you sure? You can reactivate your account by logging in again.",
-                        "Deactivate",
+                        getString(R.string.dialog_confirm_deactivate_title), // SỬA Ở ĐÂY
+                        getString(R.string.dialog_confirm_deactivate_message), // SỬA Ở ĐÂY
+                        "Deactivate", // Có thể tạo string resource cho "Deactivate"
                         () -> viewModel.deactivateAccount()
                 );
                 break;
             case "delete_account":
                 showConfirmationDialog(
-                        "Delete Account",
-                        "This action is permanent and cannot be undone. You will need to re-enter your password to continue.",
-                        "Continue",
+                        getString(R.string.dialog_confirm_delete_title), // SỬA Ở ĐÂY
+                        getString(R.string.dialog_confirm_delete_message), // SỬA Ở ĐÂY
+                        "Continue", // Có thể tạo string resource cho "Continue"
                         () -> viewModel.onDeleteAccountClicked()
                 );
                 break;
             case "logout":
                 showConfirmationDialog(
-                        "Log Out",
-                        "Are you sure you want to log out?",
-                        "Log Out",
+                        getString(R.string.dialog_confirm_logout_title), // SỬA Ở ĐÂY
+                        getString(R.string.dialog_confirm_logout_message), // SỬA Ở ĐÂY
+                        getString(R.string.settings_logout), // SỬA Ở ĐÂY
                         () -> viewModel.logout()
                 );
                 break;
@@ -151,6 +151,7 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
         }
     }
 
+
     @Override
     public void onSwitchItemChanged(String tag, boolean isChecked) {
         Toast.makeText(getContext(), "Switch " + tag + " is now " + (isChecked ? "ON" : "OFF"), Toast.LENGTH_SHORT).show();
@@ -161,7 +162,7 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
         new MaterialAlertDialogBuilder(getContext())
                 .setTitle(title)
                 .setMessage(message)
-                .setNegativeButton("Cancel", null)
+                .setNegativeButton(getString(R.string.action_cancel), null) // SỬA Ở ĐÂY
                 .setPositiveButton(positiveButtonText, (dialog, which) -> positiveAction.run())
                 .show();
     }
@@ -172,11 +173,11 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
         final TextInputEditText passwordInput = dialogView.findViewById(R.id.editTextPassword);
 
         new MaterialAlertDialogBuilder(getContext())
-                .setTitle("Confirm Deletion")
-                .setMessage("Please enter your password to confirm.")
+                .setTitle(getString(R.string.dialog_reauth_title)) // SỬA Ở ĐÂY
+                .setMessage(getString(R.string.dialog_reauth_message)) // SỬA Ở ĐÂY
                 .setView(dialogView)
-                .setNegativeButton("Cancel", null)
-                .setPositiveButton("Delete Forever", (dialog, which) -> {
+                .setNegativeButton(getString(R.string.action_cancel), null) // SỬA Ở ĐÂY
+                .setPositiveButton(getString(R.string.dialog_reauth_positive_button), (dialog, which) -> { // SỬA Ở ĐÂY
                     String password = passwordInput.getText() != null ? passwordInput.getText().toString() : "";
                     viewModel.confirmAndDeleteAccount(password);
                 })
@@ -187,26 +188,37 @@ public class SettingsFragment extends Fragment implements SettingsAdapter.OnSett
         List<SettingItem> items = new ArrayList<>();
 
         if (userRoleManager.isAdmin()) {
-            items.add(new SettingItem.GroupHeader("ADMINISTRATION"));
-            items.add(new SettingItem.Navigation("admin_dashboard", R.drawable.ic_admin_panel, "Admin Dashboard"));
+            items.add(new SettingItem.GroupHeader(getString(R.string.settings_header_admin)));
+            items.add(new SettingItem.Navigation("admin_dashboard", R.drawable.ic_admin_panel, getString(R.string.settings_admin_dashboard)));
         }
 
-        items.add(new SettingItem.GroupHeader("ACCOUNT"));
-        items.add(new SettingItem.Navigation("edit_profile", R.drawable.ic_person, "Edit Profile"));
-        items.add(new SettingItem.Navigation("change_password", R.drawable.ic_lock, "Change Password"));
+        items.add(new SettingItem.GroupHeader(getString(R.string.settings_header_account)));
+        items.add(new SettingItem.Navigation("edit_profile", R.drawable.ic_person, getString(R.string.settings_edit_profile)));
+        items.add(new SettingItem.Navigation("change_password", R.drawable.ic_lock, getString(R.string.settings_change_password)));
 
-        items.add(new SettingItem.GroupHeader("NOTIFICATION PREFERENCES"));
-        items.add(new SettingItem.Switch("switch_messages", "New Messages", true));
-        items.add(new SettingItem.Switch("switch_offers", "Offers", true));
+        items.add(new SettingItem.GroupHeader(getString(R.string.settings_header_notifications)));
+        items.add(new SettingItem.Switch("switch_messages", getString(R.string.settings_pref_messages), true));
+        items.add(new SettingItem.Switch("switch_offers", getString(R.string.settings_pref_offers), true));
 
-        items.add(new SettingItem.GroupHeader("ACCOUNT MANAGEMENT"));
-        // *** SỬA Ở ĐÂY: Truyền màu cho cả icon (tham số thứ 5) ***
-        items.add(new SettingItem.Navigation("deactivate_account", R.drawable.ic_block, "Deactivate Account", R.color.status_warning, R.color.status_warning));
-        items.add(new SettingItem.Navigation("delete_account", R.drawable.ic_delete, "Delete Account", R.color.status_error, R.color.status_error));
+        items.add(new SettingItem.GroupHeader(getString(R.string.settings_header_management)));
+        items.add(new SettingItem.Navigation(
+                "deactivate_account",
+                R.drawable.ic_block,
+                getString(R.string.settings_deactivate_account),
+                R.color.status_warning,
+                R.color.status_warning
+        ));
+        items.add(new SettingItem.Navigation(
+                "delete_account",
+                R.drawable.ic_delete,
+                getString(R.string.settings_delete_account),
+                R.color.status_error,
+                R.color.status_error
+        ));
 
-        items.add(new SettingItem.GroupHeader("SUPPORT"));
-        items.add(new SettingItem.Navigation("help_support", R.drawable.ic_help, "Help & Support"));
-        items.add(new SettingItem.Info(R.drawable.ic_info, "About TradeUp", "v1.0.0"));
+        items.add(new SettingItem.GroupHeader(getString(R.string.settings_header_support)));
+        items.add(new SettingItem.Navigation("help_support", R.drawable.ic_help, getString(R.string.settings_help)));
+        items.add(new SettingItem.Info(R.drawable.ic_info, getString(R.string.settings_about), getString(R.string.settings_app_version)));
 
         items.add(new SettingItem.Logout());
 

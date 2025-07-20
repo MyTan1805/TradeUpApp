@@ -16,7 +16,8 @@
         android:padding="8dp"
         android:background="@drawable/background_category_icon"
         app:tint="?attr/colorPrimary"
-        tools:srcCompat="@drawable/ic_electronics" />
+        tools:srcCompat="@drawable/ic_electronics"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/textViewCategoryName"

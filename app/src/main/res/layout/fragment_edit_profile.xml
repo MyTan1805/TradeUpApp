@@ -3,77 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true"
     tools:context=".ui.profile.EditProfileFragment">
 
-    <!-- === TOOLBAR === -->
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/customToolbar"
+    <!-- === TOOLBAR CUSTOM === -->
+    <com.google.android.material.appbar.AppBarLayout
+        android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
-        android:layout_height="?attr/actionBarSize"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        android:layout_height="wrap_content"
+        android:background="?attr/colorSurface"
+        app:elevation="0dp">
 
-        <!-- 1. Icon Back (ImageButton) -->
-        <ImageButton
-            android:id="@+id/buttonBack"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:layout_marginStart="8dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:padding="12dp"
-            android:scaleType="fitCenter"
-            android:src="@drawable/ic_arrow_back"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="?attr/colorOnSurface"
-            tools:ignore="ContentDescription,SpeakableTextPresentCheck" />
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            app:navigationIcon="@drawable/ic_arrow_back_inset"
+            app:navigationIconTint="?attr/colorOnSurface"
+            app:title="@string/edit_profile_title"
+            app:titleCentered="true"
+            app:titleTextAppearance="?attr/textAppearanceHeadline6" />
 
-        <!-- 2. Title (TextView) -->
-        <TextView
-            android:id="@+id/textViewTitle"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Edit Profile"
-            android:textAppearance="?attr/textAppearanceHeadline6"
-            android:textColor="?attr/colorOnSurface"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutline" />
 
-        <!-- 3. Nút Cancel (TextView) -->
-        <TextView
-            android:id="@+id/buttonCancel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="16dp"
-            android:background="?attr/selectableItemBackground"
-            android:padding="8dp"
-            android:text="Cancel"
-            android:textAppearance="?attr/textAppearanceBody1"
-            android:textColor="?attr/colorPrimary"
-            android:textStyle="bold"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    </com.google.android.material.appbar.AppBarLayout>
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-    <!-- Đường kẻ phân cách (nếu muốn) -->
-    <View
-        android:id="@+id/toolbarDivider"
-        android:layout_width="0dp"
-        android:layout_height="1dp"
-        android:background="?attr/colorOutline"
-        app:layout_constraintTop_toBottomOf="@+id/customToolbar"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- === NỘI DUNG CUỘN === -->
     <androidx.core.widget.NestedScrollView
@@ -82,44 +41,34 @@
         android:layout_marginBottom="80dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <androidx.constraintlayout.widget.ConstraintLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:gravity="center_horizontal"
+            android:orientation="vertical"
             android:padding="24dp">
 
             <!-- Ảnh đại diện -->
-
             <de.hdodenhof.circleimageview.CircleImageView
                 android:id="@+id/imageViewProfilePicture"
                 android:layout_width="120dp"
-
                 android:layout_height="120dp"
-                android:layout_marginTop="60dp"
-
                 app:civ_border_color="?attr/colorOutline"
                 app:civ_border_width="1dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.497"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent"
-                tools:ignore="NotSibling"
                 tools:src="@drawable/ic_person" />
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/fabChangeProfilePicture"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="-40dp"
+                android:layout_marginStart="40dp"
+                android:contentDescription="@string/edit_profile_change_avatar"
                 app:backgroundTint="?attr/colorPrimary"
                 app:fabCustomSize="40dp"
-                app:layout_constraintCircle="@id/imageViewProfilePicture"
-                app:layout_constraintCircleAngle="135"
-                app:layout_constraintCircleRadius="60dp"
                 app:maxImageSize="24dp"
                 app:srcCompat="@drawable/ic_photo_camera"
-                app:tint="?attr/colorOnPrimary"
-                tools:ignore="ContentDescription,MissingConstraints,SpeakableTextPresentCheck"
-                tools:layout_editor_absoluteX="224dp"
-                tools:layout_editor_absoluteY="103dp" />
+                app:tint="?attr/colorOnPrimary" />
 
             <TextView
                 android:id="@+id/textChangeProfilePicture"
@@ -128,38 +77,19 @@
                 android:layout_marginTop="12dp"
                 android:background="?attr/selectableItemBackground"
                 android:padding="4dp"
-                android:text="Change Profile Picture"
+                android:text="@string/edit_profile_change_avatar"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?attr/colorPrimary"
-                android:textStyle="bold"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imageViewProfilePicture" />
+                android:textStyle="bold" />
 
             <!-- Trường Display Name -->
-            <TextView
-                android:id="@+id/labelDisplayName"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="32dp"
-                android:text="Display Name"
-                android:textAppearance="?attr/textAppearanceSubtitle2"
-                android:textColor="?android:attr/textColorSecondary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/textChangeProfilePicture" />
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDisplayName"
-                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                android:layout_width="0dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:boxBackgroundColor="?android:attr/windowBackground"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/labelDisplayName">
+                android:layout_marginTop="32dp"
+                android:hint="@string/edit_profile_display_name">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextDisplayName"
@@ -170,31 +100,15 @@
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Trường Bio -->
-            <TextView
-                android:id="@+id/labelBio"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Bio"
-                android:textAppearance="?attr/textAppearanceSubtitle2"
-                android:textColor="?android:attr/textColorSecondary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tilDisplayName" />
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilBio"
-                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                android:layout_width="0dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:boxBackgroundColor="?android:attr/windowBackground"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
+                android:layout_marginTop="16dp"
+                android:hint="@string/edit_profile_bio"
                 app:counterEnabled="true"
-                app:counterMaxLength="150"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/labelBio">
+                app:counterMaxLength="150">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextBio"
@@ -202,34 +116,18 @@
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
                     android:inputType="textMultiLine|textCapSentences"
-                    android:lines="4"
+                    android:minLines="4"
                     tools:text="Loving life and sharing my gently used items. Always happy to chat about deals!" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <!-- Trường Phone Number -->
-            <TextView
-                android:id="@+id/labelPhoneNumber"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Phone Number"
-                android:textAppearance="?attr/textAppearanceSubtitle2"
-                android:textColor="?android:attr/textColorSecondary"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tilBio" />
-
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPhoneNumber"
-                style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
-                android:layout_width="0dp"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="4dp"
-                app:boxBackgroundColor="?android:attr/windowBackground"
-                app:boxStrokeWidth="0dp"
-                app:boxStrokeWidthFocused="0dp"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/labelPhoneNumber">
+                android:layout_marginTop="16dp"
+                android:hint="@string/edit_profile_phone">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/editTextPhoneNumber"
@@ -239,7 +137,7 @@
                     tools:text="+1 (555) 123-4567" />
             </com.google.android.material.textfield.TextInputLayout>
 
-        </androidx.constraintlayout.widget.ConstraintLayout>
+        </LinearLayout>
 
     </androidx.core.widget.NestedScrollView>
 
@@ -254,6 +152,6 @@
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
         android:minHeight="56dp"
-        android:text="Save Changes" />
+        android:text="@string/action_save_changes" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

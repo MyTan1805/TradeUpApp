@@ -1,7 +1,7 @@
-// THAY THẾ TOÀN BỘ FILE: src/main/java/com/example/tradeup/ui/home/HomeFragment.java
 package com.example.tradeup.ui.home;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,23 +19,26 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
-import com.example.tradeup.data.model.config.DisplayCategoryConfig;
+import com.example.tradeup.data.model.config.CategoryConfig; // CHỈ CẦN IMPORT NÀY
 import com.example.tradeup.databinding.FragmentHomeBinding;
 import com.example.tradeup.ui.adapters.CategoryAdapter;
 import com.example.tradeup.ui.adapters.ProductAdapter;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors; // Thêm import này
 
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
+// Sửa lại interface cho đúng
 public class HomeFragment extends Fragment implements ProductAdapter.OnProductClickListener, CategoryAdapter.OnCategoryClickListener {
 
     private FragmentHomeBinding binding;
     private HomeViewModel homeViewModel;
     private ProductAdapter recentItemsAdapter;
     private ProductAdapter featuredItemsAdapter;
+    private ProductAdapter nearbyItemsAdapter;
     private CategoryAdapter categoryAdapter;
     private NavController navController;
 
@@ -64,20 +67,23 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     @Override
     public void onResume() {
         super.onResume();
-        // Chỉ cần gọi refreshData, ViewModel sẽ xử lý phần còn lại
         homeViewModel.refreshData();
     }
 
     private void setupRecyclerViews() {
+        // Adapter này bây giờ sẽ nhận List<CategoryConfig>
         categoryAdapter = new CategoryAdapter(this);
         binding.recyclerViewCategories.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerViewCategories.setAdapter(categoryAdapter);
 
+        // Các adapter sản phẩm không thay đổi
         featuredItemsAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_HORIZONTAL, this);
         binding.recyclerViewFeaturedItems.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerViewFeaturedItems.setAdapter(featuredItemsAdapter);
 
-        // Không có nearbyItemsAdapter trong phiên bản này
+        nearbyItemsAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_HORIZONTAL, this);
+        binding.recyclerViewNearbyItems.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerViewNearbyItems.setAdapter(nearbyItemsAdapter);
 
         recentItemsAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_GRID, this);
         binding.recyclerViewRecentListings.setLayoutManager(new GridLayoutManager(getContext(), 2));
@@ -88,7 +94,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
         binding.swipeRefreshLayoutHome.setOnRefreshListener(() -> homeViewModel.refreshData());
 
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            if (!v.canScrollVertically(1)) { // Kiểm tra đã cuộn đến cuối chưa
+            if (!v.canScrollVertically(1)) {
                 homeViewModel.fetchMoreItems();
             }
         });
@@ -114,8 +120,8 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     private void observeViewModel() {
         homeViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             boolean isLoading = state instanceof HomeState.Loading;
-            binding.progressBarHome.setVisibility(isLoading && recentItemsAdapter.getItemCount() == 0 ? View.VISIBLE : View.GONE);
-            binding.swipeRefreshLayoutHome.setRefreshing(isLoading);
+            binding.progressBarHome.setVisibility(isLoading && (recentItemsAdapter.getCurrentList() == null || recentItemsAdapter.getCurrentList().isEmpty()) ? View.VISIBLE : View.GONE);
+            binding.swipeRefreshLayoutHome.setRefreshing(isLoading && (recentItemsAdapter.getCurrentList() != null && !recentItemsAdapter.getCurrentList().isEmpty()));
 
             binding.layoutEmptyStateHome.setVisibility(state instanceof HomeState.Empty ? View.VISIBLE : View.GONE);
 
@@ -123,21 +129,26 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
                 HomeState.Success successState = (HomeState.Success) state;
                 categoryAdapter.submitList(successState.categories);
                 recentItemsAdapter.submitList(successState.recentItems);
-
-                List<Item> items = successState.recentItems;
-                featuredItemsAdapter.submitList(items.size() > 5 ? items.subList(0, 5) : items);
-
+                featuredItemsAdapter.submitList(successState.recentItems.size() > 5 ? successState.recentItems.subList(0, 5) : successState.recentItems);
+                binding.buttonRetry.setVisibility(View.GONE);
             } else if (state instanceof HomeState.Empty) {
                 categoryAdapter.submitList(((HomeState.Empty) state).categories);
                 recentItemsAdapter.submitList(Collections.emptyList());
                 featuredItemsAdapter.submitList(Collections.emptyList());
-
+                binding.buttonRetry.setVisibility(View.GONE);
             } else if (state instanceof HomeState.Error) {
                 binding.layoutEmptyStateHome.setVisibility(View.VISIBLE);
                 binding.textViewEmptyMessage.setText(((HomeState.Error) state).message);
                 binding.buttonRetry.setVisibility(View.VISIBLE);
-            }else {
-                binding.buttonRetry.setVisibility(View.GONE);
+            }
+        });
+
+        homeViewModel.getNearbyItems().observe(getViewLifecycleOwner(), nearbyItems -> {
+            if (nearbyItems != null && !nearbyItems.isEmpty()) {
+                nearbyItemsAdapter.submitList(nearbyItems);
+                binding.layoutNearbyItems.setVisibility(View.VISIBLE);
+            } else {
+                binding.layoutNearbyItems.setVisibility(View.GONE);
             }
         });
 
@@ -149,9 +160,14 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
             String message = event.getContentIfNotHandled();
             if (message != null) Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         });
+
+        homeViewModel.getSavedItemIds().observe(getViewLifecycleOwner(), savedIds -> {
+            if (savedIds != null) {
+                recentItemsAdapter.setSavedItemIds(savedIds);
+            }
+        });
     }
 
-    // Các hàm OnClick listener giữ nguyên
     @Override
     public void onItemClick(Item item) {
         if (isAdded() && item != null) {
@@ -160,16 +176,25 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
             navController.navigate(R.id.action_global_to_itemDetailFragment, args);
         }
     }
+
+    // SỬA LẠI CHỮ KÝ HÀM NÀY
     @Override
-    public void onFavoriteClick(Item item, boolean isCurrentlyFavorite) {
-        Toast.makeText(getContext(), "Favorite clicked on " + item.getTitle(), Toast.LENGTH_SHORT).show();
+    public void onFavoriteClick(Item item) {
+        homeViewModel.toggleFavoriteStatus(item);
     }
 
+    // SỬA LẠI CHỮ KÝ HÀM NÀY
     @Override
-    public void onCategoryClick(DisplayCategoryConfig category) {
+    public void onCategoryClick(CategoryConfig category) {
         if (isAdded() && category != null) {
-            // TODO: Điều hướng đến màn hình danh sách sản phẩm theo category
-            Toast.makeText(getContext(), "Navigate to category: " + category.getName(), Toast.LENGTH_SHORT).show();
+            Bundle args = new Bundle();
+            args.putString("categoryId", category.getId());
+            try {
+                navController.navigate(R.id.action_global_to_categoryListingsFragment, args);
+            } catch (Exception e) {
+                Log.e("HomeFragment", "Navigation to CategoryListingsFragment failed", e);
+                Toast.makeText(getContext(), "Could not open category.", Toast.LENGTH_SHORT).show();
+            }
         }
     }
 

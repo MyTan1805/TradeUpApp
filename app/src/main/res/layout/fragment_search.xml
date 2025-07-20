@@ -5,12 +5,12 @@
     android:layout_height="match_parent"
     tools:context=".ui.search.SearchFragment">
 
-    <!-- TODO: Xây dựng layout tìm kiếm -->
+    <!-- TODO: Implement search history and suggestions UI -->
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="Màn hình Tìm kiếm"
+        android:text="@string/action_search"
         android:textAppearance="?attr/textAppearanceHeadline6" />
 
 </FrameLayout>

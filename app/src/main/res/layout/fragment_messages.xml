@@ -3,12 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true"
     tools:context=".ui.messages.MessagesFragment">
 
-    <!-- === HEADER (GIỮ NGUYÊN NHƯ CỦA BẠN) === -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -25,19 +24,19 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Messages"
+                android:layout_gravity="start"
+                android:text="@string/messages_title"
                 android:textAppearance="?attr/textAppearanceHeadline4"
-                android:textStyle="bold"
-                android:layout_gravity="start"/>
+                android:textStyle="bold" />
 
             <ImageButton
                 android:id="@+id/buttonNotifications"
                 android:layout_width="@dimen/touch_target_size"
                 android:layout_height="@dimen/touch_target_size"
-                android:src="@drawable/ic_notifications"
-                android:background="?attr/selectableItemBackgroundBorderless"
                 android:layout_gravity="end"
-                android:contentDescription="Notifications"/>
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="@string/bottom_nav_notifications"
+                android:src="@drawable/ic_notifications" />
 
         </com.google.android.material.appbar.MaterialToolbar>
 
@@ -50,46 +49,42 @@
             android:layout_marginBottom="16dp"
             app:cardCornerRadius="@dimen/corner_radius_extra_large"
             app:cardElevation="0dp"
-            app:strokeWidth="1dp"
-            app:strokeColor="?attr/colorOutline">
+            app:strokeColor="?attr/colorOutline"
+            app:strokeWidth="1dp">
 
             <androidx.appcompat.widget.SearchView
                 android:id="@+id/searchView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:iconifiedByDefault="false"
-                app:queryHint="Search by username or item"
+                app:queryHint="@string/messages_search_hint"
                 app:searchIcon="@drawable/ic_search" />
         </com.google.android.material.card.MaterialCardView>
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- === VÙNG NỘI DUNG CHÍNH (THÊM FRAME LAYOUT) === -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
-        <!-- DANH SÁCH TIN NHẮN (CỦA BẠN) -->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerViewMessages"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:paddingTop="8dp"
             android:clipToPadding="false"
+            android:paddingTop="8dp"
             app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
             tools:listitem="@layout/item_chat_conversation" />
 
-        <!-- TRẠNG THÁI LOADING (THÊM VÀO) -->
         <ProgressBar
             android:id="@+id/progressBar"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:visibility="gone"
-            tools:visibility="visible"/>
+            tools:visibility="visible" />
 
-        <!-- TRẠNG THÁI RỖNG (THÊM VÀO) -->
         <LinearLayout
             android:id="@+id/layoutEmptyState"
             android:layout_width="wrap_content"
@@ -98,33 +93,25 @@
             android:gravity="center"
             android:orientation="vertical"
             android:visibility="gone"
-            tools:visibility="gone">
+            tools:visibility="gone"
+            tools:ignore="UseCompoundDrawables">
 
             <ImageView
                 android:layout_width="96dp"
                 android:layout_height="96dp"
+                android:contentDescription="@string/messages_empty_state"
                 android:src="@drawable/ic_chat_bubble"
-                app:tint="?android:attr/textColorHint"
-                android:contentDescription="No messages"/>
+                app:tint="?android:attr/textColorHint" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="No conversations yet"
+                android:text="@string/messages_empty_state"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
-                android:textColor="?android:attr/textColorSecondary"/>
+                android:textColor="?android:attr/textColorSecondary" />
         </LinearLayout>
 
     </FrameLayout>
-
-    <!-- Nút FAB để tạo tin nhắn mới (GIỮ NGUYÊN CỦA BẠN) -->
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabNewMessage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
-        android:layout_margin="16dp"
-        app:srcCompat="@drawable/ic_add" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

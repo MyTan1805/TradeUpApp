@@ -47,7 +47,7 @@ public class ProfileSoldFragment extends Fragment {
             }
 
             @Override
-            public void onFavoriteClick(Item item, boolean isCurrentlyFavorite) {
+            public void onFavoriteClick(Item item) {
                 // Không làm gì cho sản phẩm đã bán
             }
         });

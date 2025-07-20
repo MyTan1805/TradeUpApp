@@ -83,37 +83,37 @@ public class RegisterFragment extends Fragment {
         boolean isValid = true;
         // Logic validate của bạn đã rất tốt, giữ nguyên và chỉ sửa lỗi nhỏ
         if (displayName.isEmpty()) {
-            binding.tilTenDN.setError(getString(R.string.error_ten_hien_thi_trong));
+            binding.tilEmail.setError(getString(R.string.error_display_name_empty));
             isValid = false;
         } else {
             binding.tilTenDN.setError(null);
         }
 
         if (email.isEmpty()) {
-            binding.tilEmail.setError(getString(R.string.error_email_trong));
+            binding.tilEmail.setError(getString(R.string.error_email_empty));
             isValid = false;
         } else if (!Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-            binding.tilEmail.setError(getString(R.string.error_email_khong_hop_le));
+            binding.tilEmail.setError(getString(R.string.error_email_invalid));
             isValid = false;
         } else {
             binding.tilEmail.setError(null);
         }
 
         if (pass.isEmpty()) {
-            binding.tilMatKhau.setError(getString(R.string.error_mat_khau_trong));
+            binding.tilMatKhau.setError(getString(R.string.error_password_empty));
             isValid = false;
         } else if (pass.length() < 6) {
-            binding.tilMatKhau.setError(getString(R.string.error_mat_khau_qua_ngan));
+            binding.tilMatKhau.setError(getString(R.string.error_password_too_short));
             isValid = false;
         } else {
             binding.tilMatKhau.setError(null);
         }
 
         if (confirmPass.isEmpty()) {
-            binding.tilNhapLaiMatKhau.setError(getString(R.string.error_nhap_lai_mat_khau_trong));
+            binding.tilNhapLaiMatKhau.setError(getString(R.string.error_password_confirm_empty));
             isValid = false;
         } else if (!pass.equals(confirmPass)) {
-            binding.tilNhapLaiMatKhau.setError(getString(R.string.error_mat_khau_khong_khop));
+            binding.tilNhapLaiMatKhau.setError(getString(R.string.error_password_mismatch));
             isValid = false;
         } else {
             binding.tilNhapLaiMatKhau.setError(null);

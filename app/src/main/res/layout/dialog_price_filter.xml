@@ -9,7 +9,7 @@
         android:id="@+id/minPriceInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Minimum Price">
+        android:hint="@string/search_filter_min_price">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextMinPrice"
@@ -23,7 +23,8 @@
         android:id="@+id/maxPriceInputLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Maximum Price">
+        android:layout_marginTop="8dp"
+        android:hint="@string/search_filter_max_price">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/editTextMaxPrice"

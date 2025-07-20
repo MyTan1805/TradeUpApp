@@ -67,8 +67,7 @@ public class EditProfileFragment extends Fragment {
 
     private void setupClickListeners() {
         // Nút quay lại và hủy đều có cùng chức năng
-        binding.buttonBack.setOnClickListener(v -> navigateBack());
-        binding.buttonCancel.setOnClickListener(v -> navigateBack());
+        binding.toolbar.setNavigationOnClickListener(v -> navigateBack());
 
         // Mở thư viện ảnh khi nhấn vào ảnh hoặc nút đổi ảnh
         View.OnClickListener openImagePicker = v -> openImagePicker();

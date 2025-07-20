@@ -18,7 +18,7 @@
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:scaleType="centerCrop"
-            android:contentDescription="@string/hinh_anh_san_pham"
+            android:contentDescription="@string/content_desc_product_image"
             app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintTop_toTopOf="parent"

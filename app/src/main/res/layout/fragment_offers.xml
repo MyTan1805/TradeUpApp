@@ -21,12 +21,13 @@
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
+            app:menu="@menu/offers_menu"
             app:navigationIcon="@drawable/ic_arrow_back_inset"
             app:navigationIconTint="?attr/colorOnSurface"
             app:title="Offers"
             app:titleCentered="true"
             app:titleTextAppearance="?attr/textAppearanceHeadline6"
-            app:menu="@menu/offers_menu"/> <!-- Tạo menu này -->
+            tools:ignore="TextSizeCheck" /> <!-- Tạo menu này -->
 
         <View
             android:layout_width="match_parent"
@@ -42,7 +43,8 @@
             app:tabIndicatorColor="?attr/colorPrimary"
             app:tabMode="fixed"
             app:tabSelectedTextColor="?attr/colorPrimary"
-            app:tabTextColor="?android:attr/textColorSecondary" />
+            app:tabTextColor="?android:attr/textColorSecondary"
+            tools:ignore="SpeakableTextPresentCheck" />
 
     </com.google.android.material.appbar.AppBarLayout>
 

@@ -25,7 +25,7 @@
         android:id="@+id/textViewEmptyReviews"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chưa có đánh giá nào."
+        android:text="@string/profile_tab_reviews_empty"
         android:visibility="gone"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

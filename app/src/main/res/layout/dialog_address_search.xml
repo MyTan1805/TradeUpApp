@@ -8,19 +8,17 @@
     android:background="?attr/colorSurface"
     tools:context=".ui.listing.AddressSearchDialogFragment">
 
-    <!-- Thanh "kéo" -->
     <com.google.android.material.bottomsheet.BottomSheetDragHandleView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"/>
 
-    <!-- Tiêu đề và ô tìm kiếm -->
     <TextView
         android:id="@+id/textViewDialogTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:layout_marginBottom="8dp"
-        android:text="Search for Address"
+        android:text="@string/add_item_field_location_search_title"
         android:textAppearance="?attr/textAppearanceHeadline6" />
 
     <com.google.android.material.textfield.TextInputLayout
@@ -38,13 +36,13 @@
             android:id="@+id/editTextSearchAddress"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Enter address, city, or zip code"
+            android:hint="@string/add_item_field_location_search_hint"
             android:imeOptions="actionSearch"
             android:inputType="text"
-            android:maxLines="1" />
+            android:maxLines="1"
+            tools:ignore="TextContrastCheck" />
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Khu vực hiển thị kết quả và trạng thái -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -72,11 +70,11 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:padding="32dp"
-            android:text="Start typing to search for an address"
+            android:text="@string/add_item_field_location_search_instruction"
             android:textAlignment="center"
             android:textAppearance="?attr/textAppearanceBody1"
             android:textColor="?android:attr/textColorSecondary"
-            android:visibility="gone"
+            android:visibility="visible"
             tools:visibility="gone"/>
 
     </FrameLayout>

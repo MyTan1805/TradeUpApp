@@ -21,7 +21,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:src="@tools:sample/backgrounds/scenic"
-            android:contentDescription="@string/hinh_anh_san_pham" />
+            android:contentDescription="@string/content_desc_product_image" />
 
         <ImageView
             android:id="@+id/button_remove_image"
@@ -31,7 +31,7 @@
             android:layout_marginTop="36dp"
             android:layout_marginEnd="28dp"
             android:background="@drawable/ic_remove_circle_with_bg"
-            android:contentDescription="Remove image"
+            android:contentDescription="@string/content_desc_remove_image"
             android:padding="4dp"
             android:src="@drawable/ic_close"
             app:layout_constraintEnd_toEndOf="parent"

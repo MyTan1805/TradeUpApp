@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Màu khi được check (đã lưu): Màu đỏ nổi bật -->
+    <item android:color="@color/status_error" android:state_checked="true" />
+    <!-- Màu mặc định (chưa lưu): Màu trắng để nổi trên nền ảnh -->
+    <item android:color="@color/white" />
+</selector>

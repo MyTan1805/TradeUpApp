@@ -8,7 +8,6 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.edit.EditItemFragment">
 
-    <!-- === TOOLBAR === -->
     <com.google.android.material.appbar.MaterialToolbar
         android:id="@+id/toolbarEdit"
         android:layout_width="0dp"
@@ -18,16 +17,15 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back_inset"
         app:navigationIconTint="?attr/colorOnSurface"
-        app:title="Edit Listing"
+        app:title="@string/edit_item_title"
         app:titleCentered="true" />
 
-    <!-- === NÚT LƯU THAY ĐỔI (GHIM Ở DƯỚI) === -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonSaveChanges"
         style="?attr/materialButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Save Changes"
+        android:text="@string/action_save_changes"
         android:layout_marginStart="@dimen/spacing_large"
         android:layout_marginEnd="@dimen/spacing_large"
         android:layout_marginBottom="@dimen/spacing_large"
@@ -35,7 +33,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"/>
 
-    <!-- === PROGRESSBAR === -->
     <ProgressBar
         android:id="@+id/progressBarEdit"
         android:layout_width="wrap_content"
@@ -48,7 +45,6 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:elevation="10dp"/>
 
-    <!-- === NỘI DUNG CUỘN === -->
     <androidx.core.widget.NestedScrollView
         android:id="@+id/nestedScrollViewEdit"
         android:layout_width="0dp"
@@ -67,12 +63,9 @@
             android:descendantFocusability="beforeDescendants"
             android:focusableInTouchMode="true">
 
-            <!-- Quản lý ảnh -->
             <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Photos"
-                android:textAppearance="?attr/textAppearanceSubtitle1" />
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_photos" />
 
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/recyclerViewEditImages"
@@ -86,12 +79,11 @@
                 tools:layout_height="110dp"
                 tools:listitem="@layout/item_edit_photo" />
 
-            <!-- Tiêu đề -->
-            <TextView style="@style/AddItemLabel" android:text="Title" />
+            <TextView style="@style/AddItemLabel" android:text="@string/add_item_field_title" />
             <com.google.android.material.textfield.TextInputLayout
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
                 android:id="@+id/tilTitle"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -102,8 +94,7 @@
                     tools:ignore="SpeakableTextPresentCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Giá -->
-            <TextView style="@style/AddItemLabel" android:text="Price" />
+            <TextView style="@style/AddItemLabel" android:text="@string/add_item_field_price" />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrice"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -119,8 +110,7 @@
                     tools:ignore="SpeakableTextPresentCheck" />
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Mô tả -->
-            <TextView style="@style/AddItemLabel" android:text="Description" />
+            <TextView style="@style/AddItemLabel" android:text="@string/add_item_field_description" />
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilDescription"
                 android:layout_width="match_parent"
@@ -141,20 +131,19 @@
                 style="@style/Divider"
                 android:layout_marginTop="@dimen/spacing_large"/>
 
-            <!-- Các trường khác -->
-            <TextView style="@style/AddItemLabel" android:text="Category (cannot be changed)" />
+            <TextView style="@style/AddItemLabel" android:text="@string/edit_item_category_readonly" />
             <TextView
                 android:id="@+id/fieldCategory"
                 style="@style/AddItemField.ReadOnly"
                 tools:text="Electronics" />
 
-            <TextView style="@style/AddItemLabel" android:text="Condition" />
+            <TextView style="@style/AddItemLabel" android:text="@string/add_item_field_condition" />
             <TextView
                 android:id="@+id/fieldCondition"
                 style="@style/AddItemField"
                 tools:text="Like New" />
 
-            <TextView style="@style/AddItemLabel" android:text="Location" />
+            <TextView style="@style/AddItemLabel" android:text="@string/add_item_field_location" />
             <TextView
                 android:id="@+id/fieldLocation"
                 style="@style/AddItemField"

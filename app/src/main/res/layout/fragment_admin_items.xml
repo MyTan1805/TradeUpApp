@@ -4,11 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="?android:attr/colorBackground"
+    android:orientation="vertical"
     tools:context=".ui.admin.tabs.AdminItemsFragment">
 
-    <!-- Thanh tìm kiếm được thiết kế lại -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayoutSearch"
         style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -29,21 +28,13 @@
             android:id="@+id/editTextSearchItems"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Search by title, seller..."
+            android:hint="@string/admin_search_items_hint"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1" />
 
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- (Tùy chọn) Thêm các chip filter ở đây nếu cần trong tương lai -->
-    <!--
-    <HorizontalScrollView ...>
-        <com.google.android.material.chip.ChipGroup .../>
-    </HorizontalScrollView>
-    -->
-
-    <!-- Vùng chứa kết quả và các trạng thái -->
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="0dp"
@@ -66,7 +57,6 @@
             android:visibility="gone"
             tools:visibility="visible" />
 
-        <!-- Trạng thái Empty/Error được thiết kế lại, trực quan hơn -->
         <LinearLayout
             android:id="@+id/layoutEmptyState"
             android:layout_width="wrap_content"
@@ -82,16 +72,16 @@
                 android:id="@+id/imageViewEmptyIcon"
                 android:layout_width="80dp"
                 android:layout_height="80dp"
+                android:contentDescription="@null"
                 android:src="@drawable/ic_search_off"
-                app:tint="?android:attr/textColorHint"
-                android:contentDescription="@null" />
+                app:tint="?android:attr/textColorHint" />
 
             <TextView
                 android:id="@+id/textViewEmptyItems"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Start typing to find an item"
+                android:text="@string/admin_search_instruction"
                 android:textAlignment="center"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
                 android:textColor="?android:attr/textColorSecondary" />

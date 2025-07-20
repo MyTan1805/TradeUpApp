@@ -16,14 +16,15 @@
             android:id="@+id/imageViewProduct"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:contentDescription="@string/content_desc_product_image"
             android:scaleType="centerCrop"
-            app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
             app:layout_constraintDimensionRatio="1:1"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
             tools:srcCompat="@drawable/ic_placeholder_image"
-            android:contentDescription="@string/hinh_anh_san_pham" />
+            tools:ignore="VisualLintBounds" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonFavorite"
@@ -31,30 +32,31 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            app:icon="@drawable/ic_favorite"
-            app:iconTint="@android:color/white"
+            android:contentDescription="@string/content_desc_unsave_item"
             app:backgroundTint="?attr/colorPrimary"
+            app:icon="@drawable/ic_favorite_filled"
+            app:iconTint="@android:color/white"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            tools:ignore="ContentDescription" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="12dp"
-            app:layout_constraintTop_toBottomOf="@+id/imageViewProduct"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/imageViewProduct"
+            tools:ignore="VisualLintBounds">
 
             <TextView
                 android:id="@+id/textViewProductName"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:textAppearance="?attr/textAppearanceBody1"
-                android:maxLines="2"
                 android:ellipsize="end"
+                android:maxLines="2"
+                android:textAppearance="?attr/textAppearanceBody1"
                 tools:text="Vintage Leather Backpack" />
 
             <TextView
@@ -63,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?attr/textAppearanceCaption"
                 android:textColor="?android:attr/textColorSecondary"
-                tools:text="Sarah M."/>
+                tools:text="Sarah M." />
 
             <TextView
                 android:id="@+id/textViewProductPrice"

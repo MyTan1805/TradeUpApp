@@ -13,43 +13,44 @@
         android:id="@+id/toolbar_container"
         android:layout_width="0dp"
         android:layout_height="?attr/actionBarSize"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="TextSizeCheck">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonCancel"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/huy_bo"
             android:layout_marginStart="8dp"
+            android:text="@string/action_cancel"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
             android:id="@+id/textViewTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/bottom_nav_add_item"
+            android:text="@string/add_item_title"
             android:textAppearance="?attr/textAppearanceHeadline6"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonDraft"
             style="@style/Widget.MaterialComponents.Button.TextButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Draft"
             android:layout_marginEnd="8dp"
+            android:text="@string/add_item_draft_button"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
@@ -59,14 +60,15 @@
         style="?attr/materialButtonStyle"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Post Listing"
-        android:backgroundTint="?attr/colorSecondary"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="16dp"
+        android:backgroundTint="?attr/colorSecondary"
+        android:text="@string/add_item_post_button"
+        android:textColor="#455A64"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"/>
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
 
     <ProgressBar
         android:id="@+id/progressBar"
@@ -104,8 +106,6 @@
                 android:layout_height="wrap_content"
                 android:clipToPadding="false"
                 android:orientation="horizontal"
-                android:paddingTop="?attr/actionBarSize"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
                 tools:ignore="SpeakableTextPresentCheck"
                 tools:itemCount="4"
                 tools:layout_height="100dp"
@@ -114,10 +114,8 @@
             <!-- Tiêu đề -->
             <TextView
                 android:id="@+id/labelTitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Title"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_title"
                 android:layout_marginTop="24dp" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -134,22 +132,18 @@
                     android:id="@+id/editTextTitle"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="What are you selling?"
+                    android:hint="@string/add_item_field_title_hint"
                     android:inputType="textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?attr/colorOutline" />
+                style="@style/Divider" />
 
             <!-- Giá -->
             <TextView
                 android:id="@+id/labelPrice"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Price"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_price"
                 android:layout_marginTop="16dp" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -168,98 +162,65 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:inputType="numberDecimal"
-                    android:hint="0.00" />
+                    android:hint="@string/add_item_field_price_hint" />
             </com.google.android.material.textfield.TextInputLayout>
 
             <View
-                android:layout_width="match_parent"
-                android:layout_height="1dp"
-                android:background="?attr/colorOutline" />
+                style="@style/Divider" />
 
             <!-- Danh mục (Category) -->
             <TextView
                 android:id="@+id/labelCategory"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Category"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_category"
                 android:layout_marginTop="16dp" />
 
             <TextView
                 android:id="@+id/fieldCategory"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select category"
-                android:layout_marginTop="8dp"
-                android:padding="16dp"
-                android:background="@drawable/bg_clickable_field"
-                android:drawableEnd="@drawable/ic_arrow_forward"
-                android:gravity="center_vertical"
-                android:textAppearance="?attr/textAppearanceBody1"
+                style="@style/AddItemField"
+                android:text="@string/add_item_field_category_select"
                 android:textColor="?android:attr/textColorHint" />
 
             <!-- Tình trạng (Condition) -->
             <TextView
                 android:id="@+id/labelCondition"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Condition"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_condition"
                 android:layout_marginTop="16dp" />
 
             <TextView
                 android:id="@+id/fieldCondition"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select condition"
-                android:layout_marginTop="8dp"
-                android:padding="16dp"
-                android:background="@drawable/bg_clickable_field"
-                android:drawableEnd="@drawable/ic_arrow_forward"
-                android:gravity="center_vertical"
-                android:textAppearance="?attr/textAppearanceBody1"
+                style="@style/AddItemField"
+                android:text="@string/add_item_field_condition_select"
                 android:textColor="?android:attr/textColorHint" />
 
+            <!-- Phương thức giao dịch -->
             <TextView
                 android:id="@+id/labelItemBehavior"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Trading Method"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_trading_method"
                 android:layout_marginTop="16dp" />
 
             <TextView
                 android:id="@+id/fieldItemBehavior"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="Select method"
-                android:layout_marginTop="8dp"
-                android:padding="16dp"
-                android:background="@drawable/bg_clickable_field"
-                android:drawableEnd="@drawable/ic_arrow_forward"
-                android:gravity="center_vertical"
-                android:textAppearance="?attr/textAppearanceBody1"
+                style="@style/AddItemField"
+                android:text="@string/add_item_field_trading_method_select"
                 android:textColor="?android:attr/textColorHint" />
 
             <!-- Vị trí (Location) -->
             <TextView
                 android:id="@+id/labelLocation"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Location"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_location"
                 android:layout_marginTop="16dp" />
 
             <androidx.constraintlayout.widget.ConstraintLayout
                 android:id="@+id/fieldLocation"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:paddingStart="16dp"
-                android:paddingEnd="8dp"
+                style="@style/AddItemField"
                 android:paddingTop="12dp"
                 android:paddingBottom="12dp"
-                android:background="@drawable/bg_clickable_field">
+                android:paddingStart="16dp"
+                android:paddingEnd="8dp">
 
                 <ImageView
                     android:id="@+id/iconLocation"
@@ -270,13 +231,13 @@
                     app:layout_constraintStart_toStartOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
-                    android:contentDescription="Location" />
+                    android:contentDescription="@string/add_item_field_location" />
 
                 <TextView
                     android:id="@+id/textCurrentLocation"
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Current Location"
+                    android:text="@string/add_item_field_location_current"
                     android:textAppearance="?attr/textAppearanceBody1"
                     android:layout_marginStart="12dp"
                     app:layout_constraintStart_toEndOf="@id/iconLocation"
@@ -289,7 +250,7 @@
                     style="@style/Widget.MaterialComponents.Button.TextButton"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Change"
+                    android:text="@string/add_item_field_location_change"
                     app:layout_constraintEnd_toEndOf="parent"
                     app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"/>
@@ -299,10 +260,8 @@
             <!-- Mô tả -->
             <TextView
                 android:id="@+id/labelDescription"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Description"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_description"
                 android:layout_marginTop="16dp" />
 
             <com.google.android.material.textfield.TextInputLayout
@@ -320,25 +279,24 @@
                     android:id="@+id/editTextDescription"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Describe your item"
+                    android:hint="@string/add_item_field_description_hint"
                     android:gravity="top|start"
-                    android:lines="5"
+                    android:minLines="5"
                     android:inputType="textMultiLine|textCapSentences" />
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Tags -->
             <TextView
                 android:id="@+id/labelTags"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Tags (Select up to 5)"
-                android:textAppearance="?attr/textAppearanceSubtitle1"
+                style="@style/AddItemLabel"
+                android:text="@string/add_item_field_tags"
                 android:layout_marginTop="16dp" />
 
             <TextView
                 android:id="@+id/textViewTagsInstruction"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Please select a category first to see suggested tags."
+                android:text="@string/add_item_tags_instruction"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary"
                 android:layout_marginTop="8dp"

@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.GridLayoutManager;
 
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
+import com.example.tradeup.data.model.config.CategoryConfig;
 import com.example.tradeup.data.model.config.DisplayCategoryConfig;
 import com.example.tradeup.data.model.config.ItemConditionConfig;
 import com.example.tradeup.databinding.FragmentSearchResultsBinding;
@@ -107,7 +108,7 @@ public class SearchResultsFragment extends Fragment {
                 navController.navigate(R.id.action_global_to_itemDetailFragment, args);
             }
             @Override
-            public void onFavoriteClick(Item item, boolean isCurrentlyFavorite) { /* TODO */ }
+            public void onFavoriteClick(Item item) { /* TODO */ }
         });
         binding.recyclerViewSearchResults.setLayoutManager(new GridLayoutManager(getContext(), 2));
         binding.recyclerViewSearchResults.setAdapter(searchResultsAdapter);
@@ -217,13 +218,14 @@ public class SearchResultsFragment extends Fragment {
                 binding.chipCategory.setText("Category");
             } else {
                 if (viewModel.getAppConfig().getValue() != null) {
-                    viewModel.getAppConfig().getValue().getDisplayCategories().stream()
+                    viewModel.getAppConfig().getValue().getCategories().stream() // <-- SỬA Ở ĐÂY
                             .filter(c -> c.getId().equals(categoryId))
                             .findFirst()
                             .ifPresent(c -> binding.chipCategory.setText(c.getName()));
                 }
             }
         });
+
 
         viewModel.getDistanceInKm().observe(getViewLifecycleOwner(), distance -> {
             if (distance == null || distance <= 0) {
@@ -246,7 +248,7 @@ public class SearchResultsFragment extends Fragment {
                 if (index == 0) { // "All Categories"
                     viewModel.setCategoryAndSearch(null);
                 } else {
-                    DisplayCategoryConfig selected = viewModel.getAppConfig().getValue().getDisplayCategories().get(index - 1);
+                    CategoryConfig selected = viewModel.getAppConfig().getValue().getCategories().get(index - 1); // <-- SỬA Ở ĐÂY
                     viewModel.setCategoryAndSearch(selected.getId());
                 }
             }
@@ -288,8 +290,8 @@ public class SearchResultsFragment extends Fragment {
     private void showCategoryDialog() {
         if (viewModel.getAppConfig().getValue() == null) return;
         ArrayList<String> names = (ArrayList<String>) viewModel.getAppConfig().getValue()
-                .getDisplayCategories().stream()
-                .map(DisplayCategoryConfig::getName)
+                .getCategories().stream() // <-- SỬA Ở ĐÂY
+                .map(CategoryConfig::getName) // <-- SỬA Ở ĐÂY
                 .collect(Collectors.toList());
         names.add(0, "All Categories");
         ListSelectionDialogFragment.newInstance("Select a Category", names, REQUEST_KEY_CATEGORY)

@@ -14,8 +14,10 @@ import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.model.config.AppConfig;
+import com.example.tradeup.data.model.config.CategoryConfig;
 import com.example.tradeup.data.model.config.DisplayCategoryConfig;
 import com.example.tradeup.data.model.config.ItemConditionConfig;
+import com.example.tradeup.data.model.config.SubcategoryConfig;
 import com.example.tradeup.data.network.NotificationApiService;
 import com.example.tradeup.data.network.NotificationRequest;
 import com.example.tradeup.data.network.NotificationResponse;
@@ -268,12 +270,20 @@ public class ItemDetailViewModel extends ViewModel {
     }
 
     private String findCategoryName(String categoryId, @Nullable AppConfig config) {
-        if (config == null || categoryId == null || config.getDisplayCategories() == null) return "N/A";
-        return config.getDisplayCategories().stream()
-                .filter(cat -> categoryId.equals(cat.getId()))
-                .map(DisplayCategoryConfig::getName)
+        if (config == null || categoryId == null || config.getCategories() == null) return "N/A";
+
+        // Duyệt qua danh sách các danh mục cha
+        return config.getCategories().stream()
+                .filter(cat -> categoryId.equals(cat.getId())) // Tìm danh mục cha có ID khớp
+                .map(CategoryConfig::getName) // Lấy tên của nó
                 .findFirst()
-                .orElse(categoryId);
+                // Nếu không tìm thấy, có thể nó là một danh mục con, cần tìm sâu hơn
+                .orElseGet(() -> config.getCategories().stream()
+                        .flatMap(parent -> parent.getSubcategories().stream()) // Lấy tất cả danh mục con từ tất cả các cha
+                        .filter(sub -> categoryId.equals(sub.getId())) // Tìm danh mục con có ID khớp
+                        .map(SubcategoryConfig::getName) // Lấy tên
+                        .findFirst()
+                        .orElse(categoryId)); // Nếu vẫn không thấy, trả về ID
     }
 
     private String findConditionName(String conditionId, @Nullable AppConfig config) {

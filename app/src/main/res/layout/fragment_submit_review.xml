@@ -4,8 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     android:background="?attr/colorSurface"
+    android:fitsSystemWindows="true"
     tools:context=".ui.reviews.SubmitReviewFragment">
 
     <!-- === TOOLBAR === -->
@@ -18,9 +18,10 @@
         app:layout_constraintTop_toTopOf="parent"
         app:navigationIcon="@drawable/ic_arrow_back_inset"
         app:navigationIconTint="?attr/colorOnSurface"
-        app:title="Rate Your Experience"
+        app:title="@string/review_screen_title"
         app:titleCentered="true"
-        app:titleTextAppearance="?attr/textAppearanceHeadline6">
+        app:titleTextAppearance="?attr/textAppearanceHeadline6"
+        tools:ignore="TextSizeCheck">
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSkip"
@@ -29,7 +30,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="end"
             android:layout_marginEnd="8dp"
-            android:text="Skip" />
+            android:text="@string/action_skip" />
     </com.google.android.material.appbar.MaterialToolbar>
 
     <!-- === KHỐI HÀNH ĐỘNG GHIM Ở DƯỚI === -->
@@ -50,7 +51,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:minHeight="56dp"
-            android:text="Submit Review" />
+            android:text="@string/review_submit_button"
+            tools:ignore="VisualLintButtonSize" />
 
         <TextView
             android:id="@+id/buttonSkipThisStep"
@@ -59,7 +61,7 @@
             android:layout_marginTop="8dp"
             android:background="?attr/selectableItemBackground"
             android:padding="8dp"
-            android:text="Skip this step"
+            android:text="@string/review_skip_button"
             android:textAppearance="?attr/textAppearanceBody2"
             android:textColor="?android:attr/textColorSecondary" />
     </LinearLayout>
@@ -85,7 +87,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Rate your transaction with"
+                android:text="@string/review_header"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary" />
 
@@ -118,11 +120,10 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="32dp"
-                android:text="How was your experience?"
+                android:text="@string/review_prompt"
                 android:textAppearance="?attr/textAppearanceHeadline5"
                 android:textStyle="bold" />
 
-            <!-- === RATING BAR ĐÃ ĐƯỢC "NÂNG CẤP" === -->
             <RatingBar
                 android:id="@+id/ratingBar"
                 style="?android:attr/ratingBarStyle"
@@ -130,14 +131,13 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
                 android:numStars="5"
-                android:stepSize="1"
-                />
+                android:stepSize="1" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
-                android:text="Tap to rate"
+                android:text="@string/review_tap_to_rate"
                 android:textAppearance="?attr/textAppearanceBody2"
                 android:textColor="?android:attr/textColorSecondary" />
 
@@ -148,7 +148,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:hint="Share your experience with other users (optional)"
+                android:hint="@string/review_feedback_hint"
                 app:counterEnabled="true"
                 app:counterMaxLength="500">
 
@@ -158,9 +158,9 @@
                     android:layout_height="wrap_content"
                     android:gravity="top|start"
                     android:inputType="textMultiLine|textCapSentences"
-                    android:minLines="5" />
+                    android:minLines="5"
+                    tools:ignore="VisualLintTextFieldSize" />
             </com.google.android.material.textfield.TextInputLayout>
-
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

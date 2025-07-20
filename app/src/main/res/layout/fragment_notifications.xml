@@ -3,12 +3,11 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:fitsSystemWindows="true"
     android:layout_height="match_parent"
     android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true"
     tools:context=".ui.notifications.NotificationsFragment">
 
-    <!-- === HEADER === -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -16,7 +15,6 @@
         android:background="?attr/colorSurface"
         app:elevation="0dp">
 
-        <!-- Toolbar -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
@@ -26,29 +24,28 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Notifications"
+                android:layout_gravity="start"
+                android:text="@string/notifications_title"
                 android:textAppearance="?attr/textAppearanceHeadline4"
-                android:textStyle="bold"
-                android:layout_gravity="start"/>
+                android:textStyle="bold" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/buttonMarkAllRead"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Mark all as read"
-                android:layout_gravity="end"/>
+                android:layout_gravity="end"
+                android:text="@string/notifications_mark_all_read" />
 
         </com.google.android.material.appbar.MaterialToolbar>
 
-        <!-- Filter Chips -->
         <HorizontalScrollView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:scrollbars="none"
-            android:paddingVertical="8dp"
+            android:clipToPadding="false"
             android:paddingHorizontal="12dp"
-            android:clipToPadding="false">
+            android:paddingVertical="8dp"
+            android:scrollbars="none">
 
             <com.google.android.material.chip.ChipGroup
                 android:id="@+id/chipGroupFilters"
@@ -56,18 +53,19 @@
                 android:layout_height="wrap_content"
                 app:singleLine="true"
                 app:singleSelection="true">
-                <!-- Tái sử dụng style chip từ màn hình Category -->
+
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipAll"
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All"
                     android:checkable="true"
                     android:checked="true"
+                    android:text="@string/notifications_filter_all"
+                    android:textColor="@color/subcategory_chip_text_color_selector"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"
-                    android:textColor="@color/subcategory_chip_text_color_selector"/>
-                <!-- Thêm các chip khác (Messages, Offers...) ở đây -->
+                    tools:ignore="TextContrastCheck" />
+                <!-- Add other filter chips here if needed -->
             </com.google.android.material.chip.ChipGroup>
         </HorizontalScrollView>
 
@@ -78,13 +76,12 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- === DANH SÁCH THÔNG BÁO === -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerViewNotifications"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:listitem="@layout/item_notification" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

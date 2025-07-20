@@ -125,7 +125,7 @@ public class SavedItemsFragment extends Fragment implements ProductAdapter.OnPro
     }
 
     @Override
-    public void onFavoriteClick(Item item, boolean isCurrentlyFavorite) {
+    public void onFavoriteClick(Item item) {
         // Trong màn hình này, click vào nút favorite luôn là hành động "unsave"
         Log.d(TAG, "Unsaving item: " + item.getTitle());
         viewModel.unsaveItem(item);

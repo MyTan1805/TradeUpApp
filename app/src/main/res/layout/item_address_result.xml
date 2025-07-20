@@ -14,7 +14,7 @@
         android:layout_height="@dimen/icon_size_standard"
         android:src="@drawable/ic_location_on"
         app:tint="?android:attr/textColorSecondary"
-        android:contentDescription="Location Icon"/>
+        android:contentDescription="@string/location_icon"/>
 
     <TextView
         android:id="@+id/textViewAddress"

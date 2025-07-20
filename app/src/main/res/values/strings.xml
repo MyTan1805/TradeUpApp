@@ -271,7 +271,7 @@
     <string name="settings_header_support">SUPPORT</string>
     <string name="settings_help">Help &amp; Support</string>
     <string name="settings_about">About TradeUp</string>
-    <string name="settings_logout">Log Out</string>
+    <string name="Fde">Log Out</string>
     <string name="settings_app_version">v1.0.0</string> <!-- Ví dụ -->
 
     <!-- Report Dialog -->
@@ -303,6 +303,109 @@
     <string name="dialog_reauth_title">Confirm Deletion</string>
     <string name="dialog_reauth_message">Please enter your password to confirm.</string>
     <string name="dialog_reauth_positive_button">Delete Forever</string>
+    <string name="home_nearby_items">Home nearby items</string>
+    <string name="admin_reactivate_account">reactivate account</string>
+
+    <!-- Dành cho Admin Screens -->
+    <string name="admin_dashboard_title">Admin Dashboard</string>
+    <string name="admin_tab_reports">Reports</string>
+    <string name="admin_tab_users">Users</string>
+    <string name="admin_tab_items">Items</string>
+    <string name="admin_search_items_hint">Search by title, seller…</string>
+    <string name="admin_search_users_hint">Search by display name…</string>
+    <string name="admin_search_instruction">Start typing to find content.</string>
+    <string name="admin_reports_empty">No pending reports.</string>
+    <string name="admin_no_items_found">No items found.</string>
+    <string name="admin_no_users_found">No users found.</string>
+
+    <!-- Dành cho Category Listings -->
+    <string name="category_listings_sort_by">Sort: %s</string> <!-- Ví dụ: Sort: Recent First -->
+    <string name="category_listings_all_prefix">All %s</string> <!-- Ví dụ: All Electronics -->
+
+    <!-- Dành cho Edit Item -->
+    <string name="edit_item_category_readonly">Category (cannot be changed)</string>
+
+    <!-- Dành cho Item Detail -->
+    <string name="item_detail_views">%s views</string> <!-- Ví dụ: 1.2k views -->
+    <string name="item_detail_member_since">Member since %s</string> <!-- Ví dụ: Member since 2021 -->
+    <string name="item_detail_content_desc_view_profile">View profile</string>
+
+    <!-- Dành cho My Listings Options Dialog -->
+    <string name="my_listings_option_edit">Edit Listing</string>
+    <string name="my_listings_option_mark_sold">Mark as Sold</string>
+    <string name="my_listings_option_pause">Pause Listing</string>
+    <string name="my_listings_option_resume">Resume Listing</string>
+    <string name="my_listings_option_delete">Delete Listing</string>
+
+    <!-- Dành cho Search/Filter Dialogs -->
+    <string name="search_filter_min_price">Minimum Price</string>
+    <string name="search_filter_max_price">Maximum Price</string>
+    <string name="dialog_reauth_password_hint">Password</string>
+    <string name="all_electronics">All Electronics</string>
+    <string name="smartphones">Smartphones</string>
+    <string name="laptops">Laptops</string>
+
+    <!-- Saved Items Screen -->
+    <string name="saved_items_filter_all">All Items</string>
+    <string name="saved_items_filter_recently_saved">Recently Saved</string>
+    <string name="saved_items_filter_price_asc">Price: Low to High</string>
+
+    <string name="profile_tab_listings_empty">You have no active listings.</string>
+    <string name="profile_tab_reviews_empty">No reviews yet.</string>
+    <string name="profile_tab_sold_empty">You have no sold items yet.</string>
+    <string name="search_filter_distance">Distance</string>
+    <string name="search_empty_title">No Results Found</string>
+    <string name="my_listings_empty_generic">No items to display.</string>
+    <string name="selected">Selected</string>
+    <string name="item_image">Item Image</string>
+    <string name="no_transactions">No transactions</string>
+    <string name="no_transactions_yet">No transactions yet</string>
+    <string name="location_icon">Location Icon</string>
+
+    <string name="offer_action_accept">Accept</string>
+    <string name="offer_action_reject">Reject</string>
+    <string name="offer_action_counter">Counter</string>
+    <string name="setting_icon">Setting Icon</string>
+    <string name="xoa_anh">Delete\n</string>
+    <string name="navigate">Navigate</string>
+    <string name="settings_logout">Log Out\n</string>
+    <string name="resolve">Resolve</string>
+
+    <!-- ===================================================================== -->
+    <!-- === 10. MISSING STRINGS TO FIX BUILD ERROR ========================== -->
+    <!-- ===================================================================== -->
+
+    <!-- For activity_main.xml -->
+    <string name="bottom_nav_add_item">Add New Item</string>
+
+    <!-- For dialog_address_search.xml -->
+    <string name="add_item_field_location_search_title">Search for Address</string>
+    <string name="add_item_field_location_search_hint">Enter address, city, or zip code</string>
+    <string name="add_item_field_location_search_instruction">Start typing to search for an address</string>
+
+    <!-- For home_toolbar_menu.xml -->
+    <string name="tim_kiem">Search</string>
+
+    <!-- For root_preferences.xml (Legacy settings screen) -->
+    <string name="messages_header">Messages</string>
+    <string name="signature_title">Your signature</string>
+    <string name="reply_title">Default reply action</string>
+    <string name="sync_header">Sync</string>
+    <string name="sync_title">Sync email periodically</string>
+    <string name="attachment_title">Download incoming attachments</string>
+    <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
+    <string name="attachment_summary_off">Only download attachments when requested</string>
+
+    <!-- For legacy string-array resources -->
+    <string-array name="reply_entries">
+        <item>Reply</item>
+        <item>Reply to all</item>
+    </string-array>
+
+    <string-array name="reply_values">
+        <item>reply</item>
+        <item>reply_all</item>
+    </string-array>
 
     <!-- Unused or legacy strings -->
     <!--<string name="dddd">Button</string>-->

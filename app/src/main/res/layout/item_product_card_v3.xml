@@ -23,7 +23,7 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             tools:srcCompat="@drawable/ic_placeholder_image"
-            android:contentDescription="@string/hinh_anh_san_pham" />
+            android:contentDescription="@string/content_desc_product_image" />
 
         <com.google.android.material.chip.Chip
             android:id="@+id/chipCondition"

@@ -25,7 +25,7 @@
         android:id="@+id/textViewEmptyListings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Chưa có sản phẩm nào đang bán."
+        android:text="@string/profile_tab_listings_empty"
         android:visibility="gone"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"

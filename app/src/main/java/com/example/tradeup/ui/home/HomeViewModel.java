@@ -1,4 +1,4 @@
-// THAY THẾ TOÀN BỘ FILE: src/main/java/com/example/tradeup/ui/home/HomeViewModel.java
+// File: src/main/java/com/example/tradeup/ui/home/HomeViewModel.java
 package com.example.tradeup.ui.home;
 
 import android.content.Context;
@@ -13,20 +13,22 @@ import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.core.utils.NetworkUtils;
 import com.example.tradeup.data.model.Item;
-// === SỬA LỖI 1: SỬA LẠI IMPORT CHO ĐÚNG MODEL USER CỦA BẠN ===
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.model.config.AppConfig;
-import com.example.tradeup.data.model.config.DisplayCategoryConfig;
+import com.example.tradeup.data.model.config.CategoryConfig;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.AuthRepository;
 import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.data.repository.LocationRepository;
 import com.example.tradeup.data.repository.UserRepository;
+import com.example.tradeup.data.repository.UserSavedItemsRepository;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.Query;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
@@ -48,8 +50,12 @@ public class HomeViewModel extends ViewModel {
     private final Executor backgroundExecutor;
     private final UserRepository userRepository;
 
-    // Biến để lưu thông tin người dùng hiện tại, bao gồm cả danh sách block
+    private final UserSavedItemsRepository userSavedItemsRepository;
+
     private User currentUserData;
+
+    private final MutableLiveData<Set<String>> _savedItemIds = new MutableLiveData<>(new HashSet<>());
+    public LiveData<Set<String>> getSavedItemIds() { return _savedItemIds; }
 
     private final MutableLiveData<HomeState> _state = new MutableLiveData<>();
     public LiveData<HomeState> getState() { return _state; }
@@ -71,20 +77,20 @@ public class HomeViewModel extends ViewModel {
     @Inject
     public HomeViewModel(AppConfigRepository appConfigRepository, ItemRepository itemRepository,
                          LocationRepository locationRepository, AuthRepository authRepository,
-                         UserRepository userRepository, @ApplicationContext Context context) {
+                         UserRepository userRepository,UserSavedItemsRepository userSavedItemsRepository,
+                         @ApplicationContext Context context) {
         this.appConfigRepository = appConfigRepository;
         this.itemRepository = itemRepository;
         this.locationRepository = locationRepository;
         this.authRepository = authRepository;
         this.backgroundExecutor = Executors.newSingleThreadExecutor();
         this.userRepository = userRepository;
+        this.userSavedItemsRepository = userSavedItemsRepository;
         this.appContext = context;
 
-        // === SỬA LỖI 2: LẤY ID NGƯỜI DÙNG TRƯỚC KHI SỬ DỤNG ===
         FirebaseUser user = authRepository.getCurrentUser();
         this.currentUserId = (user != null) ? user.getUid() : null;
 
-        // Tải thông tin người dùng hiện tại (bao gồm cả danh sách block)
         if (this.currentUserId != null) {
             loadCurrentUserInfo(this.currentUserId);
         }
@@ -102,18 +108,63 @@ public class HomeViewModel extends ViewModel {
                 });
     }
 
-    public void refreshData() {
+    private void loadSavedItemIds() {
+        if (currentUserId == null) return;
+        userSavedItemsRepository.getSavedItemIds(currentUserId, new Callback<List<String>>() {
+            @Override
+            public void onSuccess(List<String> data) {
+                _savedItemIds.postValue(new HashSet<>(data));
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e(TAG, "Failed to load saved item IDs", e);
+            }
+        });
+    }
 
-        if (!NetworkUtils.isNetworkAvailable(appContext)) {
-            _state.postValue(new HomeState.Error("No internet connection. Please try again."));
-            return; // Dừng lại ngay lập tức
-        }
-
-        if (isRequestInProgress) {
-            Log.d(TAG, "Refresh request ignored: A request is already in progress.");
+    // << THÊM HÀM MỚI NÀY ĐỂ XỬ LÝ SỰ KIỆN CLICK >>
+    public void toggleFavoriteStatus(Item item) {
+        if (currentUserId == null) {
+            _toastMessage.setValue(new Event<>("Please log in to save items."));
             return;
         }
 
+        Set<String> currentSavedIds = _savedItemIds.getValue();
+        if (currentSavedIds == null) {
+            currentSavedIds = new HashSet<>();
+        }
+
+        boolean isCurrentlySaved = currentSavedIds.contains(item.getItemId());
+
+        Callback<Void> callback = new Callback<Void>() {
+            @Override
+            public void onSuccess(Void data) {
+                // Cập nhật lại danh sách ID đã lưu để UI tự động thay đổi
+                loadSavedItemIds();
+                _toastMessage.postValue(new Event<>(isCurrentlySaved ? "Unsaved item" : "Item saved!"));
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                _toastMessage.postValue(new Event<>("Action failed: " + e.getMessage()));
+            }
+        };
+
+        if (isCurrentlySaved) {
+            userSavedItemsRepository.unsaveItem(currentUserId, item.getItemId(), callback);
+        } else {
+            userSavedItemsRepository.saveItem(currentUserId, item.getItemId(), callback);
+        }
+    }
+
+
+    public void refreshData() {
+        if (!NetworkUtils.isNetworkAvailable(appContext)) {
+            _state.postValue(new HomeState.Error("No internet connection. Please try again."));
+            return;
+        }
+        if (isRequestInProgress) {
+            return;
+        }
         isRequestInProgress = true;
         _state.postValue(new HomeState.Loading());
         lastVisibleItemId = null;
@@ -122,24 +173,23 @@ public class HomeViewModel extends ViewModel {
         appConfigRepository.getAppConfig(new Callback<AppConfig>() {
             @Override
             public void onSuccess(AppConfig config) {
-                List<DisplayCategoryConfig> categories = (config != null && config.getDisplayCategories() != null)
-                        ? config.getDisplayCategories() : Collections.emptyList();
-                fetchRecentItems(true, categories);
+                backgroundExecutor.execute(() -> {
+                    List<CategoryConfig> categories = (config != null) ? config.getCategories() : Collections.emptyList();
+                    fetchRecentItems(true, categories);
+                });
             }
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Failed to load app config.", e);
                 _state.postValue(new HomeState.Error("Failed to load app configuration."));
                 isRequestInProgress = false;
             }
         });
     }
 
-    private void fetchRecentItems(final boolean isRefresh, @Nullable final List<DisplayCategoryConfig> categories) {
+    private void fetchRecentItems(final boolean isRefresh, @Nullable final List<CategoryConfig> categories) {
         itemRepository.getAllItems(PAGE_SIZE, lastVisibleItemId, new Callback<List<Item>>() {
             @Override
             public void onSuccess(List<Item> newItems) {
-                // === SỬA LỖI 3: ÁP DỤNG BỘ LỌC TRƯỚC KHI CẬP NHẬT UI ===
                 List<Item> filteredItems = newItems;
                 if (currentUserData != null && currentUserData.getBlockedUsers() != null && !currentUserData.getBlockedUsers().isEmpty()) {
                     filteredItems = newItems.stream()
@@ -147,7 +197,7 @@ public class HomeViewModel extends ViewModel {
                             .collect(Collectors.toList());
                 }
 
-                final List<Item> finalItems = filteredItems; // Dùng biến final để an toàn trong thread
+                final List<Item> finalItems = filteredItems;
 
                 backgroundExecutor.execute(() -> {
                     if (isRefresh) {
@@ -171,7 +221,6 @@ public class HomeViewModel extends ViewModel {
                     if (!finalItems.isEmpty()) {
                         lastVisibleItemId = finalItems.get(finalItems.size() - 1).getItemId();
                     }
-
                     if (!isRefresh) {
                         isRequestInProgress = false;
                     }
@@ -180,7 +229,6 @@ public class HomeViewModel extends ViewModel {
 
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Failed to fetch items.", e);
                 if (isRefresh) {
                     _state.postValue(new HomeState.Error("Failed to load items. Please try again."));
                 } else {
@@ -199,18 +247,12 @@ public class HomeViewModel extends ViewModel {
         fetchRecentItems(false, null);
     }
 
-    public void fetchNearbyItems() {
-        // Hàm này giờ có thể được gọi độc lập từ Fragment nếu cần
-        loadNearbyItemsBasedOnLocation();
-    }
-
     private void loadNearbyItemsBasedOnLocation() {
         locationRepository.getCurrentLocation(new Callback<Location>() {
             @Override
             public void onSuccess(Location location) {
                 if (location == null) {
-                    _nearbyItems.postValue(Collections.emptyList());
-                    if (isRequestInProgress) isRequestInProgress = false; // Mở khóa nếu đây là tác vụ cuối
+                    if (isRequestInProgress) isRequestInProgress = false;
                     return;
                 }
                 itemRepository.searchByLocation(location, 10, null, null, null, null, null, 20, "createdAt", Query.Direction.DESCENDING, new Callback<List<Item>>() {
@@ -226,22 +268,18 @@ public class HomeViewModel extends ViewModel {
                             } else {
                                 _nearbyItems.postValue(Collections.emptyList());
                             }
-                            if (isRequestInProgress) isRequestInProgress = false; // Hoàn thành chuỗi refresh
+                            if (isRequestInProgress) isRequestInProgress = false;
                         });
                     }
-
                     @Override
                     public void onFailure(@NonNull Exception e) {
-                        Log.e(TAG, "Failed to fetch nearby items.", e);
                         _nearbyItems.postValue(Collections.emptyList());
                         if (isRequestInProgress) isRequestInProgress = false;
                     }
                 });
             }
-
             @Override
             public void onFailure(@NonNull Exception e) {
-                Log.e(TAG, "Failed to get current location.", e);
                 _nearbyItems.postValue(Collections.emptyList());
                 if (isRequestInProgress) isRequestInProgress = false;
             }

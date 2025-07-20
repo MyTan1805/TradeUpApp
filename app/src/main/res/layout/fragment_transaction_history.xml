@@ -23,9 +23,10 @@
             android:layout_height="?attr/actionBarSize"
             app:navigationIcon="@drawable/ic_arrow_back_inset"
             app:navigationIconTint="?attr/colorOnSurface"
-            app:title="Transaction History"
+            app:title="@string/transaction_history_title"
             app:titleCentered="true"
-            app:titleTextAppearance="?attr/textAppearanceHeadline6" />
+            app:titleTextAppearance="?attr/textAppearanceHeadline6"
+            tools:ignore="TextSizeCheck" />
 
         <!-- 2. Filter Chips -->
         <HorizontalScrollView
@@ -48,18 +49,19 @@
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="All"
                     android:checkable="true"
                     android:checked="true"
+                    android:text="@string/transaction_filter_all"
                     android:textColor="@color/subcategory_chip_text_color_selector"
-                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
+                    app:chipBackgroundColor="@color/subcategory_chip_background_selector"
+                    tools:ignore="TextContrastCheck" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipPurchases"
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Purchases"
+                    android:text="@string/transaction_filter_purchases"
                     android:checkable="true"
                     android:textColor="@color/subcategory_chip_text_color_selector"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
@@ -69,7 +71,7 @@
                     style="@style/Widget.TradeUp.Chip.SubCategory"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Sales"
+                    android:text="@string/transaction_filter_sales"
                     android:checkable="true"
                     android:textColor="@color/subcategory_chip_text_color_selector"
                     app:chipBackgroundColor="@color/subcategory_chip_background_selector"/>
@@ -112,21 +114,22 @@
             android:gravity="center"
             android:visibility="gone"
             android:layout_gravity="center"
-            tools:visibility="visible">
+            tools:visibility="visible"
+            tools:ignore="UseCompoundDrawables">
 
             <ImageView
                 android:layout_width="96dp"
                 android:layout_height="96dp"
                 android:src="@drawable/ic_receipt_long"
                 app:tint="?android:attr/textColorHint"
-                android:contentDescription="No transactions"/>
+                android:contentDescription="@string/no_transactions"/>
 
             <TextView
                 android:id="@+id/textViewEmptyMessage"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="No transactions yet"
+                android:text="@string/no_transactions_yet"
                 android:textAppearance="?attr/textAppearanceSubtitle1"
                 android:textColor="?android:attr/textColorSecondary"/>
         </LinearLayout>

@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     style="?attr/materialCardViewStyle"
     android:layout_width="160dp"
@@ -17,7 +16,7 @@
             android:layout_width="match_parent"
             android:layout_height="120dp"
             android:scaleType="centerCrop"
-            android:contentDescription="@string/hinh_anh_san_pham"
+            android:contentDescription="@string/content_desc_product_image"
             tools:srcCompat="@drawable/ic_electronics" />
 
         <TextView

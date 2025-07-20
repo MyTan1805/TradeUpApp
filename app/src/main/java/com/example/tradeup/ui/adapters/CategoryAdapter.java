@@ -1,4 +1,4 @@
-// package: com.example.tradeup.ui.adapters
+// File: src/main/java/com/example/tradeup/ui/adapters/CategoryAdapter.java
 package com.example.tradeup.ui.adapters;
 
 import android.view.LayoutInflater;
@@ -9,13 +9,13 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
-import com.example.tradeup.data.model.config.DisplayCategoryConfig;
+import com.example.tradeup.data.model.config.CategoryConfig;
 import com.example.tradeup.databinding.ItemCategoryChipBinding;
 
-public class CategoryAdapter extends ListAdapter<DisplayCategoryConfig, CategoryAdapter.CategoryViewHolder> {
+public class CategoryAdapter extends ListAdapter<CategoryConfig, CategoryAdapter.CategoryViewHolder> {
 
     public interface OnCategoryClickListener {
-        void onCategoryClick(DisplayCategoryConfig category);
+        void onCategoryClick(CategoryConfig category);
     }
 
     private final OnCategoryClickListener listener;
@@ -36,7 +36,7 @@ public class CategoryAdapter extends ListAdapter<DisplayCategoryConfig, Category
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
-        DisplayCategoryConfig category = getItem(position);
+        CategoryConfig category = getItem(position);
         holder.bind(category, listener);
     }
 
@@ -48,27 +48,27 @@ public class CategoryAdapter extends ListAdapter<DisplayCategoryConfig, Category
             this.binding = binding;
         }
 
-        void bind(final DisplayCategoryConfig category, final OnCategoryClickListener listener) {
+        void bind(final CategoryConfig category, final OnCategoryClickListener listener) {
             binding.textViewCategoryName.setText(category.getName());
 
             Glide.with(itemView.getContext())
-                    .load(category.getIconUrl()) // Glide sẽ tự xử lý nếu URL là null
-                    .placeholder(R.drawable.ic_category) // Một icon placeholder chung
+                    .load(category.getIconUrl())
+                    .placeholder(R.drawable.ic_category)
                     .into(binding.imageViewCategoryIcon);
 
             itemView.setOnClickListener(v -> listener.onCategoryClick(category));
         }
     }
 
-    private static final DiffUtil.ItemCallback<DisplayCategoryConfig> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<DisplayCategoryConfig>() {
+    private static final DiffUtil.ItemCallback<CategoryConfig> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<CategoryConfig>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull DisplayCategoryConfig oldItem, @NonNull DisplayCategoryConfig newItem) {
+                public boolean areItemsTheSame(@NonNull CategoryConfig oldItem, @NonNull CategoryConfig newItem) {
                     return oldItem.getId().equals(newItem.getId());
                 }
 
                 @Override
-                public boolean areContentsTheSame(@NonNull DisplayCategoryConfig oldItem, @NonNull DisplayCategoryConfig newItem) {
+                public boolean areContentsTheSame(@NonNull CategoryConfig oldItem, @NonNull CategoryConfig newItem) {
                     return oldItem.getName().equals(newItem.getName()) &&
                             (oldItem.getIconUrl() != null ? oldItem.getIconUrl().equals(newItem.getIconUrl()) : newItem.getIconUrl() == null);
                 }

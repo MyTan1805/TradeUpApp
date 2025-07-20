@@ -10,7 +10,7 @@
         android:layout_width="match_parent"
         android:layout_height="150dp"
         android:scaleType="centerCrop"
-        android:contentDescription="@string/product_image" />
+        android:contentDescription="@string/content_desc_product_image" />
 
     <TextView
         android:id="@+id/text_product_title"

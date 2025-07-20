@@ -1,19 +1,19 @@
+// File: src/main/java/com/example/tradeup/data/model/config/AppConfig.java
 package com.example.tradeup.data.model.config;
 
-import androidx.annotation.NonNull; // << Thêm NonNull để code rõ ràng hơn
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.ServerTimestamp;
 import java.util.ArrayList;
-import java.util.Collections; // << Import Collections
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class AppConfig {
-    private List<CategoryConfig> categories;
 
-    private List<DisplayCategoryConfig> displayCategories;
+    private List<CategoryConfig> categories; // Chỉ giữ lại field này cho danh mục
     private List<ItemConditionConfig> itemConditions;
     private List<ReportReasonConfig> reportReasons;
     private List<PaymentMethodConfig> supportedPaymentMethods;
@@ -34,11 +34,9 @@ public class AppConfig {
     @Nullable
     private Timestamp lastUpdated;
 
-    // Constructor rỗng đã rất tốt
     public AppConfig() {
         this.categories = new ArrayList<>();
         this.itemConditions = new ArrayList<>();
-        this.displayCategories = new ArrayList<>();
         this.reportReasons = new ArrayList<>();
         this.supportedPaymentMethods = new ArrayList<>();
         this.locationSearchRadiusOptions = new ArrayList<>();
@@ -47,74 +45,46 @@ public class AppConfig {
         this.contactSupport = new ContactSupportConfig();
     }
 
-    // --- GETTERS AND SETTERS (ĐÃ CẢI TIẾN) ---
-
-    // Getter và Setter cho categories
-    @NonNull
-    public List<DisplayCategoryConfig> getDisplayCategories() {
-        return displayCategories;
-    }
-
-    public void setDisplayCategories(List<DisplayCategoryConfig> displayCategories) {
-        this.displayCategories = (displayCategories != null) ? displayCategories : Collections.emptyList();
-    }
+    // --- GETTERS AND SETTERS ---
 
     @NonNull
     public List<CategoryConfig> getCategories() {
-        return categories;
+        return categories != null ? categories : Collections.emptyList();
     }
     public void setCategories(List<CategoryConfig> categories) {
-        this.categories = (categories != null) ? categories : Collections.emptyList();
+        this.categories = categories;
     }
 
-    // Các getter và setter khác đã được cải tiến tương tự
     @NonNull
     public List<ItemConditionConfig> getItemConditions() {
-        return itemConditions;
+        return itemConditions != null ? itemConditions : Collections.emptyList();
     }
-
-    public void setItemConditions(List<ItemConditionConfig> itemConditions) {
-        this.itemConditions = (itemConditions != null) ? itemConditions : Collections.emptyList();
-    }
+    public void setItemConditions(List<ItemConditionConfig> itemConditions) { this.itemConditions = itemConditions; }
 
     @NonNull
     public List<ReportReasonConfig> getReportReasons() {
-        return reportReasons;
+        return reportReasons != null ? reportReasons : Collections.emptyList();
     }
-
-    public void setReportReasons(List<ReportReasonConfig> reportReasons) {
-        this.reportReasons = (reportReasons != null) ? reportReasons : Collections.emptyList();
-    }
+    public void setReportReasons(List<ReportReasonConfig> reportReasons) { this.reportReasons = reportReasons; }
 
     @NonNull
     public List<PaymentMethodConfig> getSupportedPaymentMethods() {
-        return supportedPaymentMethods;
+        return supportedPaymentMethods != null ? supportedPaymentMethods : Collections.emptyList();
     }
-
-    public void setSupportedPaymentMethods(List<PaymentMethodConfig> supportedPaymentMethods) {
-        this.supportedPaymentMethods = (supportedPaymentMethods != null) ? supportedPaymentMethods : Collections.emptyList();
-    }
+    public void setSupportedPaymentMethods(List<PaymentMethodConfig> supportedPaymentMethods) { this.supportedPaymentMethods = supportedPaymentMethods; }
 
     @NonNull
     public List<Integer> getLocationSearchRadiusOptions() {
-        return locationSearchRadiusOptions;
+        return locationSearchRadiusOptions != null ? locationSearchRadiusOptions : Collections.emptyList();
     }
-
-    public void setLocationSearchRadiusOptions(List<Integer> locationSearchRadiusOptions) {
-        this.locationSearchRadiusOptions = (locationSearchRadiusOptions != null) ? locationSearchRadiusOptions : Collections.emptyList();
-    }
+    public void setLocationSearchRadiusOptions(List<Integer> locationSearchRadiusOptions) { this.locationSearchRadiusOptions = locationSearchRadiusOptions; }
 
     @NonNull
     public Map<String, List<String>> getSuggestedTags() {
-        return suggestedTags;
+        return suggestedTags != null ? suggestedTags : Collections.emptyMap();
     }
+    public void setSuggestedTags(Map<String, List<String>> suggestedTags) { this.suggestedTags = suggestedTags; }
 
-    public void setSuggestedTags(Map<String, List<String>> suggestedTags) {
-        this.suggestedTags = (suggestedTags != null) ? suggestedTags : Collections.emptyMap();
-    }
-
-    // Các getter/setter cho kiểu nguyên thủy và Object thì không cần thay đổi
-    // Chúng đã hoạt động đúng
     public int getMaxImageUploadPerItem() { return maxImageUploadPerItem; }
     public void setMaxImageUploadPerItem(int maxImageUploadPerItem) { this.maxImageUploadPerItem = maxImageUploadPerItem; }
 

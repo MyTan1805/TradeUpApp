@@ -46,8 +46,7 @@ public class ProfileListingsFragment extends Fragment {
             }
 
             @Override
-            public void onFavoriteClick(Item item, boolean isCurrentlyFavorite) {
-                // Tạm thời hiển thị Toast, logic sẽ được thêm sau nếu cần
+            public void onFavoriteClick(Item item) {
                 Toast.makeText(getContext(), "Favorite clicked on: " + item.getTitle(), Toast.LENGTH_SHORT).show();
             }
         });

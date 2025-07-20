@@ -32,7 +32,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:iconifiedByDefault="false"
-                app:queryHint="@string/search_items_hint"
+                app:queryHint="@string/home_search_hint"
                 app:searchIcon="@drawable/ic_search"
                 app:closeIcon="@drawable/ic_close" />
         </com.google.android.material.card.MaterialCardView>
@@ -76,7 +76,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="16dp"
                     android:layout_marginBottom="8dp"
-                    android:text="@string/featured_items"
+                    android:text="@string/home_featured_items"
                     android:textAppearance="?attr/textAppearanceHeadline6"
                     android:textStyle="bold" />
 
@@ -106,7 +106,7 @@
                         android:layout_marginStart="16dp"
                         android:layout_marginTop="24dp"
                         android:layout_marginBottom="8dp"
-                        android:text="Nearby You"
+                        android:text="@string/home_nearby_items"
                         android:textAppearance="?attr/textAppearanceHeadline6"
                         android:textStyle="bold" />
 
@@ -130,7 +130,7 @@
                     android:layout_marginStart="16dp"
                     android:layout_marginTop="24dp"
                     android:layout_marginBottom="8dp"
-                    android:text="@string/recent_listings"
+                    android:text="@string/home_recent_listings"
                     android:textAppearance="?attr/textAppearanceHeadline6"
                     android:textStyle="bold" />
 
@@ -185,7 +185,7 @@
             android:id="@+id/imageViewEmptyIcon"
             android:layout_width="96dp"
             android:layout_height="96dp"
-            android:contentDescription="@string/khong_co_san_pham"
+            android:contentDescription="@string/home_empty_title"
             android:src="@drawable/ic_empty_box"
             app:tint="?android:attr/textColorHint"/>
         <TextView
@@ -193,7 +193,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@string/khong_tim_thay_san_pham_phu_hop"
+            android:text="@string/home_empty_message"
             android:textAppearance="?attr/textAppearanceSubtitle1"
             android:textColor="?android:attr/textColorSecondary"/>
         <com.google.android.material.button.MaterialButton
@@ -202,7 +202,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:text="@string/thu_lai"
+            android:text="@string/action_retry"
             android:visibility="gone"/>
     </LinearLayout>
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

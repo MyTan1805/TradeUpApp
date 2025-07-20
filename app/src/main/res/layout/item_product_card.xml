@@ -6,18 +6,17 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="8dp"
-    app:cardCornerRadius="@dimen/corner_radius_medium"> <!-- Sử dụng corner radius medium cho đẹp hơn -->
+    app:cardCornerRadius="@dimen/corner_radius_medium">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <!-- ===== PHẦN ẢNH SẢN PHẨM ===== -->
         <ImageView
             android:id="@+id/imageViewProduct"
             android:layout_width="0dp"
             android:layout_height="0dp"
-            android:contentDescription="@string/hinh_anh_san_pham"
+            android:contentDescription="@string/content_desc_product_image"
             android:scaleType="centerCrop"
             app:layout_constraintDimensionRatio="1:1"
             app:layout_constraintEnd_toEndOf="parent"
@@ -25,21 +24,23 @@
             app:layout_constraintTop_toTopOf="parent"
             tools:srcCompat="@tools:sample/backgrounds/scenic" />
 
-        <!-- FIX: Thêm ràng buộc cho buttonFavorite -->
-        <ImageButton
+        <!-- === THAY THẾ IMAGEBUTTON BẰNG MATERIALBUTTON TOGGLE === -->
+        <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonFavorite"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_margin="8dp"
-            android:background="@drawable/ic_favorite_border"
-            android:contentDescription="@string/luu_san_pham"
-            android:padding="8dp"
-            android:src="@drawable/ic_favorite_border"
+            android:checkable="true"
+            android:contentDescription="@string/content_desc_save_item"
+            app:backgroundTint="#99FFFFFF"
+            app:icon="@drawable/selector_favorite_icon"
+            app:iconTint="@color/selector_favorite_icon_tint"
+            app:iconPadding="0dp"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/white" />
+            app:layout_constraintTop_toTopOf="parent" />
 
-        <!-- ===== PHẦN THÔNG TIN BÊN DƯỚI ===== -->
+        <!-- Phần thông tin bên dưới giữ nguyên -->
         <TextView
             android:id="@+id/textViewProductName"
             android:layout_width="0dp"
@@ -98,7 +99,6 @@
             android:textAppearance="?attr/textAppearanceCaption"
             android:textColor="?android:attr/textColorSecondary"
             app:drawableStartCompat="@drawable/ic_star_small"
-
             app:drawableTint="@color/yellow_star"
             app:layout_constraintBottom_toBottomOf="@+id/textViewProductLocation"
             app:layout_constraintEnd_toEndOf="@+id/textViewProductName"

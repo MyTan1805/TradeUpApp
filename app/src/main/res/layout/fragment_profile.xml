@@ -8,9 +8,7 @@
     android:fitsSystemWindows="true"
     tools:context=".ui.profile.ProfileFragment">
 
-    <include
-        android:id="@+id/statActiveListings"
-        layout="@layout/item_profile_stat"/>
+    <!-- Include này không cần thiết nếu bạn đã định nghĩa style -->
 
     <androidx.constraintlayout.widget.Guideline
         android:id="@+id/guideline_start"
@@ -40,7 +38,7 @@
         android:id="@+id/fabChangeProfilePicture"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:contentDescription="Change profile picture"
+        android:contentDescription="@string/edit_profile_change_avatar"
         app:backgroundTint="?attr/colorSecondary"
         app:fabCustomSize="32dp"
         app:layout_constraintCircle="@id/imageViewProfilePicture"
@@ -68,7 +66,7 @@
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:background="?attr/selectableItemBackgroundBorderless"
-        android:contentDescription="Settings"
+        android:contentDescription="@string/profile_settings_button"
         android:padding="12dp"
         android:scaleType="fitCenter"
         android:src="@drawable/ic_settings"
@@ -125,17 +123,17 @@
 
         <LinearLayout style="@style/ProfileStatItemLayout">
             <TextView android:id="@+id/textStatListings" style="@style/ProfileStatValue" tools:text="23" />
-            <TextView style="@style/ProfileStatLabel" android:text="Active Listings" />
+            <TextView style="@style/ProfileStatLabel" android:text="@string/profile_stat_listings" />
         </LinearLayout>
         <View style="@style/ProfileStatDivider" />
         <LinearLayout style="@style/ProfileStatItemLayout">
             <TextView android:id="@+id/textStatSold" style="@style/ProfileStatValue" tools:text="156" />
-            <TextView style="@style/ProfileStatLabel" android:text="Items Sold" />
+            <TextView style="@style/ProfileStatLabel" android:text="@string/profile_stat_sold" />
         </LinearLayout>
         <View style="@style/ProfileStatDivider" />
         <LinearLayout style="@style/ProfileStatItemLayout">
             <TextView android:id="@+id/textStatFollowers" style="@style/ProfileStatValue" tools:text="89" />
-            <TextView style="@style/ProfileStatLabel" android:text="Followers" />
+            <TextView style="@style/ProfileStatLabel" android:text="@string/profile_stat_followers" />
         </LinearLayout>
     </LinearLayout>
 
@@ -146,10 +144,11 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
-        android:text="Edit Profile"
+        android:text="@string/profile_edit_button"
         app:layout_constraintEnd_toEndOf="@+id/guideline_end"
         app:layout_constraintStart_toStartOf="@+id/guideline_start"
-        app:layout_constraintTop_toBottomOf="@+id/layoutStats" />
+        app:layout_constraintTop_toBottomOf="@+id/layoutStats"
+        tools:ignore="VisualLintButtonSize" />
 
     <LinearLayout
         android:id="@+id/layoutSecondaryActions"
@@ -167,10 +166,11 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="My Offers"
+            android:text="@string/profile_my_offers"
             app:icon="@drawable/ic_local_offer"
             app:iconPadding="8dp"
-            app:iconSize="26dp"/>
+            app:iconSize="20dp"
+            tools:ignore="VisualLintButtonSize" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonMyTransactions"
@@ -180,8 +180,8 @@
             android:layout_weight="1"
             android:layout_marginStart="8dp"
             app:icon="@drawable/ic_receipt_long"
-            android:text="History" />
-
+            android:text="@string/profile_my_transactions"
+            tools:ignore="VisualLintButtonSize" />
 
         <com.google.android.material.button.MaterialButton
             android:id="@+id/buttonSavedItems"
@@ -190,11 +190,11 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="8dp"
             android:layout_weight="1"
-            android:text="Saved Items"
+            android:text="@string/profile_saved_items"
             app:icon="@drawable/ic_bookmark_border"
             app:iconPadding="8dp"
-            app:iconSize="20dp"/>
-
+            app:iconSize="20dp"
+            tools:ignore="VisualLintButtonSize" />
 
     </LinearLayout>
 

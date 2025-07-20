@@ -13,8 +13,10 @@ import com.example.tradeup.databinding.ItemProductCardBinding;
 import com.example.tradeup.databinding.ItemProductCardHorizontalBinding;
 
 import java.text.NumberFormat;
+import java.util.HashSet;
 import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 
 public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
@@ -23,16 +25,22 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
     private final int viewType;
     private final OnProductClickListener listener;
+    private Set<String> savedItemIds = new HashSet<>();
 
     public interface OnProductClickListener {
         void onItemClick(Item item);
-        void onFavoriteClick(Item item, boolean isCurrentlyFavorite);
+        void onFavoriteClick(Item item);
     }
 
     public ProductAdapter(int viewType, OnProductClickListener listener) {
         super(DIFF_CALLBACK);
         this.viewType = viewType;
         this.listener = listener;
+    }
+
+    public void setSavedItemIds(Set<String> ids) {
+        this.savedItemIds = (ids != null) ? ids : new HashSet<>();
+        notifyDataSetChanged();
     }
 
     @Override
@@ -56,8 +64,12 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
     @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Item currentItem = getItem(position);
+        if (currentItem == null) return; // An toàn hơn
+
+        boolean isSaved = savedItemIds.contains(currentItem.getItemId());
+
         if (holder instanceof GridProductViewHolder) {
-            ((GridProductViewHolder) holder).bind(currentItem, listener);
+            ((GridProductViewHolder) holder).bind(currentItem, isSaved, listener);
         } else if (holder instanceof HorizontalProductViewHolder) {
             ((HorizontalProductViewHolder) holder).bind(currentItem, listener);
         }
@@ -71,34 +83,28 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
             this.binding = binding;
         }
 
-        void bind(final Item item, final OnProductClickListener listener) {
+        // << PHIÊN BẢN ĐÃ ĐƯỢC DỌN DẸP >>
+        void bind(final Item item, boolean isSaved, final OnProductClickListener listener) {
+            // Bind data (giữ nguyên)
             binding.textViewProductName.setText(item.getTitle());
             NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             binding.textViewProductPrice.setText(currencyFormatter.format(item.getPrice()));
+            binding.textViewProductLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
 
             String imageUrl = (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) ? item.getImageUrls().get(0) : null;
             Glide.with(itemView.getContext())
                     .load(imageUrl)
                     .placeholder(R.drawable.ic_placeholder_image)
-                    .error(R.drawable.ic_error_image)
+                    .centerCrop()
                     .into(binding.imageViewProduct);
 
-            // Sửa lỗi: Sử dụng getAddressString() trực tiếp từ Item
-            binding.textViewProductLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
+            // Cập nhật trạng thái nút trái tim
+            // Chỉ cần set trạng thái checked, XML sẽ tự lo phần còn lại
+            binding.buttonFavorite.setChecked(isSaved);
 
-            // TODO: Nếu thêm trường rating vào Item, cập nhật tại đây
-            // binding.textViewProductRating.setText(item.getRating() != null ? String.format("%.1f", item.getRating()) : "N/A");
-
-            // Giả sử có một phương thức isFavorite() trong Item hoặc từ dữ liệu khác
-            boolean isFavorite = false; // TODO: Lấy trạng thái từ dữ liệu (ví dụ: Firestore hoặc Room)
-            binding.buttonFavorite.setImageResource(isFavorite ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
-
+            // Gán listeners
             itemView.setOnClickListener(v -> listener.onItemClick(item));
-            binding.buttonFavorite.setOnClickListener(v -> {
-                boolean newFavoriteState = !isFavorite;
-                binding.buttonFavorite.setImageResource(newFavoriteState ? R.drawable.ic_favorite : R.drawable.ic_favorite_border);
-                listener.onFavoriteClick(item, newFavoriteState);
-            });
+            binding.buttonFavorite.setOnClickListener(v -> listener.onFavoriteClick(item));
         }
     }
 
@@ -119,11 +125,8 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
             Glide.with(itemView.getContext())
                     .load(imageUrl)
                     .placeholder(R.drawable.ic_placeholder_image)
-                    .error(R.drawable.ic_error_image)
+                    .centerCrop()
                     .into(binding.imageViewFeaturedProduct);
-
-            // Có thể thêm addressString nếu layout ngang cần
-            // binding.textViewFeaturedProductLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
 
             itemView.setOnClickListener(v -> listener.onItemClick(item));
         }
@@ -137,6 +140,7 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
         @Override
         public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
+            // Chỉ so sánh những thuộc tính thực sự ảnh hưởng đến giao diện
             return oldItem.getTitle().equals(newItem.getTitle()) &&
                     oldItem.getPrice() == newItem.getPrice() &&
                     Objects.equals(oldItem.getAddressString(), newItem.getAddressString()) &&

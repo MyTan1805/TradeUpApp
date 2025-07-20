@@ -4,11 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fitsSystemWindows="true"
     android:background="?android:attr/windowBackground"
+    android:fitsSystemWindows="true"
     tools:context=".ui.listing.MyListingsFragment">
 
-    <!-- === HEADER === -->
     <com.google.android.material.appbar.AppBarLayout
         android:id="@+id/appBarLayout"
         android:layout_width="match_parent"
@@ -16,17 +15,16 @@
         android:background="?attr/colorSurface"
         app:elevation="0dp">
 
-        <!-- Toolbar chứa Title -->
         <com.google.android.material.appbar.MaterialToolbar
             android:id="@+id/toolbar"
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
-            app:title="My Listings"
+            app:navigationIcon="@drawable/ic_arrow_back"
+            app:title="@string/my_listings_title"
             app:titleTextAppearance="?attr/textAppearanceHeadline5"
             app:titleTextColor="?attr/colorOnSurface"
-            app:navigationIcon="@drawable/ic_arrow_back"/>
+            tools:ignore="TextSizeCheck" />
 
-        <!-- Tabs -->
         <com.google.android.material.tabs.TabLayout
             android:id="@+id/tabLayout"
             android:layout_width="match_parent"
@@ -39,32 +37,27 @@
             tools:ignore="SpeakableTextPresentCheck" />
 
         <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?attr/colorOutline" />
+            style="@style/Divider" />
 
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Nút FAB nhỏ để thêm sản phẩm -->
     <com.google.android.material.floatingactionbutton.FloatingActionButton
         android:id="@+id/fabAddNew"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
-        app:srcCompat="@drawable/ic_add"
-        app:layout_anchor="@id/appBarLayout"
+        android:contentDescription="@string/add_item_title"
+        app:layout_anchor="@id/viewPager"
         app:layout_anchorGravity="bottom|end"
-        android:contentDescription="Add New Listing" />
+        app:srcCompat="@drawable/ic_add"
+        tools:ignore="ImageContrastCheck" />
 
-
-    <!-- === NỘI DUNG TABS === -->
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />
 
-    <!-- === PROGRESSBAR HIỂN THỊ KHI TẢI === -->
     <ProgressBar
         android:id="@+id/progressBarMyListings"
         style="?android:attr/progressBarStyleLarge"

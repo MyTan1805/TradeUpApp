@@ -17,7 +17,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:scaleType="centerCrop"
-            android:contentDescription="Listing Photo"
+            android:contentDescription="@string/content_desc_product_image"
             tools:srcCompat="@drawable/ic_placeholder_image" />
 
         <ImageButton
@@ -27,7 +27,7 @@
             android:layout_gravity="top|end"
             android:background="@android:color/transparent"
             android:src="@android:drawable/ic_delete"
-            android:contentDescription="Remove Photo" />
+            android:contentDescription="@string/content_desc_remove_image" />
 
     </FrameLayout>
 

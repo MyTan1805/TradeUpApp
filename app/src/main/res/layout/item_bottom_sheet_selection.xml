@@ -33,6 +33,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:tint="?attr/colorPrimary"
         tools:visibility="visible"
-        android:contentDescription="Selected" />
+        android:contentDescription="@string/selected" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

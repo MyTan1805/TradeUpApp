@@ -28,6 +28,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.config.AppConfig;
+import com.example.tradeup.data.model.config.CategoryConfig;
 import com.example.tradeup.data.model.config.DisplayCategoryConfig;
 import com.example.tradeup.data.model.config.ItemConditionConfig;
 import com.example.tradeup.databinding.FragmentEditItemBinding;
@@ -206,9 +207,9 @@ public class EditItemFragment extends Fragment implements EditImageAdapter.OnIma
         });
 
         binding.fieldCategory.setOnClickListener(v -> {
-            if (appConfig != null && appConfig.getDisplayCategories() != null) {
-                ArrayList<String> categoryNames = appConfig.getDisplayCategories().stream()
-                        .map(DisplayCategoryConfig::getName).collect(Collectors.toCollection(ArrayList::new));
+            if (appConfig != null && appConfig.getCategories() != null) { // <-- SỬA Ở ĐÂY
+                ArrayList<String> categoryNames = appConfig.getCategories().stream() // <-- SỬA Ở ĐÂY
+                        .map(CategoryConfig::getName).collect(Collectors.toCollection(ArrayList::new)); // <-- SỬA Ở ĐÂY
                 ListSelectionDialogFragment.newInstance("Chọn Danh mục", categoryNames, REQUEST_KEY_CATEGORY)
                         .show(getParentFragmentManager(), "CategoryDialog");
             }
@@ -328,7 +329,7 @@ public class EditItemFragment extends Fragment implements EditImageAdapter.OnIma
         getParentFragmentManager().setFragmentResultListener(REQUEST_KEY_CATEGORY, this, (requestKey, bundle) -> {
             int index = bundle.getInt(ListSelectionDialogFragment.RESULT_SELECTED_INDEX, -1);
             if (index != -1 && appConfig != null) {
-                DisplayCategoryConfig selected = appConfig.getDisplayCategories().get(index);
+                CategoryConfig selected = appConfig.getCategories().get(index); // <-- SỬA Ở ĐÂY
                 this.selectedCategoryId = selected.getId();
                 binding.fieldCategory.setText(selected.getName());
                 binding.fieldCategory.setTextColor(ContextCompat.getColor(requireContext(), R.color.text_primary_light_theme));

@@ -61,8 +61,8 @@
 
             <ImageButton
                 android:id="@+id/buttonEmoji"
-                android:layout_width="48dp"
-                android:layout_height="48dp"
+                android:layout_width="@dimen/touch_target_size"
+                android:layout_height="@dimen/touch_target_size"
                 android:src="@drawable/ic_emoji"
                 android:background="?attr/selectableItemBackgroundBorderless"
                 android:contentDescription="Toggle Emoji Keyboard" />
@@ -81,7 +81,7 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:background="@android:color/transparent"
-                android:hint="Type a message..."
+                android:hint="@string/chat_detail_message_hint"
                 android:inputType="textCapSentences|textMultiLine"
                 android:maxLines="5"
                 android:minHeight="48dp"
