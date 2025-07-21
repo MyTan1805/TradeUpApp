@@ -18,7 +18,7 @@ public class PhotoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     private static final int VIEW_TYPE_IMAGE = 1;
     private static final int MAX_IMAGES = 10; // Giới hạn số lượng ảnh
 
-    private final List<Uri> imageUris = new ArrayList<>();
+    private List<Uri> imageUris = new ArrayList<>();
     private final OnPhotoActionsListener listener;
 
     public interface OnPhotoActionsListener {
@@ -75,10 +75,16 @@ public class PhotoAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             }
         }
         notifyItemRangeInserted(oldSize, imageUris.size() - oldSize);
-        // Nếu đạt giới hạn, nút Add sẽ biến mất, cần notify
         if (imageUris.size() == MAX_IMAGES) {
             notifyItemChanged(MAX_IMAGES - 1);
         }
+    }
+
+    public void setImageUris(List<Uri> uris) {
+        // Tạo một bản sao của danh sách để tránh các vấn đề về tham chiếu
+        this.imageUris = new ArrayList<>(uris);
+        // Thông báo cho adapter rằng toàn bộ dữ liệu đã thay đổi
+        notifyDataSetChanged();
     }
 
     public void removeImage(int position) {

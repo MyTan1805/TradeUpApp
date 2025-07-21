@@ -16,22 +16,16 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
-
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
-import com.example.tradeup.data.model.config.CategoryConfig; // CHỈ CẦN IMPORT NÀY
+import com.example.tradeup.data.model.config.CategoryConfig;
 import com.example.tradeup.databinding.FragmentHomeBinding;
 import com.example.tradeup.ui.adapters.CategoryAdapter;
 import com.example.tradeup.ui.adapters.ProductAdapter;
-
 import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors; // Thêm import này
-
 import dagger.hilt.android.AndroidEntryPoint;
 
 @AndroidEntryPoint
-// Sửa lại interface cho đúng
 public class HomeFragment extends Fragment implements ProductAdapter.OnProductClickListener, CategoryAdapter.OnCategoryClickListener {
 
     private FragmentHomeBinding binding;
@@ -41,6 +35,7 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     private ProductAdapter nearbyItemsAdapter;
     private CategoryAdapter categoryAdapter;
     private NavController navController;
+    private ProductAdapter recommendedItemsAdapter;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -71,12 +66,10 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
     }
 
     private void setupRecyclerViews() {
-        // Adapter này bây giờ sẽ nhận List<CategoryConfig>
         categoryAdapter = new CategoryAdapter(this);
         binding.recyclerViewCategories.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerViewCategories.setAdapter(categoryAdapter);
 
-        // Các adapter sản phẩm không thay đổi
         featuredItemsAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_HORIZONTAL, this);
         binding.recyclerViewFeaturedItems.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
         binding.recyclerViewFeaturedItems.setAdapter(featuredItemsAdapter);
@@ -88,17 +81,19 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
         recentItemsAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_GRID, this);
         binding.recyclerViewRecentListings.setLayoutManager(new GridLayoutManager(getContext(), 2));
         binding.recyclerViewRecentListings.setAdapter(recentItemsAdapter);
+
+        recommendedItemsAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_HORIZONTAL, this);
+        binding.recyclerViewRecommendedItems.setLayoutManager(new LinearLayoutManager(getContext(), LinearLayoutManager.HORIZONTAL, false));
+        binding.recyclerViewRecommendedItems.setAdapter(recommendedItemsAdapter);
     }
 
     private void setupListeners() {
         binding.swipeRefreshLayoutHome.setOnRefreshListener(() -> homeViewModel.refreshData());
-
         binding.nestedScrollView.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
             if (!v.canScrollVertically(1)) {
                 homeViewModel.fetchMoreItems();
             }
         });
-
         binding.searchViewHome.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
@@ -113,33 +108,36 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
             @Override
             public boolean onQueryTextChange(String newText) { return false; }
         });
-
         binding.buttonRetry.setOnClickListener(v -> homeViewModel.refreshData());
     }
 
     private void observeViewModel() {
         homeViewModel.getState().observe(getViewLifecycleOwner(), state -> {
             boolean isLoading = state instanceof HomeState.Loading;
-            binding.progressBarHome.setVisibility(isLoading && (recentItemsAdapter.getCurrentList() == null || recentItemsAdapter.getCurrentList().isEmpty()) ? View.VISIBLE : View.GONE);
-            binding.swipeRefreshLayoutHome.setRefreshing(isLoading && (recentItemsAdapter.getCurrentList() != null && !recentItemsAdapter.getCurrentList().isEmpty()));
+            boolean isListCurrentlyEmpty = recentItemsAdapter.getCurrentList() == null || recentItemsAdapter.getCurrentList().isEmpty();
 
+            binding.progressBarHome.setVisibility(isLoading && isListCurrentlyEmpty ? View.VISIBLE : View.GONE);
+            binding.swipeRefreshLayoutHome.setRefreshing(isLoading && !isListCurrentlyEmpty);
             binding.layoutEmptyStateHome.setVisibility(state instanceof HomeState.Empty ? View.VISIBLE : View.GONE);
+            binding.buttonRetry.setVisibility(state instanceof HomeState.Error ? View.VISIBLE : View.GONE);
 
             if (state instanceof HomeState.Success) {
                 HomeState.Success successState = (HomeState.Success) state;
                 categoryAdapter.submitList(successState.categories);
+
+                // Cập nhật trạng thái "đã lưu" trước khi submit list sản phẩm
+                recentItemsAdapter.setSavedItemIds(successState.savedItemIds);
                 recentItemsAdapter.submitList(successState.recentItems);
+
                 featuredItemsAdapter.submitList(successState.recentItems.size() > 5 ? successState.recentItems.subList(0, 5) : successState.recentItems);
-                binding.buttonRetry.setVisibility(View.GONE);
+
             } else if (state instanceof HomeState.Empty) {
                 categoryAdapter.submitList(((HomeState.Empty) state).categories);
                 recentItemsAdapter.submitList(Collections.emptyList());
                 featuredItemsAdapter.submitList(Collections.emptyList());
-                binding.buttonRetry.setVisibility(View.GONE);
             } else if (state instanceof HomeState.Error) {
-                binding.layoutEmptyStateHome.setVisibility(View.VISIBLE);
                 binding.textViewEmptyMessage.setText(((HomeState.Error) state).message);
-                binding.buttonRetry.setVisibility(View.VISIBLE);
+                binding.layoutEmptyStateHome.setVisibility(View.VISIBLE);
             }
         });
 
@@ -152,20 +150,25 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
             }
         });
 
+        homeViewModel.getRecommendedItems().observe(getViewLifecycleOwner(), recommendedItems -> {
+            if (recommendedItems != null && !recommendedItems.isEmpty()) {
+                recommendedItemsAdapter.submitList(recommendedItems);
+                binding.layoutRecommendedItems.setVisibility(View.VISIBLE);
+            } else {
+                binding.layoutRecommendedItems.setVisibility(View.GONE);
+            }
+        });
+
         homeViewModel.isLoadingMore().observe(getViewLifecycleOwner(), isLoading -> {
             binding.progressBarLoadMore.setVisibility(isLoading ? View.VISIBLE : View.GONE);
         });
 
         homeViewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
             String message = event.getContentIfNotHandled();
-            if (message != null) Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
+            if (message != null && getContext() != null) Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
         });
 
-        homeViewModel.getSavedItemIds().observe(getViewLifecycleOwner(), savedIds -> {
-            if (savedIds != null) {
-                recentItemsAdapter.setSavedItemIds(savedIds);
-            }
-        });
+        // << XÓA BỎ OBSERVER THỪA Ở ĐÂY >>
     }
 
     @Override
@@ -177,13 +180,11 @@ public class HomeFragment extends Fragment implements ProductAdapter.OnProductCl
         }
     }
 
-    // SỬA LẠI CHỮ KÝ HÀM NÀY
     @Override
     public void onFavoriteClick(Item item) {
         homeViewModel.toggleFavoriteStatus(item);
     }
 
-    // SỬA LẠI CHỮ KÝ HÀM NÀY
     @Override
     public void onCategoryClick(CategoryConfig category) {
         if (isAdded() && category != null) {

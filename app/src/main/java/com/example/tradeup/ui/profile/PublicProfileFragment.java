@@ -25,6 +25,7 @@ import com.example.tradeup.ui.adapters.ProductAdapter;
 import com.example.tradeup.ui.admin.AdminViewModel;
 import com.example.tradeup.ui.report.ReportContentDialogFragment;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
+import com.google.android.material.tabs.TabLayoutMediator;
 
 import java.text.SimpleDateFormat;
 import java.util.Locale;
@@ -38,8 +39,9 @@ public class PublicProfileFragment extends Fragment {
     private FragmentPublicProfileBinding binding;
     private ProfileViewModel profileViewModel; // ViewModel để lấy dữ liệu profile
     private AdminViewModel adminViewModel;   // ViewModel để thực hiện hành động admin
-    private ProductAdapter productAdapter;
     private NavController navController;
+
+    private PublicProfileTabsAdapter tabsAdapter;
 
     @Inject // *** BƯỚC 1: INJECT USERROLEMANAGER ***
     UserRoleManager userRoleManager;
@@ -67,7 +69,7 @@ public class PublicProfileFragment extends Fragment {
         navController = NavHostFragment.findNavController(this);
 
         // Không gọi setupToolbar() ở đây nữa, vì nó cần dữ liệu user
-        setupRecyclerView();
+        setupViewPagerAndTabs();
         observeViewModel();
     }
 
@@ -112,6 +114,21 @@ public class PublicProfileFragment extends Fragment {
         ).show(getParentFragmentManager(), "ReportUserDialog");
     }
 
+    private void setupViewPagerAndTabs() {
+        tabsAdapter = new PublicProfileTabsAdapter(this);
+        binding.viewPagerProfileContent.setAdapter(tabsAdapter);
+
+        new TabLayoutMediator(binding.tabLayoutProfile, binding.viewPagerProfileContent,
+                (tab, position) -> {
+                    if (position == 0) {
+                        tab.setText("Listings"); // Tên cho tab đầu tiên
+                    } else {
+                        tab.setText("Reviews");  // Tên cho tab thứ hai
+                    }
+                }
+        ).attach();
+    }
+
     // Hàm tiện ích để hiển thị dialog đổi vai trò
     private void showChangeRoleDialog(User user) {
         final CharSequence[] roles = {"user", "admin"};
@@ -125,29 +142,6 @@ public class PublicProfileFragment extends Fragment {
                     dialog.dismiss();
                 })
                 .show();
-    }
-
-
-    private void setupRecyclerView() {
-        productAdapter = new ProductAdapter(ProductAdapter.VIEW_TYPE_GRID, new ProductAdapter.OnProductClickListener() {
-            @Override
-            public void onItemClick(Item item) {
-                if (isAdded() && item != null) {
-                    Bundle args = new Bundle();
-                    args.putString("itemId", item.getItemId());
-                    navController.navigate(R.id.action_global_to_itemDetailFragment, args);
-                }
-            }
-
-            @Override
-            public void onFavoriteClick(Item item) {
-                // TODO: Xử lý logic lưu sản phẩm sau
-                Toast.makeText(getContext(), "Favorite clicked on: " + item.getTitle(), Toast.LENGTH_SHORT).show();
-            }
-        });
-        binding.recyclerViewUserListings.setLayoutManager(new GridLayoutManager(getContext(), 2));
-        binding.recyclerViewUserListings.setAdapter(productAdapter);
-        binding.recyclerViewUserListings.setNestedScrollingEnabled(false);
     }
 
     private void observeViewModel() {
@@ -173,14 +167,6 @@ public class PublicProfileFragment extends Fragment {
             }
         });
 
-        profileViewModel.getActiveListings().observe(getViewLifecycleOwner(), items -> {
-            if (items != null) {
-                productAdapter.submitList(items);
-                String listingsTitle = String.format(Locale.getDefault(), "Active Listings (%d)", items.size());
-                binding.textViewListingsTitle.setText(listingsTitle);
-            }
-        });
-
         // Lắng nghe Toast từ AdminViewModel
         adminViewModel.getToastMessage().observe(getViewLifecycleOwner(), event -> {
             String message = event.getContentIfNotHandled();
@@ -195,6 +181,32 @@ public class PublicProfileFragment extends Fragment {
     }
 
     private void bindUserData(@NonNull User user) {
+        // Tải ảnh đại diện
+        Glide.with(this)
+                .load(user.getProfilePictureUrl())
+                .placeholder(R.drawable.ic_person)
+                .error(R.drawable.ic_person)
+                .into(binding.imageViewProfilePicture);
+
+        // Cập nhật tên trên header và toolbar
+        binding.textViewUserName.setText(user.getDisplayName());
+        binding.toolbar.setTitle(user.getDisplayName());
+
+        // Cập nhật rating
+        binding.ratingBarUser.setRating((float) user.getAverageRating());
+        String ratingAndReviewsText = String.format(Locale.US, "%.1f (%d reviews)",
+                user.getAverageRating(), user.getTotalRatingCount());
+        binding.textViewRatingAndReviews.setText(ratingAndReviewsText);
+
+        // Cập nhật Bio
+        if (user.getBio() != null && !user.getBio().isEmpty()) {
+            binding.textViewBio.setText(user.getBio());
+            binding.textViewBio.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewBio.setVisibility(View.GONE);
+        }
+
+        // Cập nhật 3 chỉ số chính
         Glide.with(this)
                 .load(user.getProfilePictureUrl())
                 .placeholder(R.drawable.ic_person)
@@ -206,18 +218,30 @@ public class PublicProfileFragment extends Fragment {
 
         binding.ratingBarUser.setRating((float) user.getAverageRating());
 
-        String ratingAndReviewsText = String.format(Locale.US, "%.1f (%d reviews)",
-                user.getAverageRating(), user.getTotalRatingCount());
-        binding.textViewRatingAndReviews.setText(ratingAndReviewsText);
+        if (user.getBio() != null && !user.getBio().isEmpty()) {
+            binding.textViewBio.setText(user.getBio());
+            binding.textViewBio.setVisibility(View.VISIBLE);
+        } else {
+            binding.textViewBio.setVisibility(View.GONE);
+        }
 
+        // *** CẬP NHẬT LOGIC BIND CHO 2 CHỈ SỐ ***
+        // 1. Bind số lượng listings
         binding.textStatListings.setText(String.valueOf(user.getTotalListings()));
 
+        // 2. Bind ngày tham gia
         if (user.getCreatedAt() != null) {
             SimpleDateFormat sdf = new SimpleDateFormat("MMM yyyy", Locale.getDefault());
             binding.textStatMemberSince.setText(sdf.format(user.getCreatedAt().toDate()));
         } else {
             binding.textStatMemberSince.setText("N/A");
         }
+
+        // Cập nhật nút Message
+        String[] nameParts = user.getDisplayName().split(" ");
+        String firstName = nameParts.length > 0 ? nameParts[0] : user.getDisplayName();
+        String messageButtonText = "Message " + firstName;
+        binding.buttonMessage.setText(messageButtonText);
     }
 
     @Override

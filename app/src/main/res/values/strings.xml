@@ -395,6 +395,16 @@
     <string name="attachment_title">Download incoming attachments</string>
     <string name="attachment_summary_on">Automatically download attachments for incoming emails</string>
     <string name="attachment_summary_off">Only download attachments when requested</string>
+    <string name="my_listings_option_menu">my listings option menu</string>
+    <string name="action_rate_buyer">action rate buyer</string>
+    <string name="preview">Preview</string>
+    <string name="select_an_emoji">Select an Emoji</string>
+    <string name="close_emoji_picker">Close emoji picker</string>
+    <string name="listing_performance">Listing Performance</string>
+    <string name="chats">Chats</string>
+    <string name="offers">Offers</string>
+    <string name="views">Views</string>
+    <string name="review_options">Review options</string>
 
     <!-- For legacy string-array resources -->
     <string-array name="reply_entries">

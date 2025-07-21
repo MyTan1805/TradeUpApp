@@ -1,7 +1,9 @@
 package com.example.tradeup.ui.details;
 
-import android.os.Bundle;
+import static com.example.tradeup.ui.listing.ListingOptionsDialogFragment.TAG;
 
+import android.os.Bundle;
+import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.lifecycle.LiveData;
@@ -15,7 +17,6 @@ import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.model.config.AppConfig;
 import com.example.tradeup.data.model.config.CategoryConfig;
-import com.example.tradeup.data.model.config.DisplayCategoryConfig;
 import com.example.tradeup.data.model.config.ItemConditionConfig;
 import com.example.tradeup.data.model.config.SubcategoryConfig;
 import com.example.tradeup.data.network.NotificationApiService;
@@ -23,20 +24,20 @@ import com.example.tradeup.data.network.NotificationRequest;
 import com.example.tradeup.data.network.NotificationResponse;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.AuthRepository;
+import com.example.tradeup.data.repository.ChatRepository;
 import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.data.repository.UserRepository;
 import com.example.tradeup.data.repository.UserSavedItemsRepository;
 import com.google.firebase.auth.FirebaseUser;
-import retrofit2.Call;
-import retrofit2.Response;
-
-import com.example.tradeup.data.repository.ChatRepository;
+import com.google.firebase.firestore.FieldValue;
+import com.google.firebase.firestore.FirebaseFirestore;
 import java.util.Arrays;
-
-import javax.inject.Inject;
-import dagger.hilt.android.lifecycle.HiltViewModel;
 import java.util.HashMap;
 import java.util.Map;
+import javax.inject.Inject;
+import dagger.hilt.android.lifecycle.HiltViewModel;
+import retrofit2.Call;
+import retrofit2.Response;
 
 @HiltViewModel
 public class ItemDetailViewModel extends ViewModel {
@@ -47,22 +48,15 @@ public class ItemDetailViewModel extends ViewModel {
     private final UserSavedItemsRepository userSavedItemsRepository;
     private final AuthRepository authRepository;
     private final NotificationApiService notificationApiService;
-
+    private final FirebaseFirestore firestore;
     private final ChatRepository chatRepository;
 
-    private final MutableLiveData<Event<Bundle>> _navigateToChatEvent = new MutableLiveData<>();
-    public LiveData<Event<Bundle>> getNavigateToChatEvent() { return _navigateToChatEvent; }
-
+    // LiveData cho UI
     private final MediatorLiveData<ItemDetailViewState> _viewState = new MediatorLiveData<>();
     public LiveData<ItemDetailViewState> getViewState() { return _viewState; }
 
-
-
-    private final MutableLiveData<Item> _item = new MutableLiveData<>();
-    private final MutableLiveData<User> _seller = new MutableLiveData<>();
-    private final MutableLiveData<AppConfig> _appConfig = new MutableLiveData<>();
-    private final MutableLiveData<Boolean> _isBookmarked = new MutableLiveData<>(false);
-    public LiveData<Boolean> isBookmarked() { return _isBookmarked; }
+    private final MutableLiveData<Event<Bundle>> _navigateToChatEvent = new MutableLiveData<>();
+    public LiveData<Event<Bundle>> getNavigateToChatEvent() { return _navigateToChatEvent; }
 
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
@@ -73,18 +67,21 @@ public class ItemDetailViewModel extends ViewModel {
     private final MutableLiveData<Boolean> _isCreatingChat = new MutableLiveData<>(false);
     public LiveData<Boolean> isCreatingChat() { return _isCreatingChat; }
 
+    // Dữ liệu thô để Mediator gộp lại
+    private final MutableLiveData<Item> _item = new MutableLiveData<>();
+    private final MutableLiveData<User> _seller = new MutableLiveData<>();
+    private final MutableLiveData<AppConfig> _appConfig = new MutableLiveData<>();
+    private final MutableLiveData<Boolean> _isBookmarked = new MutableLiveData<>(false);
+    public LiveData<Boolean> isBookmarked() { return _isBookmarked; }
+
     private final String currentUserId;
 
     @Inject
     public ItemDetailViewModel(
-            ItemRepository itemRepository,
-            UserRepository userRepository,
-            AppConfigRepository appConfigRepository,
-            UserSavedItemsRepository userSavedItemsRepository,
-            AuthRepository authRepository,
-            ChatRepository chatRepository,
-            NotificationApiService notificationApiService,
-            SavedStateHandle savedStateHandle
+            ItemRepository itemRepository, UserRepository userRepository, AppConfigRepository appConfigRepository,
+            UserSavedItemsRepository userSavedItemsRepository, AuthRepository authRepository,
+            ChatRepository chatRepository, FirebaseFirestore firestore,
+            NotificationApiService notificationApiService, SavedStateHandle savedStateHandle
     ) {
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
@@ -93,30 +90,62 @@ public class ItemDetailViewModel extends ViewModel {
         this.authRepository = authRepository;
         this.chatRepository = chatRepository;
         this.notificationApiService = notificationApiService;
+        this.firestore = firestore;
 
         FirebaseUser user = authRepository.getCurrentUser();
         this.currentUserId = (user != null) ? user.getUid() : null;
 
-        String itemId = savedStateHandle.get("itemId");
-
+        // Thêm các nguồn dữ liệu vào MediatorLiveData
         _viewState.addSource(_item, item -> combineData());
         _viewState.addSource(_seller, seller -> combineData());
         _viewState.addSource(_appConfig, appConfig -> combineData());
         _viewState.addSource(_isBookmarked, isBookmarked -> combineData());
 
-        loadInitialData(itemId);
+        // Lấy dữ liệu từ arguments
+        String itemId = savedStateHandle.get("itemId");
+        Item itemPreview = savedStateHandle.get("itemPreview");
+
+        // Phân luồng logic chính xác
+        if (itemPreview != null) {
+            loadPreviewData(itemPreview);
+        } else if (itemId != null) {
+            loadInitialData(itemId);
+        } else {
+            _viewState.setValue(new ItemDetailViewState.Error("No item data provided."));
+        }
+    }
+
+    private void loadPreviewData(Item itemToPreview) {
+        _viewState.setValue(new ItemDetailViewState.Loading());
+        _isViewingOwnItem.setValue(true);
+        _isBookmarked.setValue(false);
+
+        userRepository.getUserProfile(itemToPreview.getSellerId())
+                .whenComplete((seller, throwable) -> {
+                    if (throwable != null || seller == null) {
+                        _viewState.postValue(new ItemDetailViewState.Error("Could not load your profile for preview."));
+                        return;
+                    }
+                    _seller.postValue(seller);
+                    appConfigRepository.getAppConfig(new Callback<AppConfig>() {
+                        @Override public void onSuccess(AppConfig data) {
+                            _appConfig.postValue(data);
+                            _item.postValue(itemToPreview);
+                        }
+                        @Override public void onFailure(@NonNull Exception e) {
+                            _viewState.postValue(new ItemDetailViewState.Error("Could not load app config for preview."));
+                        }
+                    });
+                });
     }
 
     private void loadInitialData(String itemId) {
         if (itemId == null || itemId.trim().isEmpty()) {
-            _viewState.postValue(new ItemDetailViewState.Error("Invalid product ID."));
+            _viewState.setValue(new ItemDetailViewState.Error("Invalid product ID."));
             return;
         }
-
         _viewState.setValue(new ItemDetailViewState.Loading());
-
         itemRepository.incrementItemViews(itemId);
-
         loadAppConfigFromRepo();
         loadItemFromRepo(itemId);
         checkIfItemIsSaved(itemId);
@@ -127,7 +156,6 @@ public class ItemDetailViewModel extends ViewModel {
         User seller = _seller.getValue();
         Item item = _item.getValue();
 
-        // 1. Kiểm tra các điều kiện cần thiết
         if (currentUser == null) {
             _toastMessage.postValue(new Event<>("Please log in to message the seller."));
             return;
@@ -141,37 +169,42 @@ public class ItemDetailViewModel extends ViewModel {
             return;
         }
 
-        // 2. Vô hiệu hóa nút nhắn tin để tránh double-click
         _isCreatingChat.setValue(true);
 
-        // 3. Gọi repository để lấy hoặc tạo chat
-        // Lời gọi này đã được sửa lại để khớp với định nghĩa trong Repository
-        chatRepository.getOrCreateChat(
-                Arrays.asList(currentUser.getUid(), seller.getUid()),
-                item.getItemId(),
-                new Callback<String>() {
-                    @Override
-                    public void onSuccess(String chatId) {
-                        // Kích hoạt lại nút
+        // Lấy thông tin đầy đủ của người dùng hiện tại
+        userRepository.getUserProfile(currentUser.getUid())
+                .whenComplete((currentUserInfo, throwable) -> {
+                    if (throwable != null || currentUserInfo == null) {
                         _isCreatingChat.postValue(false);
-
-                        // Tạo Bundle để truyền dữ liệu sang ChatDetailFragment
-                        Bundle args = new Bundle();
-                        args.putString("chatId", chatId);
-                        args.putString("otherUserName", seller.getDisplayName());
-
-                        // Gửi sự kiện điều hướng
-                        _navigateToChatEvent.postValue(new Event<>(args));
+                        _toastMessage.postValue(new Event<>("Could not load your profile to start chat."));
+                        return;
                     }
 
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        // Kích hoạt lại nút và thông báo lỗi
-                        _isCreatingChat.postValue(false);
-                        _toastMessage.postValue(new Event<>("Could not start conversation: " + e.getMessage()));
-                    }
-                }
-        );
+                    // Bây giờ gọi hàm getOrCreateChat với đầy đủ 6 tham số
+                    chatRepository.getOrCreateChat(
+                            currentUser.getUid(), currentUserInfo,
+                            seller.getUid(), seller,
+                            item.getItemId(),
+                            new Callback<String>() {
+                                @Override
+                                public void onSuccess(String chatId) {
+                                    itemRepository.incrementItemChats(item.getItemId());
+                                    _isCreatingChat.postValue(false);
+
+                                    Bundle args = new Bundle();
+                                    args.putString("chatId", chatId);
+                                    args.putString("otherUserName", seller.getDisplayName());
+                                    _navigateToChatEvent.postValue(new Event<>(args));
+                                }
+
+                                @Override
+                                public void onFailure(@NonNull Exception e) {
+                                    _isCreatingChat.postValue(false);
+                                    _toastMessage.postValue(new Event<>("Could not start conversation: " + e.getMessage()));
+                                }
+                            }
+                    );
+                });
     }
 
     private void loadItemFromRepo(String itemId) {
@@ -181,6 +214,7 @@ public class ItemDetailViewModel extends ViewModel {
                 if (item != null) {
                     _item.postValue(item);
                     loadSellerProfile(item.getSellerId());
+                    logBrowsingHistory(item);
 
                     if (currentUserId != null && currentUserId.equals(item.getSellerId())) {
                         _isViewingOwnItem.postValue(true);
@@ -197,6 +231,25 @@ public class ItemDetailViewModel extends ViewModel {
             }
         });
     }
+
+    private void logBrowsingHistory(Item item) {
+        if (currentUserId == null || currentUserId.equals(item.getSellerId())) {
+            // Không ghi lại lịch sử nếu người dùng xem sản phẩm của chính mình
+            return;
+        }
+
+        Map<String, Object> historyEntry = new HashMap<>();
+        historyEntry.put("userId", currentUserId);
+        historyEntry.put("itemId", item.getItemId());
+        historyEntry.put("categoryId", item.getCategory());
+        historyEntry.put("viewedAt", FieldValue.serverTimestamp());
+
+        firestore.collection("userBrowsingHistory")
+                .add(historyEntry)
+                .addOnSuccessListener(docRef -> Log.d(TAG, "Browsing history logged for user " + currentUserId))
+                .addOnFailureListener(e -> Log.e(TAG, "Error logging browsing history", e));
+    }
+
 
     private void checkIfItemIsSaved(String itemId) {
         if (currentUserId == null) {
@@ -272,18 +325,25 @@ public class ItemDetailViewModel extends ViewModel {
     private String findCategoryName(String categoryId, @Nullable AppConfig config) {
         if (config == null || categoryId == null || config.getCategories() == null) return "N/A";
 
-        // Duyệt qua danh sách các danh mục cha
-        return config.getCategories().stream()
-                .filter(cat -> categoryId.equals(cat.getId())) // Tìm danh mục cha có ID khớp
-                .map(CategoryConfig::getName) // Lấy tên của nó
-                .findFirst()
-                // Nếu không tìm thấy, có thể nó là một danh mục con, cần tìm sâu hơn
-                .orElseGet(() -> config.getCategories().stream()
-                        .flatMap(parent -> parent.getSubcategories().stream()) // Lấy tất cả danh mục con từ tất cả các cha
-                        .filter(sub -> categoryId.equals(sub.getId())) // Tìm danh mục con có ID khớp
-                        .map(SubcategoryConfig::getName) // Lấy tên
-                        .findFirst()
-                        .orElse(categoryId)); // Nếu vẫn không thấy, trả về ID
+        // Duyệt qua tất cả các danh mục cha
+        for (CategoryConfig parentCat : config.getCategories()) {
+            // Kiểm tra xem ID có khớp với danh mục cha không
+            if (categoryId.equals(parentCat.getId())) {
+                return parentCat.getName();
+            }
+            // Nếu không, duyệt qua các danh mục con của nó
+            if (parentCat.getSubcategories() != null) {
+                for (SubcategoryConfig subCat : parentCat.getSubcategories()) {
+                    if (categoryId.equals(subCat.getId())) {
+                        // Trả về tên theo định dạng "Cha > Con"
+                        return parentCat.getName() + " > " + subCat.getName();
+                    }
+                }
+            }
+        }
+
+        // Nếu không tìm thấy ở đâu, trả về ID gốc
+        return categoryId;
     }
 
     private String findConditionName(String conditionId, @Nullable AppConfig config) {

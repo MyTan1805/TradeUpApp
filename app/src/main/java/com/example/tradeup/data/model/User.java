@@ -35,7 +35,7 @@ public class User {
     @ServerTimestamp
     @Nullable
     private Timestamp updatedAt;
-    private boolean isDeactivated;
+    private boolean deactivated;
     @Nullable
     private Timestamp lastLoginAt;
     private long reviewCount;
@@ -55,7 +55,7 @@ public class User {
         this.totalTransactions = 0;
         this.totalListings = 0;
         this.reviewCount = 0L;
-        this.isDeactivated = false;
+        this.deactivated = false;
         this.blockedUsers = new ArrayList<>();
         this.role = "user";
         // Các trường nullable mặc định là null
@@ -125,8 +125,8 @@ public class User {
     public Timestamp getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(@Nullable Timestamp updatedAt) { this.updatedAt = updatedAt; }
 
-    public boolean isDeactivated() { return isDeactivated; }
-    public void setDeactivated(boolean deactivated) { isDeactivated = deactivated; }
+    public boolean isDeactivated() { return deactivated; }
+    public void setDeactivated(boolean deactivated) { deactivated = deactivated; }
 
     @Nullable
     public Timestamp getLastLoginAt() { return lastLoginAt; }

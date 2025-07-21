@@ -43,6 +43,7 @@ public class Item implements Parcelable {
     private List<String> tags;
     private Long viewsCount; // Dùng Long
     private Long offersCount; // Dùng Long
+    private Long chatsCount;
     @ServerTimestamp
     @Nullable
     private Timestamp createdAt;
@@ -61,11 +62,15 @@ public class Item implements Parcelable {
         this.tags = new ArrayList<>();
         this.viewsCount = 0L;
         this.offersCount = 0L;
+        this.chatsCount = 0L;
         this.status = "available";
     }
 
     // --- GETTERS VÀ SETTERS ---
     // (Không cần @PropertyName)
+    public Long getChatsCount() { return chatsCount != null ? chatsCount : 0L; }
+    public void setChatsCount(Long chatsCount) { this.chatsCount = chatsCount; }
+
     public String getItemId() { return itemId; }
     public void setItemId(String itemId) { this.itemId = itemId; }
     public String getSellerId() { return sellerId; }
@@ -157,6 +162,7 @@ public class Item implements Parcelable {
         tags = in.createStringArrayList();
         if (in.readByte() == 0) { viewsCount = null; } else { viewsCount = in.readLong(); }
         if (in.readByte() == 0) { offersCount = null; } else { offersCount = in.readLong(); }
+        if (in.readByte() == 0) { chatsCount = null; } else { chatsCount = in.readLong(); }
         createdAt = in.readParcelable(Timestamp.class.getClassLoader());
         updatedAt = in.readParcelable(Timestamp.class.getClassLoader());
         soldToUserId = in.readString();
@@ -203,6 +209,7 @@ public class Item implements Parcelable {
             dest.writeByte((byte) 1);
             dest.writeLong(offersCount);
         }
+        if (chatsCount == null) { dest.writeByte((byte) 0); } else { dest.writeByte((byte) 1); dest.writeLong(chatsCount); }
         dest.writeParcelable(createdAt, flags);
         dest.writeParcelable(updatedAt, flags);
         dest.writeString(soldToUserId);

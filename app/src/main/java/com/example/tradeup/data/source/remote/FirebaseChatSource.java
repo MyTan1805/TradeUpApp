@@ -8,6 +8,8 @@ import androidx.annotation.Nullable;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.Chat;    // Model Chat (Java)
 import com.example.tradeup.data.model.Message;  // Model Message (Java)
+import com.example.tradeup.data.model.ParticipantInfoDetail;
+import com.example.tradeup.data.model.User;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
@@ -19,6 +21,7 @@ import com.google.firebase.firestore.WriteBatch;
 
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,20 +40,19 @@ public class FirebaseChatSource {
         this.chatsCollection = firestore.collection("chats");
     }
 
-    public void getOrCreateChat(List<String> participantIds, @Nullable String relatedItemId, Callback<String> callback) {
-        if (participantIds == null || participantIds.size() != 2) {
-            callback.onFailure(new IllegalArgumentException("Chat must have exactly 2 participants."));
+    public void getOrCreateChat(
+            String currentUserId, User currentUserInfo,
+            String otherUserId, User otherUserInfo,
+            @Nullable String relatedItemId, Callback<String> callback
+    ) {
+        if (currentUserId == null || otherUserId == null) {
+            callback.onFailure(new IllegalArgumentException("User IDs cannot be null."));
             return;
         }
 
-        List<String> sortedIds = new ArrayList<>(participantIds);
+        List<String> sortedIds = Arrays.asList(currentUserId, otherUserId);
         Collections.sort(sortedIds);
-        // Cân nhắc việc có nên bao gồm relatedItemId trong chatId hay không.
-        // Nếu mỗi sản phẩm có 1 chat riêng giữa 2 người:
-        // String chatId = sortedIds.get(0) + "_" + sortedIds.get(1) + (relatedItemId != null ? "_" + relatedItemId : "");
-        // Nếu chỉ có 1 chat duy nhất giữa 2 người:
         String chatId = sortedIds.get(0) + "_" + sortedIds.get(1);
-
 
         DocumentReference chatDocRef = chatsCollection.document(chatId);
         chatDocRef.get().addOnCompleteListener(task -> {
@@ -60,17 +62,24 @@ public class FirebaseChatSource {
                 } else {
                     // Tạo chat mới
                     Chat newChat = new Chat();
-
-                    // KHÔNG CẦN DÒNG NÀY NỮA, VÌ @DocumentId SẼ TỰ LÀM:
-                    // newChat.setChatId(chatId);
-
                     newChat.setParticipants(sortedIds);
                     if (relatedItemId != null) {
                         newChat.setRelatedItemId(relatedItemId);
                     }
-                    // Các trường khác như participantInfo, unreadCount...
 
-                    // Khi set(), Firestore sẽ tự động điền ID document vào trường có @DocumentId
+                    // << PHẦN QUAN TRỌNG NHẤT >>
+                    // Tạo thông tin participantInfo
+                    Map<String, ParticipantInfoDetail> participantInfoMap = new HashMap<>();
+                    participantInfoMap.put(currentUserId, new ParticipantInfoDetail(currentUserInfo.getDisplayName(), currentUserInfo.getProfilePictureUrl()));
+                    participantInfoMap.put(otherUserId, new ParticipantInfoDetail(otherUserInfo.getDisplayName(), otherUserInfo.getProfilePictureUrl()));
+                    newChat.setParticipantInfo(participantInfoMap);
+
+                    // Tạo unreadCount ban đầu
+                    Map<String, Integer> unreadCount = new HashMap<>();
+                    unreadCount.put(currentUserId, 0);
+                    unreadCount.put(otherUserId, 0);
+                    newChat.setUnreadCount(unreadCount);
+
                     chatDocRef.set(newChat)
                             .addOnSuccessListener(aVoid -> callback.onSuccess(chatId))
                             .addOnFailureListener(callback::onFailure);

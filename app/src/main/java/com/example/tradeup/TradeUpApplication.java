@@ -1,24 +1,21 @@
+// File: com/example/tradeup/TradeUpApplication.java
+
 package com.example.tradeup;
 
 import android.app.Application;
-
 import androidx.emoji2.text.EmojiCompat;
-
-import com.google.android.libraries.places.api.Places;
 import com.google.firebase.FirebaseApp;
-
+import com.vanniktech.emoji.EmojiManager;
+import com.vanniktech.emoji.google.GoogleEmojiProvider;
 import dagger.hilt.android.HiltAndroidApp;
-
-import androidx.emoji2.text.EmojiCompat;
 
 @HiltAndroidApp
 public class TradeUpApplication extends Application {
-
     @Override
     public void onCreate() {
         super.onCreate();
-        FirebaseApp.initializeApp(this);
         EmojiCompat.init(this);
-
+        EmojiManager.install(new GoogleEmojiProvider());
+        FirebaseApp.initializeApp(this);
     }
 }

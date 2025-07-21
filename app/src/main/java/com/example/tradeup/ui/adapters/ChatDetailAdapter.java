@@ -31,12 +31,18 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
     private static final int VIEW_TYPE_RECEIVED_IMAGE = 4;
 
     private final String currentUserId;
-    private final String otherUserAvatarUrl;
+    private String otherUserAvatarUrl;
 
     public ChatDetailAdapter(String currentUserId, String otherUserAvatarUrl) {
         super(DIFF_CALLBACK);
         this.currentUserId = currentUserId;
         this.otherUserAvatarUrl = otherUserAvatarUrl;
+    }
+
+    public void setOtherUserAvatarUrl(String url) {
+        this.otherUserAvatarUrl = url;
+        // Vẽ lại các item đang hiển thị để cập nhật avatar
+        notifyItemRangeChanged(0, getItemCount());
     }
 
     @Override
@@ -146,8 +152,14 @@ public class ChatDetailAdapter extends ListAdapter<Message, RecyclerView.ViewHol
             super(binding.getRoot());
             this.binding = binding;
         }
+
+        // *** HÀM BIND NÀY KHÔNG CẦN AVATAR_URL ***
         void bind(Message message) {
-            Glide.with(itemView.getContext()).load(message.getImageUrl()).placeholder(R.color.grey_200).into(binding.imageViewSent);
+            Glide.with(itemView.getContext())
+                    .load(message.getImageUrl())
+                    .placeholder(R.color.grey_200)
+                    .into(binding.imageViewSent);
+
             if (message.getTimestamp() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("h:mm a", Locale.getDefault());
                 binding.textViewTimestamp.setText(sdf.format(message.getTimestamp().toDate()));

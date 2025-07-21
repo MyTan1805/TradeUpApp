@@ -13,6 +13,7 @@ import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.CloudinaryUploader;
 import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.data.model.Item;
+import com.example.tradeup.data.model.ItemLocation;
 import com.example.tradeup.data.model.config.AppConfig;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.AuthRepository;
@@ -47,6 +48,15 @@ public class AddItemViewModel extends ViewModel {
     private final MutableLiveData<AppConfig> _appConfig = new MutableLiveData<>();
     public LiveData<AppConfig> getAppConfig() { return _appConfig; }
 
+    public final MutableLiveData<List<Uri>> imageUris = new MutableLiveData<>(new ArrayList<>());
+    public final MutableLiveData<String> parentCategoryId = new MutableLiveData<>();
+    public final MutableLiveData<String> subCategoryId = new MutableLiveData<>();
+    public final MutableLiveData<String> conditionId = new MutableLiveData<>();
+    public final MutableLiveData<String> itemBehavior = new MutableLiveData<>();
+    public final MutableLiveData<ItemLocation> location = new MutableLiveData<>();
+    public final MutableLiveData<List<String>> tags = new MutableLiveData<>(new ArrayList<>());
+
+
     private static final int GEOHASH_PRECISION = 5;
 
     public static final List<String> ITEM_BEHAVIORS = Arrays.asList(
@@ -67,6 +77,10 @@ public class AddItemViewModel extends ViewModel {
         this.authRepository = authRepository;
         this.context = context;
         loadAppConfig();
+    }
+
+    public FirebaseUser getCurrentUser() {
+        return authRepository.getCurrentUser();
     }
 
     private void loadAppConfig() {

@@ -133,6 +133,8 @@ dependencies {
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
     androidTestImplementation(libs.espresso.core)
+
+    implementation ("com.vanniktech:emoji-google:0.15.0")
 }
 
 kapt {

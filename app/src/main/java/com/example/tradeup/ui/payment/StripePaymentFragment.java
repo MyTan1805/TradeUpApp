@@ -100,15 +100,15 @@ public class StripePaymentFragment extends Fragment {
     }
     private void onPaymentSheetResult(final PaymentSheetResult paymentSheetResult) {
         if (paymentSheetResult instanceof PaymentSheetResult.Completed) {
-            // Thanh toán thành công
-            viewModel.completeOnlinePayment(transaction.getTransactionId());
+            // Thanh toán thành công (authorize)
+            viewModel.completeOnlinePayment(transaction.getTransactionId()); // Sửa tên phương thức
         } else if (paymentSheetResult instanceof PaymentSheetResult.Canceled) {
             // Người dùng đã hủy
             viewModel.failOnlinePayment(transaction.getTransactionId());
         } else if (paymentSheetResult instanceof PaymentSheetResult.Failed) {
             // Thanh toán thất bại
             PaymentSheetResult.Failed failedResult = (PaymentSheetResult.Failed) paymentSheetResult;
-            Toast.makeText(getContext(), "Payment failed: " + failedResult.getError().getLocalizedMessage(), Toast.LENGTH_LONG).show();
+            Toast.makeText(getContext(), "Thanh toán thất bại: " + failedResult.getError().getLocalizedMessage(), Toast.LENGTH_LONG).show();
             viewModel.failOnlinePayment(transaction.getTransactionId());
         }
         // Sau khi có kết quả, quay lại màn hình trước

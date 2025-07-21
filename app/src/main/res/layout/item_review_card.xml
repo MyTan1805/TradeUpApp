@@ -34,7 +34,7 @@
             android:textStyle="bold"
             app:layout_constraintStart_toEndOf="@+id/imageViewRaterAvatar"
             app:layout_constraintTop_toTopOf="@+id/imageViewRaterAvatar"
-            app:layout_constraintEnd_toStartOf="@+id/textViewReviewDate"
+            app:layout_constraintEnd_toStartOf="@+id/buttonMenu"
             tools:text="John Doe" />
 
         <TextView
@@ -45,7 +45,18 @@
             android:textColor="?android:attr/textColorSecondary"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@+id/textViewRaterName"
+            app:layout_constraintEnd_toStartOf="@+id/buttonMenu"
             tools:text="20/06/2024" />
+        <ImageButton
+            android:id="@+id/buttonMenu"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/review_options"
+            android:src="@drawable/ic_more_vert"
+            app:tint="?android:attr/textColorSecondary"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <RatingBar
             android:id="@+id/ratingBarReview"

@@ -4,16 +4,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:background="?attr/selectableItemBackground"> <!-- Thêm background để có hiệu ứng click -->
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/imageViewProduct"
         android:layout_width="80dp"
         android:layout_height="80dp"
         android:scaleType="centerCrop"
-        app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        app:shapeAppearanceOverlay="@style/ShapeAppearance.TradeUp.MediumComponent"
         tools:srcCompat="@drawable/ic_placeholder_image" />
 
     <TextView
@@ -22,12 +23,12 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="8dp"
-        android:textAppearance="?attr/textAppearanceBody1"
-        android:maxLines="1"
         android:ellipsize="end"
+        android:maxLines="1"
+        android:textAppearance="?attr/textAppearanceBody1"
         android:textStyle="bold"
-        app:layout_constraintStart_toEndOf="@id/imageViewProduct"
         app:layout_constraintEnd_toStartOf="@id/buttonMenu"
+        app:layout_constraintStart_toEndOf="@id/imageViewProduct"
         app:layout_constraintTop_toTopOf="@id/imageViewProduct"
         tools:text="Vintage Leather Jacket" />
 
@@ -57,11 +58,13 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
+        android:drawablePadding="4dp"
         android:textAppearance="?attr/textAppearanceCaption"
         android:textColor="?android:attr/textColorSecondary"
-        app:layout_constraintStart_toEndOf="@id/chipProductStatus"
+        app:drawableStartCompat="@drawable/ic_visibility"
         app:layout_constraintBaseline_toBaselineOf="@id/chipProductStatus"
-        tools:text="45 views" />
+        app:layout_constraintStart_toEndOf="@id/chipProductStatus"
+        tools:text="45" />
 
     <TextView
         android:id="@+id/textViewOffers"
@@ -74,30 +77,46 @@
         app:drawableStartCompat="@drawable/ic_local_offer"
         app:layout_constraintBaseline_toBaselineOf="@+id/textViewViews"
         app:layout_constraintStart_toEndOf="@+id/textViewViews"
-        tools:text="3 offers" />
+        tools:text="3" />
 
-    <ImageButton
-        android:id="@+id/buttonMenu"
-        android:layout_width="@dimen/touch_target_size"
-        android:layout_height="@dimen/touch_target_size"
-        android:padding="12dp"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:src="@drawable/ic_more_vert"
-        app:tint="?android:attr/textColorSecondary"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="@id/textViewProductName"
-        android:contentDescription="Options"/>
+    <TextView
+        android:id="@+id/textViewChats"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:drawablePadding="4dp"
+        android:textAppearance="?attr/textAppearanceCaption"
+        android:textColor="?android:attr/textColorSecondary"
+        app:drawableStartCompat="@drawable/ic_chat_bubble"
+        app:layout_constraintBaseline_toBaselineOf="@+id/textViewOffers"
+        app:layout_constraintStart_toEndOf="@+id/textViewOffers"
+        tools:text="1" />
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/buttonRateBuyer"
         style="@style/Widget.MaterialComponents.Button.TextButton.Icon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Rate Buyer"
-        app:icon="@drawable/ic_star_small"
+        android:text="@string/action_rate_buyer"
         android:visibility="gone"
-        tools:visibility="visible"
+        app:icon="@drawable/ic_star_small"
         app:layout_constraintStart_toStartOf="@+id/chipProductStatus"
-        app:layout_constraintTop_toBottomOf="@+id/chipProductStatus" />
+        app:layout_constraintTop_toBottomOf="@+id/chipProductStatus"
+        tools:visibility="visible" />
+
+    <!-- ========================================================== -->
+    <!-- === DI CHUYỂN NÚT MENU XUỐNG DƯỚI CÙNG ==================== -->
+    <!-- ========================================================== -->
+    <ImageButton
+        android:id="@+id/buttonMenu"
+        android:layout_width="@dimen/touch_target_size"
+        android:layout_height="@dimen/touch_target_size"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:contentDescription="@string/my_listings_option_menu"
+        android:padding="12dp"
+        android:src="@drawable/ic_more_vert"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/textViewProductName"
+        app:tint="?android:attr/textColorSecondary" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

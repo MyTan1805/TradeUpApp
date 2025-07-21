@@ -7,27 +7,47 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
-
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.ItemMyListingBinding;
-
 import java.text.NumberFormat;
 import java.util.Locale;
+import java.util.Objects;
 
 public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListingViewHolder> {
 
     private final OnItemActionListener listener;
 
-    // Interface để fragment lắng nghe các hành động của người dùng trên mỗi item
     public interface OnItemActionListener {
         void onMenuClick(Item item);
         void onRateBuyerClick(Item item);
         void onItemClick(Item item);
     }
 
+    // ==========================================================
+    // === BƯỚC SỬA LỖI: DI CHUYỂN KHỐI NÀY LÊN TRÊN ============
+    // ==========================================================
+    private static final DiffUtil.ItemCallback<Item> DIFF_CALLBACK = new DiffUtil.ItemCallback<Item>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
+            return oldItem.getItemId().equals(newItem.getItemId());
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
+            // So sánh các trường có thể thay đổi và ảnh hưởng đến UI
+            return Objects.equals(oldItem.getTitle(), newItem.getTitle()) &&
+                    oldItem.getPrice() == newItem.getPrice() &&
+                    Objects.equals(oldItem.getStatus(), newItem.getStatus()) &&
+                    Objects.equals(oldItem.getViewsCount(), newItem.getViewsCount()) &&
+                    Objects.equals(oldItem.getOffersCount(), newItem.getOffersCount()) &&
+                    Objects.equals(oldItem.getChatsCount(), newItem.getChatsCount());
+        }
+    };
+
     public MyListingAdapter(@NonNull OnItemActionListener listener) {
+        // Bây giờ, khi gọi super(), DIFF_CALLBACK đã được định nghĩa ở trên
         super(DIFF_CALLBACK);
         this.listener = listener;
     }
@@ -42,7 +62,10 @@ public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListi
 
     @Override
     public void onBindViewHolder(@NonNull MyListingViewHolder holder, int position) {
-        holder.bind(getItem(position), listener);
+        Item item = getItem(position);
+        if (item != null) {
+            holder.bind(item, listener);
+        }
     }
 
     static class MyListingViewHolder extends RecyclerView.ViewHolder {
@@ -54,73 +77,45 @@ public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListi
         }
 
         void bind(final Item item, final OnItemActionListener listener) {
-            // Bind thông tin cơ bản
+            // --- 1. BIND DỮ LIỆU CƠ BẢN ---
             binding.textViewProductName.setText(item.getTitle());
             NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
             binding.textViewProductPrice.setText(currencyFormat.format(item.getPrice()));
+            binding.chipProductStatus.setText(item.getStatus());
 
-            // Bind ảnh đầu tiên
             if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
                 Glide.with(itemView.getContext())
                         .load(item.getImageUrls().get(0))
                         .placeholder(R.drawable.ic_placeholder_image)
-                        .error(R.drawable.ic_image_not_found)
                         .centerCrop()
                         .into(binding.imageViewProduct);
             } else {
                 binding.imageViewProduct.setImageResource(R.drawable.ic_placeholder_image);
             }
 
-            // Bind trạng thái và số lượt xem/trả giá
-            binding.chipProductStatus.setText(item.getStatus());
+            // --- 2. BIND SỐ LIỆU THỐNG KÊ (ANALYTICS) ---
+            long viewsCount = item.getViewsCount();
+            binding.textViewViews.setText(String.valueOf(viewsCount));
 
-            // << FIX: KIỂM TRA NULL CHO VIEWSCOUNT >>
-            if (item.getViewsCount() != null) {
-                String viewsText = String.format(Locale.getDefault(), "%d views", item.getViewsCount());
-                binding.textViewViews.setText(viewsText);
-                binding.textViewViews.setVisibility(View.VISIBLE);
-            } else {
-                binding.textViewViews.setVisibility(View.GONE);
-            }
+            long offersCount = item.getOffersCount();
+            binding.textViewOffers.setText(String.valueOf(offersCount));
 
+            long chatsCount = item.getChatsCount();
+            binding.textViewChats.setText(String.valueOf(chatsCount));
 
-            String viewsText = String.format(Locale.getDefault(), "%d views", item.getViewsCount());
-            binding.textViewViews.setText(viewsText);
+            // --- 3. LOGIC HIỂN THỊ CÁC THÀNH PHẦN GIAO DIỆN ---
+            boolean isSold = "sold".equalsIgnoreCase(item.getStatus());
 
-            String offersText = String.format(Locale.getDefault(), "%d offers", item.getOffersCount());
-            binding.textViewOffers.setText(offersText);
+            binding.buttonMenu.setVisibility(View.VISIBLE);
+            binding.buttonRateBuyer.setVisibility(isSold ? View.VISIBLE : View.GONE);
+            binding.textViewViews.setVisibility(viewsCount > 0 ? View.VISIBLE : View.GONE);
+            binding.textViewOffers.setVisibility(offersCount > 0 ? View.VISIBLE : View.GONE);
+            binding.textViewChats.setVisibility(chatsCount > 0 ? View.VISIBLE : View.GONE);
 
-            binding.textViewViews.setVisibility(item.getViewsCount() > 0 ? View.VISIBLE : View.GONE);
-            binding.textViewOffers.setVisibility(item.getOffersCount() > 0 ? View.VISIBLE : View.GONE);
-
-            // Gán sự kiện click cho các nút và toàn bộ item
+            // --- 4. GÁN SỰ KIỆN CLICK ---
             itemView.setOnClickListener(v -> listener.onItemClick(item));
             binding.buttonMenu.setOnClickListener(v -> listener.onMenuClick(item));
             binding.buttonRateBuyer.setOnClickListener(v -> listener.onRateBuyerClick(item));
-
-            // Hiển thị nút "Rate Buyer" chỉ khi item đã được bán và chưa được đánh giá
-            boolean isSold = "sold".equalsIgnoreCase(item.getStatus());
-            if ("sold".equalsIgnoreCase(item.getStatus())) {
-                binding.buttonRateBuyer.setVisibility(View.VISIBLE);
-                binding.buttonRateBuyer.setOnClickListener(v -> listener.onRateBuyerClick(item));
-            } else {
-                binding.buttonRateBuyer.setVisibility(View.GONE);
-            }
-            boolean needsRating = true;
-            binding.buttonRateBuyer.setVisibility(isSold && needsRating ? View.VISIBLE : View.GONE);
         }
     }
-
-    private static final DiffUtil.ItemCallback<Item> DIFF_CALLBACK = new DiffUtil.ItemCallback<Item>() {
-        @Override
-        public boolean areItemsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
-            return oldItem.getItemId().equals(newItem.getItemId());
-        }
-
-        @Override
-        public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
-            // Sử dụng equals() đã được override trong Item.java
-            return oldItem.equals(newItem);
-        }
-    };
 }

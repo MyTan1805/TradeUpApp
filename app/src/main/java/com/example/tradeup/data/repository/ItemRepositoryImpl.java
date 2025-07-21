@@ -197,4 +197,10 @@ public class ItemRepositoryImpl implements ItemRepository {
         firebaseItemSource.incrementItemOffers(itemId)
                 .addOnFailureListener(e -> Log.e(TAG, "Failed to increment offers for item: " + itemId, e));
     }
+
+    @Override
+    public void incrementItemChats(String itemId) {
+        firebaseItemSource.incrementItemChats(itemId)
+                .addOnFailureListener(e -> Log.e(TAG, "Failed to increment chats for item: " + itemId, e));
+    }
 }

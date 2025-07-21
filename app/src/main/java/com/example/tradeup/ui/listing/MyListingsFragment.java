@@ -116,6 +116,14 @@ public class MyListingsFragment extends Fragment {
                 Toast.makeText(getContext(), message, Toast.LENGTH_SHORT).show();
             }
         });
+
+        viewModel.getOpenMenuEvent().observe(getViewLifecycleOwner(), event -> {
+            if (event.getContentIfNotHandled() != null && isAdded()) {
+                ListingOptionsDialogFragment.newInstance()
+                        .show(getChildFragmentManager(), ListingOptionsDialogFragment.TAG);
+                // Dùng getChildFragmentManager() vì dialog này thuộc về MyListingsFragment
+            }
+        });
     }
 
     @Override

@@ -14,9 +14,11 @@ import androidx.navigation.NavController;
 import androidx.navigation.fragment.NavHostFragment;
 import com.bumptech.glide.Glide;
 import com.example.tradeup.R;
+import com.example.tradeup.data.model.Rating;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.databinding.FragmentProfileBinding;
 import com.example.tradeup.ui.adapters.ProfileTabsAdapter;
+import com.example.tradeup.ui.report.ReportContentDialogFragment;
 import com.google.android.material.tabs.TabLayoutMediator;
 import java.util.Locale;
 import dagger.hilt.android.AndroidEntryPoint;
@@ -134,6 +136,18 @@ public class ProfileFragment extends Fragment {
                 bindHeaderData(((ProfileHeaderState.Success) state).user, ((ProfileHeaderState.Success) state).isCurrentUserProfile);
             } else if (state instanceof ProfileHeaderState.Error) {
                 Toast.makeText(getContext(), ((ProfileHeaderState.Error) state).message, Toast.LENGTH_LONG).show();
+            }
+        });
+        viewModel.getReportReviewEvent().observe(getViewLifecycleOwner(), event -> {
+            Rating ratingToReport = event.getContentIfNotHandled();
+            if (ratingToReport != null && isAdded()) {
+                // *** SỬA LẠI LỜI GỌI - CHỈ 3 THAM SỐ ***
+                // Khi report 1 review, reportedUserId là người đã viết ra cái review đó
+                ReportContentDialogFragment.newInstance(
+                        ratingToReport.getRatingId(),
+                        "rating",
+                        ratingToReport.getRaterUserId()
+                ).show(getParentFragmentManager(), "ReportReviewDialog");
             }
         });
     }

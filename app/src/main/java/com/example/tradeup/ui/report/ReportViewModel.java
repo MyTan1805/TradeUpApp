@@ -107,7 +107,7 @@ public class ReportViewModel extends ViewModel {
         report.setReportingUserId(currentUser.getUid());
         report.setReportedContentId(contentId);
         report.setReportedContentType(contentType);
-        report.setReportedUserId(reportedUserId);
+        report.setReportedUserId(reportedUserId); // ID của người tạo ra nội dung bị report
         report.setReason(reasonId);
         report.setDetails(details);
         report.setStatus("pending_review");

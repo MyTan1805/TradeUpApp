@@ -13,7 +13,9 @@ import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.data.model.Transaction;
 import com.example.tradeup.data.repository.AuthRepository;
+import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.data.repository.TransactionRepository;
+import com.example.tradeup.data.repository.UserRepository;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
 
@@ -40,22 +42,25 @@ public class TransactionHistoryViewModel extends ViewModel {
     private static final String TAG = "TransactionHistoryVM";
     private static final long TRANSACTION_LIMIT = 50; // Tăng limit lên một chút
 
+    private final UserRepository userRepository;
+
     private final NotificationRepository notificationRepository;
 
     private final TransactionRepository transactionRepository;
+    private final ItemRepository itemRepository;
     private final AuthRepository authRepository;
 
     private final StripeRepository stripeRepository; // << THÊM BIẾN NÀY
 
     // LiveData để gửi client_secret và ephemeralKey về cho Fragment
+
+    private final MutableLiveData<List<TransactionViewData>> _transactions = new MutableLiveData<>();
+    public LiveData<List<TransactionViewData>> getTransactions() { return _transactions; }
     private final MutableLiveData<Event<Map<String, String>>> _paymentSheetParams = new MutableLiveData<>();
     public LiveData<Event<Map<String, String>>> getPaymentSheetParams() { return _paymentSheetParams; }
 
     private final MutableLiveData<Boolean> _isLoading = new MutableLiveData<>(false);
     public LiveData<Boolean> getIsLoading() { return _isLoading; }
-
-    private final MutableLiveData<List<Transaction>> _transactions = new MutableLiveData<>();
-    public LiveData<List<Transaction>> getTransactions() { return _transactions; }
 
     private final MutableLiveData<Event<String>> _toastMessage = new MutableLiveData<>();
     public LiveData<Event<String>> getToastMessage() { return _toastMessage; }
@@ -63,12 +68,16 @@ public class TransactionHistoryViewModel extends ViewModel {
     @Inject
     public TransactionHistoryViewModel(TransactionRepository transactionRepository, AuthRepository authRepository,
                                        NotificationRepository notificationRepository,
-                                       StripeRepository stripeRepository) {
+                                       StripeRepository stripeRepository,
+                                       UserRepository userRepository,
+                                       ItemRepository itemRepository) { // << INJECT Ở ĐÂY
         this.transactionRepository = transactionRepository;
         this.authRepository = authRepository;
         this.notificationRepository = notificationRepository;
         this.stripeRepository = stripeRepository;
-        onAllFilterClicked(); // Tải tất cả giao dịch khi ViewModel được tạo
+        this.userRepository = userRepository;
+        this.itemRepository = itemRepository; // << KHỞI TẠO Ở ĐÂY
+        onAllFilterClicked();
     }
 
     private void sendTransactionNotification(Transaction transaction, String type, String receiverId) {
@@ -108,18 +117,16 @@ public class TransactionHistoryViewModel extends ViewModel {
     }
 
     public void completeOnlinePayment(String transactionId) {
+        // Đây là khi người dùng nhập thẻ xong, tiền đã được authorize (tạm giữ)
         _isLoading.setValue(true);
         Map<String, Object> updates = new HashMap<>();
-        updates.put("paymentStatus", "completed");
-        // Đối với thanh toán online, hàng vẫn cần được giao
+        updates.put("paymentStatus", "authorized"); // << TRẠNG THÁI MỚI
         updates.put("shippingStatus", "waiting_for_shipment");
-        updates.put("transactionDate", FieldValue.serverTimestamp());
 
         transactionRepository.updateTransaction(transactionId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void unused) {
-                showSuccess("Online payment successful!");
-                // Gửi thông báo cho người bán rằng người mua đã thanh toán
+                showSuccess("Payment authorized. Waiting for seller to ship.");
                 transactionRepository.getTransactionById(transactionId, new Callback<Transaction>() {
                     @Override public void onSuccess(Transaction t) {
                         if (t != null) {
@@ -128,7 +135,6 @@ public class TransactionHistoryViewModel extends ViewModel {
                     }
                     @Override public void onFailure(@NonNull Exception e) {}
                 });
-                // Tải lại danh sách giao dịch của người mua
                 fetchTransactionsByRole("buyerId");
             }
             @Override
@@ -141,15 +147,33 @@ public class TransactionHistoryViewModel extends ViewModel {
     public void startOnlinePaymentFlow(Transaction transaction) {
         _isLoading.setValue(true);
         String currency = "usd";
-
-        // Lấy tên người mua từ Transaction hoặc User nếu có
-        // Tạm thời dùng tên mặc định
         String customerName = "A TradeUp User";
 
         stripeRepository.createPaymentIntent(transaction.getPriceSold(), currency, customerName, new Callback<Map<String, String>>() {
             @Override
             public void onSuccess(Map<String, String> result) {
-                _paymentSheetParams.postValue(new Event<>(result));
+                String clientSecret = result.get("clientSecret");
+                String paymentIntentId = null;
+                if (clientSecret != null) {
+                    paymentIntentId = clientSecret.split("_secret_")[0];
+                }
+
+                if (paymentIntentId != null) {
+                    Map<String, Object> updates = new HashMap<>();
+                    updates.put("paymentIntentId", paymentIntentId);
+                    transactionRepository.updateTransaction(transaction.getTransactionId(), updates, new Callback<Void>() {
+                        @Override
+                        public void onSuccess(Void unused) {
+                            _paymentSheetParams.postValue(new Event<>(result));
+                        }
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            showError("Failed to save payment info: " + e.getMessage());
+                        }
+                    });
+                } else {
+                    showError("Failed to initialize payment: Invalid client secret.");
+                }
             }
             @Override
             public void onFailure(@NonNull Exception e) {
@@ -181,8 +205,7 @@ public class TransactionHistoryViewModel extends ViewModel {
             transactionRepository.getTransactionsByUser(userId, role, TRANSACTION_LIMIT, new Callback<List<Transaction>>() {
                 @Override
                 public void onSuccess(List<Transaction> data) {
-                    _transactions.postValue(data != null ? data : Collections.emptyList());
-                    _isLoading.postValue(false);
+                    processTransactionsIntoViewData(data);
                 }
 
                 @Override
@@ -213,14 +236,46 @@ public class TransactionHistoryViewModel extends ViewModel {
             private void finishTask() {
                 if (taskCounter.decrementAndGet() == 0) {
                     allTransactions.sort(Comparator.comparing(Transaction::getTransactionDate, Comparator.nullsLast(Comparator.reverseOrder())));
-                    _transactions.postValue(allTransactions);
-                    _isLoading.postValue(false);
+                    processTransactionsIntoViewData(allTransactions);
                 }
             }
         };
 
         transactionRepository.getTransactionsByUser(userId, "buyerId", TRANSACTION_LIMIT, commonCallback);
         transactionRepository.getTransactionsByUser(userId, "sellerId", TRANSACTION_LIMIT, commonCallback);
+    }
+
+    private void processTransactionsIntoViewData(List<Transaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            _transactions.postValue(Collections.emptyList());
+            _isLoading.postValue(false);
+            return;
+        }
+
+        final List<TransactionViewData> viewDataList = Collections.synchronizedList(new ArrayList<>());
+        final AtomicInteger counter = new AtomicInteger(transactions.size());
+        final String currentUserId = authRepository.getCurrentUser().getUid();
+
+        for (Transaction t : transactions) {
+            boolean isUserTheBuyer = t.getBuyerId().equals(currentUserId);
+            String partnerId = isUserTheBuyer ? t.getSellerId() : t.getBuyerId();
+
+            userRepository.getUserProfile(partnerId)
+                    .whenComplete((user, throwable) -> {
+                        String partnerName = (user != null) ? user.getDisplayName() : "A user";
+                        viewDataList.add(new TransactionViewData(t, partnerName));
+
+                        if (counter.decrementAndGet() == 0) {
+                            // Sắp xếp lại lần cuối trước khi hiển thị
+                            viewDataList.sort((o1, o2) -> {
+                                if (o1.transaction.getTransactionDate() == null || o2.transaction.getTransactionDate() == null) return 0;
+                                return o2.transaction.getTransactionDate().compareTo(o1.transaction.getTransactionDate());
+                            });
+                            _transactions.postValue(viewDataList);
+                            _isLoading.postValue(false);
+                        }
+                    });
+        }
     }
 
     // --- Xử lý sự kiện từ Filter Chips ---
@@ -260,27 +315,79 @@ public class TransactionHistoryViewModel extends ViewModel {
 
     public void confirmReceipt(String transactionId) {
         _isLoading.setValue(true);
+        transactionRepository.getTransactionById(transactionId, new Callback<Transaction>() {
+            @Override
+            public void onSuccess(Transaction transaction) {
+                if (transaction == null) {
+                    showError("Transaction not found.");
+                    return;
+                }
+
+                if ("Online".equalsIgnoreCase(transaction.getPaymentMethod()) && "authorized".equals(transaction.getPaymentStatus())) {
+                    // Nếu là online và tiền đang được tạm giữ -> Capture tiền
+                    stripeRepository.capturePaymentIntent(transaction.getPaymentIntentId(), new Callback<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            // Capture thành công, giờ mới hoàn tất giao dịch trong DB
+                            completeTransactionInDb(transaction);
+                        }
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            showError("Payment capture failed: " + e.getMessage());
+                        }
+                    });
+                } else {
+                    // Nếu là COD hoặc các trường hợp khác, chỉ cần hoàn tất trong DB
+                    completeTransactionInDb(transaction);
+                }
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Could not retrieve transaction details: " + e.getMessage());
+            }
+        });
+    }
+
+    private void completeTransactionInDb(Transaction transaction) {
         Map<String, Object> updates = new HashMap<>();
         updates.put("shippingStatus", "completed");
-        updates.put("paymentStatus", "completed");
+        updates.put("paymentStatus", "completed"); // Trạng thái cuối cùng
+        updates.put("transactionDate", FieldValue.serverTimestamp()); // Cập nhật lại ngày hoàn tất
+
+        transactionRepository.updateTransaction(transaction.getTransactionId(), updates, new Callback<Void>() {
+            @Override
+            public void onSuccess(Void unused) {
+                // *** CHỈ CẬP NHẬT TRẠNG THÁI ITEM KHI GIAO DỊCH HOÀN TẤT ***
+                itemRepository.updateItemStatus(transaction.getItemId(), "sold", new Callback<Void>() {
+                    @Override public void onSuccess(Void data) { Log.d(TAG, "Item status updated to SOLD successfully."); }
+                    @Override public void onFailure(@NonNull Exception e) { Log.e(TAG, "Failed to update item status to SOLD.", e); }
+                });
+
+                showSuccess("Transaction completed!");
+                sendTransactionNotification(transaction, "transaction_completed", transaction.getBuyerId());
+                sendTransactionNotification(transaction, "transaction_completed", transaction.getSellerId());
+                fetchTransactionsByRole("buyerId");
+            }
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Failed to complete transaction: " + e.getMessage());
+            }
+        });
+    }
+
+    private void completeTransactionInDb(String transactionId) {
+        Map<String, Object> updates = new HashMap<>();
+        updates.put("shippingStatus", "completed");
+        updates.put("paymentStatus", "paid"); // Trạng thái mới: Đã thanh toán (tiền đang được giữ)
+        updates.put("shippingStatus", "waiting_for_shipment");
         updates.put("transactionDate", FieldValue.serverTimestamp());
 
         transactionRepository.updateTransaction(transactionId, updates, new Callback<Void>() {
             @Override
             public void onSuccess(Void unused) {
                 showSuccess("Transaction completed!");
-                // << GỌI HÀM THÔNG BÁO >>
-                transactionRepository.getTransactionById(transactionId, new Callback<Transaction>() {
-                    @Override public void onSuccess(Transaction updatedTransaction) {
-                        if (updatedTransaction != null) {
-                            // Gửi thông báo cho cả hai
-                            sendTransactionNotification(updatedTransaction, "transaction_completed", updatedTransaction.getBuyerId());
-                            sendTransactionNotification(updatedTransaction, "transaction_completed", updatedTransaction.getSellerId());
-                        }
-                    }
-                    @Override public void onFailure(@NonNull Exception e) {}
-                });
-
+                // Gửi thông báo và tải lại list như cũ
+                // ...
                 fetchTransactionsByRole("buyerId");
             }
             @Override

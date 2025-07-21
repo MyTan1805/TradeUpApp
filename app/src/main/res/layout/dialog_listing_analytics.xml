@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="?attr/colorSurface"
+    android:paddingBottom="24dp">
+
+    <com.google.android.material.bottomsheet.BottomSheetDragHandleView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginBottom="16dp"
+        android:text="@string/listing_performance"
+        android:textAppearance="?attr/textAppearanceHeadline6" />
+
+    <TextView
+        android:id="@+id/textViewAnalyticsItemTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="24dp"
+        android:ellipsize="end"
+        android:maxLines="2"
+        android:textAlignment="center"
+        android:textAppearance="?attr/textAppearanceBody1"
+        tools:text="Vintage Leather Jacket in Good Condition" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:baselineAligned="false">
+
+        <LinearLayout style="@style/ProfileStatItemLayout">
+            <TextView
+                android:id="@+id/textViewAnalyticsViews"
+                style="@style/ProfileStatValue"
+                tools:text="1,204" />
+            <TextView
+                style="@style/ProfileStatLabel"
+                android:text="@string/views" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ProfileStatItemLayout">
+            <TextView
+                android:id="@+id/textViewAnalyticsOffers"
+                style="@style/ProfileStatValue"
+                tools:text="12" />
+            <TextView
+                style="@style/ProfileStatLabel"
+                android:text="@string/offers" />
+        </LinearLayout>
+
+        <LinearLayout style="@style/ProfileStatItemLayout">
+            <TextView
+                android:id="@+id/textViewAnalyticsChats"
+                style="@style/ProfileStatValue"
+                tools:text="7" />
+            <TextView
+                style="@style/ProfileStatLabel"
+                android:text="@string/chats" />
+        </LinearLayout>
+    </LinearLayout>
+
+</LinearLayout>

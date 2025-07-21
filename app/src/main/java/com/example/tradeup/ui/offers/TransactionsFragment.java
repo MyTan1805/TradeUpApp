@@ -87,9 +87,9 @@ public class TransactionsFragment extends Fragment {
     }
 
     private void observeViewModel() {
-        viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
-            adapter.submitList(transactions != null ? transactions : Collections.emptyList());
-            binding.textViewEmpty.setVisibility(transactions == null || transactions.isEmpty() ? View.VISIBLE : View.GONE);
+        viewModel.getTransactions().observe(getViewLifecycleOwner(), transactionViewDataList -> {
+            adapter.submitList(transactionViewDataList != null ? transactionViewDataList : Collections.emptyList());
+            binding.textViewEmpty.setVisibility(transactionViewDataList == null || transactionViewDataList.isEmpty() ? View.VISIBLE : View.GONE);
             binding.textViewEmpty.setText("You have no transactions.");
         });
 

@@ -10,4 +10,6 @@ public interface StripeApiService {
     @POST("create-payment-intent")
     Call<Map<String, String>> createPaymentIntent(@Body Map<String, Object> params);
 
+    @POST("capture-payment-intent")
+    Call<Map<String, Object>> capturePaymentIntent(@Body Map<String, String> params);
 }

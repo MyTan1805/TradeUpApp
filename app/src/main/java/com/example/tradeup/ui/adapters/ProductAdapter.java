@@ -40,7 +40,7 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
     public void setSavedItemIds(Set<String> ids) {
         this.savedItemIds = (ids != null) ? ids : new HashSet<>();
-        notifyDataSetChanged();
+        notifyItemRangeChanged(0, getItemCount());
     }
 
     @Override
@@ -140,7 +140,6 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
         @Override
         public boolean areContentsTheSame(@NonNull Item oldItem, @NonNull Item newItem) {
-            // Chỉ so sánh những thuộc tính thực sự ảnh hưởng đến giao diện
             return oldItem.getTitle().equals(newItem.getTitle()) &&
                     oldItem.getPrice() == newItem.getPrice() &&
                     Objects.equals(oldItem.getAddressString(), newItem.getAddressString()) &&

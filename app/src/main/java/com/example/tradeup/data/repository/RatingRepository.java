@@ -11,4 +11,5 @@ public interface RatingRepository {
     void getRatingsForUser(String userId, long limit, Callback<List<Rating>> callback);
 
     void getRatingForTransaction(String transactionId, String raterId, Callback<Rating> callback); // Rating có thể null
+    void getRatingById(String ratingId, Callback<Rating> callback);
 }

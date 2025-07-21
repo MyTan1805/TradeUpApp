@@ -48,12 +48,15 @@ public class ReportContentDialogFragment extends BottomSheetDialogFragment {
     private String reportedUserId;
     private List<ReportReasonConfig> reportReasons;
 
-    public static ReportContentDialogFragment newInstance(String contentId, String contentType, String reportedUserId) {
+    public static ReportContentDialogFragment newInstance(String contentId, String contentType, @Nullable String reportedUserId) {
         ReportContentDialogFragment fragment = new ReportContentDialogFragment();
         Bundle args = new Bundle();
         args.putString(ARG_CONTENT_ID, contentId);
         args.putString(ARG_CONTENT_TYPE, contentType);
-        args.putString(ARG_REPORTED_USER_ID, reportedUserId);
+        // `reportedUserId` có thể là null, ví dụ khi report 1 cuộc chat
+        if (reportedUserId != null) {
+            args.putString(ARG_REPORTED_USER_ID, reportedUserId);
+        }
         fragment.setArguments(args);
         return fragment;
     }

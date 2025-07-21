@@ -14,6 +14,7 @@ public interface AdminRepository {
     CompletableFuture<List<User>> searchUsers(String query);
     CompletableFuture<Void> reactivateUser(String userId);
     CompletableFuture<Void> updateUserRole(String userId, String newRole);
-
+    CompletableFuture<List<Report>> getReportsForContentType(String contentType, long limit);
+    CompletableFuture<Void> deleteReviewAndRecalculateUserRating(String ratingId, String ratedUserId, int starsToRemove);
     CompletableFuture<List<Item>> searchAllItems(String query);
 }

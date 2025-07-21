@@ -1,3 +1,5 @@
+// File: src/main/java/com/example/tradeup/data/model/Transaction.java
+
 package com.example.tradeup.data.model;
 
 import android.os.Parcel;
@@ -22,10 +24,12 @@ public class Transaction implements Parcelable {
     private Timestamp transactionDate;
     private String paymentMethod; // "COD" hoặc "Online"
     private String paymentStatus; // "pending", "completed", "failed"
-
     private String shippingStatus;
     private boolean ratingGivenByBuyer;
     private boolean ratingGivenBySeller;
+    @Nullable
+    private String paymentIntentId;
+    private String deliveryAddress;
 
     public Transaction() {}
 
@@ -41,8 +45,10 @@ public class Transaction implements Parcelable {
         transactionDate = in.readParcelable(Timestamp.class.getClassLoader());
         paymentMethod = in.readString();
         paymentStatus = in.readString();
+        shippingStatus = in.readString(); // *** THÊM DÒNG NÀY ***
         ratingGivenByBuyer = in.readByte() != 0;
         ratingGivenBySeller = in.readByte() != 0;
+        paymentIntentId = in.readString(); // *** THÊM DÒNG NÀY ***
         deliveryAddress = in.readString();
     }
 
@@ -59,6 +65,11 @@ public class Transaction implements Parcelable {
     };
 
     @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
     public void writeToParcel(Parcel dest, int flags) {
         dest.writeString(transactionId);
         dest.writeString(itemId);
@@ -70,22 +81,20 @@ public class Transaction implements Parcelable {
         dest.writeParcelable(transactionDate, flags);
         dest.writeString(paymentMethod);
         dest.writeString(paymentStatus);
+        dest.writeString(shippingStatus); // *** THÊM DÒNG NÀY ***
         dest.writeByte((byte) (ratingGivenByBuyer ? 1 : 0));
         dest.writeByte((byte) (ratingGivenBySeller ? 1 : 0));
+        dest.writeString(paymentIntentId); // *** THÊM DÒNG NÀY ***
         dest.writeString(deliveryAddress);
     }
 
-
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-    private String deliveryAddress;
+    // Getters and Setters (giữ nguyên, không cần thay đổi)
     public String getDeliveryAddress() { return deliveryAddress; }
     public void setDeliveryAddress(@Nullable String deliveryAddress) { this.deliveryAddress = deliveryAddress; }
 
-
-    // Getters and Setters
+    @Nullable
+    public String getPaymentIntentId() { return paymentIntentId; }
+    public void setPaymentIntentId(@Nullable String paymentIntentId) { this.paymentIntentId = paymentIntentId; }
 
     @Nullable
     public String getShippingStatus() { return shippingStatus; }
@@ -133,6 +142,4 @@ public class Transaction implements Parcelable {
     public boolean isCompleted() {
         return "completed".equals(paymentStatus);
     }
-
-
 }

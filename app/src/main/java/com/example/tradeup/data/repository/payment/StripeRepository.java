@@ -50,4 +50,25 @@ public class StripeRepository {
             }
         });
     }
+
+    public void capturePaymentIntent(@NonNull String paymentIntentId, @NonNull Callback<Void> callback) {
+        Map<String, String> params = new HashMap<>();
+        params.put("paymentIntentId", paymentIntentId);
+
+        stripeApiService.capturePaymentIntent(params).enqueue(new retrofit2.Callback<Map<String, Object>>() {
+            @Override
+            public void onResponse(@NonNull Call<Map<String, Object>> call, @NonNull Response<Map<String, Object>> response) {
+                if (response.isSuccessful() && response.body() != null && Boolean.TRUE.equals(response.body().get("success"))) {
+                    callback.onSuccess(null);
+                } else {
+                    callback.onFailure(new IOException("Failed to capture payment."));
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<Map<String, Object>> call, @NonNull Throwable t) {
+                callback.onFailure(new Exception(t));
+            }
+        });
+    }
 }

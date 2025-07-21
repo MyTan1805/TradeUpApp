@@ -120,4 +120,14 @@ public class FirebaseRatingSource {
                     return null; // Trả về null nếu không tìm thấy
                 });
     }
+
+    public Task<Rating> getRatingById(String ratingId) {
+        return ratingsCollection.document(ratingId).get()
+                .continueWith(task -> {
+                    if (!task.isSuccessful()) {
+                        throw Objects.requireNonNull(task.getException());
+                    }
+                    return Objects.requireNonNull(task.getResult()).toObject(Rating.class);
+                });
+    }
 }

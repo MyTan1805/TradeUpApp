@@ -48,7 +48,9 @@
         tools:layout="@layout/fragment_edit_item">
         <argument
             android:name="itemId"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
     <fragment
@@ -58,7 +60,15 @@
         tools:layout="@layout/fragment_item_detail">
         <argument
             android:name="itemId"
-            app:argType="string" />
+            app:argType="string"
+            app:nullable="true"
+            android:defaultValue="@null" />
+
+        <argument
+            android:name="itemPreview"
+            app:argType="com.example.tradeup.data.model.Item"
+            app:nullable="true"
+            android:defaultValue="@null" />
     </fragment>
 
     <fragment

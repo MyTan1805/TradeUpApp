@@ -1,4 +1,3 @@
-// File: src/main/java/com/example/tradeup/ui/messages/ChatDetailFragment.java
 package com.example.tradeup.ui.messages;
 
 import android.app.Activity;
@@ -25,13 +24,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import com.example.tradeup.R;
 import com.example.tradeup.databinding.FragmentChatDetailBinding;
 import com.example.tradeup.ui.adapters.ChatDetailAdapter;
+import com.example.tradeup.ui.components.EmojiPickerDialog;
+import com.example.tradeup.ui.report.ReportContentDialogFragment;
+
+import com.vanniktech.emoji.EmojiPopup;
+import com.vanniktech.emoji.EmojiEditText;
+import androidx.activity.OnBackPressedCallback;
+
 import com.github.dhaval2404.imagepicker.ImagePicker;
 import com.google.firebase.auth.FirebaseAuth;
 
-import com.example.tradeup.ui.report.ReportContentDialogFragment;
-
 import dagger.hilt.android.AndroidEntryPoint;
-
 
 @AndroidEntryPoint
 public class ChatDetailFragment extends Fragment {
@@ -41,9 +44,10 @@ public class ChatDetailFragment extends Fragment {
     private ChatDetailAdapter adapter;
     private NavController navController;
 
+    private EmojiPopup emojiPopup;
+
     private String otherUserName;
     private String chatId;
-
 
     private ActivityResultLauncher<Intent> imagePickerLauncher;
 
@@ -76,24 +80,45 @@ public class ChatDetailFragment extends Fragment {
         super.onViewCreated(view, savedInstanceState);
         navController = NavHostFragment.findNavController(this);
 
-        ChatDetailFragmentArgs args = ChatDetailFragmentArgs.fromBundle(getArguments());
-        this.otherUserName = args.getOtherUserName();
-        this.chatId = args.getChatId();
+        if (getArguments() != null) {
+            ChatDetailFragmentArgs args = ChatDetailFragmentArgs.fromBundle(getArguments());
+            this.otherUserName = args.getOtherUserName();
+            this.chatId = args.getChatId();
+        }
 
         binding.toolbar.setTitle(otherUserName);
 
         setupRecyclerView();
+        setupEmojiPopup(binding.rootViewChatDetail, binding.editTextMessage);
         setupListeners();
         observeViewModel();
+
+        requireActivity().getOnBackPressedDispatcher().addCallback(getViewLifecycleOwner(), new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (emojiPopup != null && emojiPopup.isShowing()) {
+                    emojiPopup.dismiss(); // Nếu emoji đang hiện, chỉ cần tắt nó đi
+                } else {
+                    // Nếu không, thực hiện hành vi back mặc định
+                    setEnabled(false);
+                    requireActivity().onBackPressed();
+                }
+            }
+        });
     }
 
+    private void setupEmojiPopup(View rootView, EmojiEditText editText) {
+        // Khởi tạo trực tiếp, không qua Builder
+        emojiPopup = new EmojiPopup(rootView, editText);
+    }
     private void setupRecyclerView() {
-        String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        // Tạm thời chưa có avatarUrl, sẽ cập nhật sau
+        String currentUserId = "";
+        if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+            currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        }
         adapter = new ChatDetailAdapter(currentUserId, null);
-
         LinearLayoutManager layoutManager = new LinearLayoutManager(getContext());
-        layoutManager.setStackFromEnd(true); // Quan trọng: Hiển thị từ dưới lên
+        layoutManager.setStackFromEnd(true);
         binding.recyclerViewMessages.setLayoutManager(layoutManager);
         binding.recyclerViewMessages.setAdapter(adapter);
     }
@@ -105,34 +130,33 @@ public class ChatDetailFragment extends Fragment {
             String messageText = binding.editTextMessage.getText().toString();
             if (!messageText.trim().isEmpty()) {
                 viewModel.sendMessage(messageText);
-                binding.editTextMessage.setText(""); // Xóa text sau khi gửi
+                binding.editTextMessage.setText("");
             }
         });
 
-        // Vô hiệu hóa nút gửi khi không có text
-        binding.editTextMessage.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        // Setup Emoji Button
+        binding.buttonEmoji.setOnClickListener(v -> {
+            emojiPopup.toggle(); // Chỉ cần gọi hàm toggle
+        });
 
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
+        binding.editTextMessage.addTextChangedListener(new TextWatcher() {
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
                 binding.buttonSendMessage.setEnabled(s.toString().trim().length() > 0);
             }
-
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
+
         binding.buttonAddAttachment.setOnClickListener(v -> {
             ImagePicker.with(this)
                     .galleryOnly()
-                    .compress(1024) // Nén ảnh dưới 1MB
+                    .compress(1024)
                     .createIntent(intent -> {
                         imagePickerLauncher.launch(intent);
                         return null;
                     });
         });
 
-        // << THÊM LISTENER CHO MENU TOOLBAR >>
         binding.toolbar.setOnMenuItemClickListener(item -> {
             int itemId = item.getItemId();
             if (itemId == R.id.action_view_profile) {
@@ -142,18 +166,35 @@ public class ChatDetailFragment extends Fragment {
                 viewModel.onBlockUserClicked();
                 return true;
             } else if (itemId == R.id.action_report_chat) {
-                // Mở dialog report
                 if (chatId != null) {
-                    ReportContentDialogFragment.newInstance(chatId, "chat", null) // reportedUserId có thể là null cho chat
+                    ReportContentDialogFragment.newInstance(chatId, "chat", null)
                             .show(getParentFragmentManager(), "ReportChatDialog");
                 }
                 return true;
             }
             return false;
         });
-        // Set trạng thái ban đầu
         binding.buttonSendMessage.setEnabled(false);
     }
+
+    private void showEmojiPicker() {
+        EmojiPickerDialog emojiDialog = EmojiPickerDialog.newInstance();
+        emojiDialog.setOnEmojiSelectedListener(emoji -> {
+            // Chèn emoji vào vị trí con trở hiện tại của EditText
+            int start = Math.max(binding.editTextMessage.getSelectionStart(), 0);
+            int end = Math.max(binding.editTextMessage.getSelectionEnd(), 0);
+
+            String currentText = binding.editTextMessage.getText().toString();
+            String newText = currentText.substring(0, start) + emoji + currentText.substring(end);
+
+            binding.editTextMessage.setText(newText);
+            // Đặt con trỏ sau emoji vừa chèn
+            binding.editTextMessage.setSelection(start + emoji.length());
+        });
+
+        emojiDialog.show(getParentFragmentManager(), "EmojiPickerDialog");
+    }
+
     private void observeViewModel() {
         viewModel.getMessages().observe(getViewLifecycleOwner(), messages -> {
             adapter.submitList(messages, () -> {
@@ -177,12 +218,10 @@ public class ChatDetailFragment extends Fragment {
         });
 
         viewModel.getOtherUserAvatarUrl().observe(getViewLifecycleOwner(), avatarUrl -> {
-            // Tạo adapter MỚI khi có avatar, hoặc cập nhật adapter cũ
-            String currentUserId = FirebaseAuth.getInstance().getCurrentUser().getUid();
-            adapter = new ChatDetailAdapter(currentUserId, avatarUrl);
-            binding.recyclerViewMessages.setAdapter(adapter);
-            // Sau khi có adapter mới, cần submit lại list tin nhắn đã có
-            adapter.submitList(viewModel.getMessages().getValue());
+            // Khi có avatar url, cập nhật nó vào adapter đã có
+            if (adapter != null && avatarUrl != null) {
+                adapter.setOtherUserAvatarUrl(avatarUrl);
+            }
         });
 
         viewModel.getNavigateToUserProfileEvent().observe(getViewLifecycleOwner(), event -> {
@@ -201,9 +240,11 @@ public class ChatDetailFragment extends Fragment {
         super.onPause();
     }
 
-
     @Override
     public void onDestroyView() {
+        if (emojiPopup != null) {
+            emojiPopup.dismiss();
+        }
         super.onDestroyView();
         binding = null;
     }

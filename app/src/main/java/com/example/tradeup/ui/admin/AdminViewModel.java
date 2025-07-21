@@ -6,8 +6,11 @@ import androidx.annotation.NonNull;
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
+
+import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.core.utils.Event;
 import com.example.tradeup.data.model.Item;
+import com.example.tradeup.data.model.Rating;
 import com.example.tradeup.data.model.Report;
 import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.model.config.AppConfig;
@@ -15,6 +18,7 @@ import com.example.tradeup.data.model.config.ReportReasonConfig;
 import com.example.tradeup.data.repository.AdminRepository;
 import com.example.tradeup.data.repository.AppConfigRepository;
 import com.example.tradeup.data.repository.ItemRepository;
+import com.example.tradeup.data.repository.RatingRepository;
 import com.example.tradeup.data.repository.UserRepository;
 
 import java.util.Collections;
@@ -32,6 +36,7 @@ public class AdminViewModel extends ViewModel {
     private final ItemRepository itemRepository;
     private final UserRepository userRepository;
     private final AppConfigRepository appConfigRepository;
+    private final RatingRepository ratingRepository;
     private final MutableLiveData<Boolean> _isItemSearchLoading = new MutableLiveData<>(false);
     public LiveData<Boolean> isItemSearchLoading() { return _isItemSearchLoading; }
 
@@ -60,21 +65,20 @@ public class AdminViewModel extends ViewModel {
     public LiveData<Event<Report>> getNavigateToContentEvent() { return _navigateToContentEvent; }
 
     @Inject
-    public AdminViewModel(AdminRepository adminRepository, ItemRepository itemRepository, UserRepository userRepository, AppConfigRepository appConfigRepository) {
+    public AdminViewModel(AdminRepository adminRepository, ItemRepository itemRepository,
+                          UserRepository userRepository, AppConfigRepository appConfigRepository,
+                          RatingRepository ratingRepository) {
         this.adminRepository = adminRepository;
         this.itemRepository = itemRepository;
         this.userRepository = userRepository;
         this.appConfigRepository = appConfigRepository;
+        this.ratingRepository = ratingRepository;
 
         loadInitialData();
     }
 
     private void loadInitialData() {
         loadReportReasons();
-        loadPendingReports();
-    }
-
-    public void refreshData() {
         loadPendingReports();
     }
 
@@ -118,8 +122,11 @@ public class AdminViewModel extends ViewModel {
         if (report == null) return;
         _isLoading.setValue(true);
 
-        if ("listing".equalsIgnoreCase(report.getReportedContentType())) {
-            // itemRepository vẫn đang dùng Callback, chúng ta sẽ giữ nguyên nó ở đây
+        // *** BƯỚC 1: LẤY contentType MỘT LẦN DUY NHẤT ***
+        String contentType = report.getReportedContentType();
+
+        if ("listing".equalsIgnoreCase(contentType)) {
+            // Logic cho item không đổi
             itemRepository.deleteItem(report.getReportedContentId(), new com.example.tradeup.core.utils.Callback<Void>() {
                 @Override
                 public void onSuccess(Void data) {
@@ -131,8 +138,42 @@ public class AdminViewModel extends ViewModel {
                     _toastMessage.postValue(new Event<>("Failed to delete item: " + e.getMessage()));
                 }
             });
-        } else if ("profile".equalsIgnoreCase(report.getReportedContentType())) {
+        } else if ("rating".equalsIgnoreCase(contentType)) {
+            // *** BƯỚC 2: LOGIC XỬ LÝ RATING (ĐÃ ĐÚNG) SẼ NẰM Ở ĐÂY ***
+            ratingRepository.getRatingById(report.getReportedContentId(), new Callback<Rating>() {
+                @Override
+                public void onSuccess(Rating rating) {
+                    if (rating == null) {
+                        _toastMessage.postValue(new Event<>("Review not found. It might have been already deleted."));
+                        resolveReport(report, "resolved_content_not_found");
+                        return;
+                    }
+                    adminRepository.deleteReviewAndRecalculateUserRating(
+                            rating.getRatingId(),
+                            rating.getRatedUserId(),
+                            rating.getStars()
+                    ).whenComplete((aVoid, throwable) -> {
+                        if (throwable != null) {
+                            _isLoading.postValue(false);
+                            _toastMessage.postValue(new Event<>("Failed to delete review: " + throwable.getMessage()));
+                        } else {
+                            resolveReport(report, "resolved_content_deleted");
+                        }
+                    });
+                }
+                @Override
+                public void onFailure(@NonNull Exception e) {
+                    _isLoading.postValue(false);
+                    _toastMessage.postValue(new Event<>("Failed to get review details: " + e.getMessage()));
+                }
+            });
+        } else if ("profile".equalsIgnoreCase(contentType)) {
+            // Logic cho profile không đổi
             _toastMessage.postValue(new Event<>("Profile deletion not implemented yet. Please suspend instead."));
+            _isLoading.postValue(false);
+        } else {
+            // Thêm một trường hợp else để xử lý các contentType không xác định
+            _toastMessage.postValue(new Event<>("Deletion for content type '" + contentType + "' is not supported."));
             _isLoading.postValue(false);
         }
     }

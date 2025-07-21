@@ -42,7 +42,7 @@ public class EditItemViewModel extends ViewModel {
     private final MutableLiveData<Event<Boolean>> _updateSuccessEvent = new MutableLiveData<>();
     public LiveData<Event<Boolean>> getUpdateSuccessEvent() { return _updateSuccessEvent; }
 
-    private static final int GEOHASH_PRECISION = 5;
+    private static final int GEOHASH_PRECISION = 9; // Tăng độ chính xác cho Geohash
 
     @Inject
     public EditItemViewModel(ItemRepository itemRepository, SavedStateHandle savedStateHandle, @ApplicationContext Context context) {
@@ -54,7 +54,7 @@ public class EditItemViewModel extends ViewModel {
 
     private void loadItemDetails() {
         if (itemId == null) {
-            _errorMessage.setValue(new Event<>("Thiếu ID sản phẩm."));
+            _errorMessage.setValue(new Event<>("Missing product ID."));
             return;
         }
         _isLoading.setValue(true);
@@ -62,42 +62,57 @@ public class EditItemViewModel extends ViewModel {
             @Override
             public void onSuccess(Item item) {
                 _isLoading.postValue(false);
-                if (item != null) _item.postValue(item);
-                else _errorMessage.postValue(new Event<>("Không tìm thấy sản phẩm."));
+                if (item != null) {
+                    _item.postValue(item);
+                } else {
+                    _errorMessage.postValue(new Event<>("Product not found."));
+                }
             }
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
-                _errorMessage.postValue(new Event<>("Tải sản phẩm thất bại: " + e.getMessage()));
+                _errorMessage.postValue(new Event<>("Failed to load product: " + e.getMessage()));
             }
         });
     }
 
-    public void saveChanges(String title, String desc, String priceStr, List<String> existingUrls, List<Uri> newUris, GeoPoint geoPoint, String addressString) {
+    public void updateCondition(String newConditionId) {
+        Item currentItem = _item.getValue();
+        if (currentItem != null) {
+            currentItem.setCondition(newConditionId);
+            _item.setValue(currentItem); // Post lại giá trị để giữ trạng thái
+        }
+    }
+
+    public void saveChanges(
+            String title, String desc, String priceStr,
+            List<String> existingUrls, List<Uri> newUris,
+            GeoPoint geoPoint, String addressString
+    ) {
         Item currentItem = _item.getValue();
         if (currentItem == null) {
-            _errorMessage.setValue(new Event<>("Dữ liệu sản phẩm gốc chưa được tải."));
+            _errorMessage.setValue(new Event<>("Original product data not loaded."));
             return;
         }
 
         // Validation
         if (title == null || title.trim().isEmpty()) {
-            _errorMessage.setValue(new Event<>("Tiêu đề không được để trống."));
+            _errorMessage.setValue(new Event<>("Title cannot be empty."));
             return;
         }
         double price;
         try {
             price = Double.parseDouble(priceStr);
             if (price < 0) {
-                _errorMessage.setValue(new Event<>("Giá không được âm."));
+                _errorMessage.setValue(new Event<>("Price cannot be negative."));
                 return;
             }
         } catch (NumberFormatException e) {
-            _errorMessage.setValue(new Event<>("Giá không hợp lệ."));
+            _errorMessage.setValue(new Event<>("Invalid price format."));
             return;
         }
         if (geoPoint == null || addressString == null) {
-            _errorMessage.setValue(new Event<>("Vị trí không được để trống."));
+            _errorMessage.setValue(new Event<>("Location cannot be empty."));
             return;
         }
 
@@ -142,13 +157,13 @@ public class EditItemViewModel extends ViewModel {
                 @Override
                 public void onFailure(@NonNull Exception e) {
                     _isLoading.setValue(false);
-                    _errorMessage.setValue(new Event<>("Tải ảnh thất bại: " + e.getMessage()));
+                    _errorMessage.setValue(new Event<>("Image upload failed: " + e.getMessage()));
                 }
 
                 @Override
                 public void onErrorResponse(int code, @Nullable String errorMessage) {
                     _isLoading.setValue(false);
-                    _errorMessage.setValue(new Event<>("Lỗi Cloudinary (" + code + "): " + errorMessage));
+                    _errorMessage.setValue(new Event<>("Cloudinary Error (" + code + "): " + errorMessage));
                 }
             });
         }
@@ -165,7 +180,7 @@ public class EditItemViewModel extends ViewModel {
             @Override
             public void onFailure(@NonNull Exception e) {
                 _isLoading.postValue(false);
-                _errorMessage.postValue(new Event<>("Cập nhật thất bại: " + e.getMessage()));
+                _errorMessage.postValue(new Event<>("Update failed: " + e.getMessage()));
             }
         });
     }

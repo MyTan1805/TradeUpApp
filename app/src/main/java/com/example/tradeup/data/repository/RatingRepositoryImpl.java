@@ -39,4 +39,10 @@ public class RatingRepositoryImpl implements RatingRepository {
                 .addOnSuccessListener(callback::onSuccess) // Rating có thể là null
                 .addOnFailureListener(callback::onFailure);
     }
+    @Override
+    public void getRatingById(String ratingId, Callback<Rating> callback) {
+        firebaseRatingSource.getRatingById(ratingId)
+                .addOnSuccessListener(callback::onSuccess)
+                .addOnFailureListener(callback::onFailure);
+    }
 }

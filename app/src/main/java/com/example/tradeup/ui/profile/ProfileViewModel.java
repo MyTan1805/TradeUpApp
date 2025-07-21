@@ -44,6 +44,9 @@ public class ProfileViewModel extends ViewModel {
     private List<Item> loadedItems = null;
 
     // LiveData cho trạng thái chung
+
+    private final MutableLiveData<Event<Rating>> _reportReviewEvent = new MutableLiveData<>();
+    public LiveData<Event<Rating>> getReportReviewEvent() { return _reportReviewEvent; }
     private final MutableLiveData<ProfileHeaderState> _headerState = new MutableLiveData<>();
     public LiveData<ProfileHeaderState> getHeaderState() { return _headerState; }
 
@@ -240,5 +243,9 @@ public class ProfileViewModel extends ViewModel {
                 _toastMessage.postValue(new Event<>("Error deleting listing: " + e.getMessage()));
             }
         });
+    }
+
+    public void onReportReview(Rating rating) {
+        _reportReviewEvent.setValue(new Event<>(rating));
     }
 }

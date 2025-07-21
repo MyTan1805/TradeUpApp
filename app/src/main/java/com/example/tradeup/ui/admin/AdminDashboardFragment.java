@@ -2,6 +2,7 @@
 package com.example.tradeup.ui.admin;
 
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -98,11 +99,30 @@ public class AdminDashboardFragment extends Fragment {
         } else if ("profile".equalsIgnoreCase(report.getReportedContentType())) {
             args.putString("userId", report.getReportedContentId());
             destinationId = R.id.action_global_to_publicProfileFragment;
+        } else if ("rating".equalsIgnoreCase(report.getReportedContentType())) {
+            // Khi xem một rating, ta điều hướng đến trang của người BỊ đánh giá.
+            // ID của người bị đánh giá được lưu trong `reportedUserId` của report object.
+            String ratedUserId = report.getReportedUserId();
+            if (ratedUserId != null && !ratedUserId.isEmpty()) {
+                args.putString("userId", ratedUserId);
+                destinationId = R.id.action_global_to_publicProfileFragment;
+            } else {
+                Toast.makeText(getContext(), "Error: Rated user ID is missing in the report.", Toast.LENGTH_SHORT).show();
+                return; // Dừng lại nếu không có ID
+            }
         }
 
+
         if (destinationId != -1) {
-            navController.navigate(destinationId, args);
+            try {
+                navController.navigate(destinationId, args);
+            } catch (Exception e) {
+                // Thêm log để bắt lỗi nếu có
+                Log.e("AdminNav", "Failed to navigate from admin dashboard", e);
+                Toast.makeText(getContext(), "Navigation failed. Action may not be available.", Toast.LENGTH_SHORT).show();
+            }
         } else {
+            // Toast cũ của bạn, bây giờ đã bao gồm trường hợp "rating"
             Toast.makeText(getContext(), "Cannot navigate to content type: " + report.getReportedContentType(), Toast.LENGTH_SHORT).show();
         }
     }

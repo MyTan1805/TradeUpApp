@@ -96,10 +96,7 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
 
     private void observeViewModel() {
         viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            // **FIX LOGIC HIỂN THỊ Ở ĐÂY**
-            // Chỉ hiển thị ProgressBar khi đang tải VÀ danh sách hiện tại rỗng
-            // Điều này tránh ProgressBar che mất danh sách khi tải thêm trang
-            boolean isListCurrentlyEmpty = transactionAdapter.getCurrentList() == null || transactionAdapter.getCurrentList().isEmpty();
+            boolean isListCurrentlyEmpty = transactionAdapter.getCurrentList().isEmpty();
             if (isLoading && isListCurrentlyEmpty) {
                 binding.progressBar.setVisibility(View.VISIBLE);
                 binding.recyclerViewTransactions.setVisibility(View.GONE);
@@ -109,16 +106,13 @@ public class TransactionHistoryFragment extends Fragment implements TransactionA
             }
         });
 
-        viewModel.getTransactions().observe(getViewLifecycleOwner(), transactions -> {
-            // **FIX LOGIC HIỂN THỊ Ở ĐÂY**
+        viewModel.getTransactions().observe(getViewLifecycleOwner(), transactionViewDataList -> {
             boolean isLoading = viewModel.getIsLoading().getValue() != null && viewModel.getIsLoading().getValue();
 
-            transactionAdapter.submitList(transactions);
+            transactionAdapter.submitList(transactionViewDataList);
 
-            boolean isEmpty = transactions == null || transactions.isEmpty();
-
-            // Chỉ quyết định hiển thị EmptyState hoặc RecyclerView khi KHÔNG còn loading
             if (!isLoading) {
+                boolean isEmpty = transactionViewDataList == null || transactionViewDataList.isEmpty();
                 binding.layoutEmptyState.setVisibility(isEmpty ? View.VISIBLE : View.GONE);
                 binding.recyclerViewTransactions.setVisibility(isEmpty ? View.GONE : View.VISIBLE);
             }

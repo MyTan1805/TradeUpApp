@@ -53,11 +53,7 @@ public class ActiveListingsFragment extends Fragment {
         adapter = new MyListingAdapter(new MyListingAdapter.OnItemActionListener() {
             @Override
             public void onMenuClick(Item item) {
-                viewModel.setSelectedItem(item);
-                if (isAdded()) {
-                    // Giả sử bạn có dialog này
-                    // ListingOptionsDialogFragment.newInstance().show(getParentFragmentManager(), ListingOptionsDialogFragment.TAG);
-                }
+                viewModel.onMenuItemClicked(item);
             }
 
             @Override

@@ -6,8 +6,11 @@ import com.example.tradeup.data.model.Item;
 import com.example.tradeup.data.model.Report;
 import com.example.tradeup.data.model.User; // *** SỬA LỖI 1: SỬA LẠI IMPORT CHO ĐÚNG ***
 import com.google.firebase.firestore.CollectionReference;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.Query;
 import java.util.HashMap;
 import java.util.List;
@@ -19,15 +22,19 @@ import javax.inject.Singleton;
 @Singleton
 public class AdminRepositoryImpl implements AdminRepository {
 
+    private final FirebaseFirestore firestore;
     private final CollectionReference reportsCollection;
     private final CollectionReference usersCollection;
     private final CollectionReference itemsCollection;
+    private final CollectionReference ratingsCollection;
 
     @Inject
     public AdminRepositoryImpl(FirebaseFirestore firestore) {
+        this.firestore = firestore;
         this.reportsCollection = firestore.collection("reports");
         this.usersCollection = firestore.collection("users");
         this.itemsCollection = firestore.collection("items");
+        this.ratingsCollection = firestore.collection("ratings");
     }
 
     @Override
@@ -98,5 +105,54 @@ public class AdminRepositoryImpl implements AdminRepository {
                 .thenApply(queryDocumentSnapshots ->
                         queryDocumentSnapshots.toObjects(Item.class)
                 );
+    }
+
+    @Override
+    public CompletableFuture<List<Report>> getReportsForContentType(String contentType, long limit) {
+        Query query = reportsCollection
+                .whereEqualTo("status", "pending_review")
+                .whereEqualTo("reportedContentType", contentType)
+                .orderBy("createdAt", Query.Direction.ASCENDING)
+                .limit(limit);
+
+        return TaskToFuture.toCompletableFuture(query.get())
+                .thenApply(queryDocumentSnapshots ->
+                        queryDocumentSnapshots.toObjects(Report.class)
+                );
+    }
+
+    @Override
+    public CompletableFuture<Void> deleteReviewAndRecalculateUserRating(String ratingId, String ratedUserId, int starsToRemove) {
+        DocumentReference userRef = usersCollection.document(ratedUserId);
+        DocumentReference ratingRef = ratingsCollection.document(ratingId);
+
+        return TaskToFuture.toCompletableFuture(
+                firestore.runTransaction(transaction -> {
+                    DocumentSnapshot userSnapshot = transaction.get(userRef);
+
+                    if (!userSnapshot.exists()) {
+                        throw new FirebaseFirestoreException("User not found", FirebaseFirestoreException.Code.NOT_FOUND);
+                    }
+
+                    // Lấy các giá trị cũ
+                    long currentTotalRatings = userSnapshot.getLong("totalRatingCount");
+                    double currentSumOfStars = userSnapshot.getDouble("sumOfStars");
+
+                    // Tính toán giá trị mới
+                    long newTotalRatings = currentTotalRatings - 1;
+                    double newSumOfStars = currentSumOfStars - starsToRemove;
+                    double newAverageRating = (newTotalRatings > 0) ? (newSumOfStars / newTotalRatings) : 0.0;
+
+                    // Cập nhật user
+                    transaction.update(userRef, "totalRatingCount", newTotalRatings);
+                    transaction.update(userRef, "sumOfStars", newSumOfStars);
+                    transaction.update(userRef, "averageRating", newAverageRating);
+
+                    // Xóa review
+                    transaction.delete(ratingRef);
+
+                    return null;
+                })
+        );
     }
 }

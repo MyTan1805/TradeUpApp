@@ -45,4 +45,5 @@ public interface ItemRepository {
     void incrementItemViews(String itemId);
 
     void incrementItemOffers(String itemId);
+    void incrementItemChats(String itemId);
 }

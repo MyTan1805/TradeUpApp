@@ -6,6 +6,7 @@ import androidx.annotation.Nullable;
 import com.example.tradeup.core.utils.Callback;
 import com.example.tradeup.data.model.Chat;
 import com.example.tradeup.data.model.Message;
+import com.example.tradeup.data.model.User;
 import com.example.tradeup.data.source.remote.FirebaseChatSource;
 import com.google.firebase.firestore.ListenerRegistration;
 
@@ -25,8 +26,17 @@ public class ChatRepositoryImpl implements ChatRepository {
     }
 
     @Override
-    public void getOrCreateChat(List<String> participantIds, @Nullable String relatedItemId, Callback<String> callback) {
-        firebaseChatSource.getOrCreateChat(participantIds, relatedItemId, callback);
+    public void getOrCreateChat(
+            String currentUserId, User currentUserInfo,
+            String otherUserId, User otherUserInfo,
+            @Nullable String relatedItemId, Callback<String> callback
+    ){
+        // Truyền đi chính xác và đầy đủ các tham số đã nhận được
+        firebaseChatSource.getOrCreateChat(
+                currentUserId, currentUserInfo,
+                otherUserId, otherUserInfo,
+                relatedItemId, callback
+        );
     }
 
     @Override

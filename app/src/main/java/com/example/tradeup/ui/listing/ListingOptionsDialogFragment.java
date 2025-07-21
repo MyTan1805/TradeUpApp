@@ -1,17 +1,15 @@
 package com.example.tradeup.ui.listing;
 
-import android.app.AlertDialog;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.DialogFragment;
+import androidx.appcompat.app.AlertDialog;
 import androidx.lifecycle.ViewModelProvider;
-
 import com.example.tradeup.R;
 import com.example.tradeup.data.model.Item;
 import com.example.tradeup.databinding.DialogListingOptionsBinding;
@@ -20,8 +18,6 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment;
 public class ListingOptionsDialogFragment extends BottomSheetDialogFragment {
 
     public static final String TAG = "ListingOptionsDialog";
-
-    // Không cần các hằng số REQUEST_KEY, KEY_ACTION nữa
 
     private DialogListingOptionsBinding binding;
     private MyListingsViewModel viewModel;
@@ -33,7 +29,6 @@ public class ListingOptionsDialogFragment extends BottomSheetDialogFragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Lấy ViewModel từ Fragment cha (MyListingsFragment) để chia sẻ trạng thái
         viewModel = new ViewModelProvider(requireParentFragment()).get(MyListingsViewModel.class);
         setStyle(DialogFragment.STYLE_NORMAL, R.style.ThemeOverlay_TradeUp_BottomSheetDialog);
     }
@@ -49,17 +44,33 @@ public class ListingOptionsDialogFragment extends BottomSheetDialogFragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        Item selectedItem = viewModel.getSelectedItem();
-        if (selectedItem == null) {
-            Toast.makeText(getContext(), "Please select an item first.", Toast.LENGTH_SHORT).show();
-            dismiss(); // An toàn, nếu không có item nào được chọn thì đóng dialog
-            return;
-        }
+        // ==========================================================
+        // === SỬA LỖI Ở ĐÂY: LẮNG NGHE LIVEDATA THAY VÌ GỌI TRỰC TIẾP ===
+        // ==========================================================
+        viewModel.getSelectedItemLiveData().observe(getViewLifecycleOwner(), selectedItem -> {
+            // Chỉ thực hiện khi selectedItem không null
+            if (selectedItem != null) {
+                setupUIAndListeners(selectedItem);
+            } else {
+                // Nếu vì lý do nào đó item là null, đóng dialog và báo lỗi
+                Toast.makeText(getContext(), "Error: No item data found.", Toast.LENGTH_SHORT).show();
+                dismiss();
+            }
+        });
+    }
 
-        // Cập nhật giao diện dựa trên trạng thái của item
+    // << TÁCH LOGIC RA HÀM RIÊNG ĐỂ GỌN GÀNG HƠN >>
+    private void setupUIAndListeners(Item selectedItem) {
+        if (binding == null) return; // Kiểm tra an toàn
+
         updateUiBasedOnItemStatus(selectedItem);
 
-        // Gán sự kiện click trực tiếp vào các hàm của ViewModel
+        binding.optionViewAnalytics.setOnClickListener(v -> {
+            ListingAnalyticsDialogFragment.newInstance()
+                    .show(getParentFragmentManager(), ListingAnalyticsDialogFragment.TAG);
+            dismiss();
+        });
+
         binding.optionEdit.setOnClickListener(v -> {
             viewModel.onEditOptionClicked();
             dismiss();
@@ -78,40 +89,40 @@ public class ListingOptionsDialogFragment extends BottomSheetDialogFragment {
         });
 
         binding.optionDelete.setOnClickListener(v -> {
-            // Hiển thị dialog xác nhận ngay tại đây
             showDeleteConfirmationDialog();
-            // Đóng bottom sheet trước
             dismiss();
         });
 
         binding.optionCancel.setOnClickListener(v -> dismiss());
     }
 
+
+    // Hàm này giữ nguyên
     private void updateUiBasedOnItemStatus(Item item) {
-        // Cập nhật text cho nút Pause/Resume
+        // ... (logic cũ của bạn ở đây là đúng)
         if ("paused".equalsIgnoreCase(item.getStatus())) {
-            binding.optionPauseResume.setText("Resume Listing");
+            binding.optionPauseResume.setText(getString(R.string.my_listings_option_resume));
         } else {
-            binding.optionPauseResume.setText("Pause Listing");
+            binding.optionPauseResume.setText(getString(R.string.my_listings_option_pause));
         }
 
-        // Ẩn các tùy chọn không phù hợp nếu sản phẩm đã bán
-        if ("sold".equalsIgnoreCase(item.getStatus())) {
-            binding.optionEdit.setVisibility(View.GONE);
-            binding.optionMarkSold.setVisibility(View.GONE);
-            binding.optionPauseResume.setVisibility(View.GONE);
-        }
+        boolean isSold = "sold".equalsIgnoreCase(item.getStatus());
+
+        // Tùy chọn Edit và Mark Sold chỉ hiển thị khi item đang active
+        binding.optionEdit.setVisibility("available".equalsIgnoreCase(item.getStatus()) ? View.VISIBLE : View.GONE);
+        binding.optionMarkSold.setVisibility("available".equalsIgnoreCase(item.getStatus()) ? View.VISIBLE : View.GONE);
+
+        // Tùy chọn Pause/Resume chỉ hiển thị khi item chưa bán
+        binding.optionPauseResume.setVisibility(isSold ? View.GONE : View.GONE);
     }
 
+    // Hàm này giữ nguyên
     private void showDeleteConfirmationDialog() {
-        // Dùng requireContext() để đảm bảo context không null
+        if(getContext() == null) return;
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Listing")
                 .setMessage("Are you sure you want to permanently delete this listing?")
-                .setPositiveButton("Delete", (dialog, which) -> {
-                    // Gọi hàm xóa trong ViewModel
-                    viewModel.deleteSelectedItem();
-                })
+                .setPositiveButton("Delete", (dialog, which) -> viewModel.deleteSelectedItem())
                 .setNegativeButton("Cancel", null)
                 .show();
     }

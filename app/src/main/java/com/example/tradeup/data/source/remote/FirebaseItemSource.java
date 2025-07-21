@@ -243,4 +243,7 @@ public class FirebaseItemSource {
     public Task<Void> incrementItemOffers(String itemId) {
         return itemsCollection.document(itemId).update("offersCount", FieldValue.increment(1));
     }
+    public Task<Void> incrementItemChats(String itemId) {
+        return itemsCollection.document(itemId).update("chatsCount", FieldValue.increment(1));
+    }
 }

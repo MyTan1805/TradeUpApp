@@ -28,6 +28,14 @@ public class MyListingsViewModel extends ViewModel {
     private final AuthRepository authRepository;
     private final TransactionRepository transactionRepository;
 
+    private final MutableLiveData<Item> _selectedItem = new MutableLiveData<>();
+
+    public LiveData<Item> getSelectedItemLiveData() { // << ĐỔI TÊN HÀM GETTER
+        return _selectedItem;
+    }
+    private final MutableLiveData<Event<Boolean>> _openMenuEvent = new MutableLiveData<>();
+    public LiveData<Event<Boolean>> getOpenMenuEvent() { return _openMenuEvent; }
+
     private final MutableLiveData<MyListingsState> _state = new MutableLiveData<>();
     public LiveData<MyListingsState> getState() { return _state; }
 
@@ -39,6 +47,20 @@ public class MyListingsViewModel extends ViewModel {
 
     // Biến private để lưu trữ item đang được chọn
     private Item selectedItem;
+
+    public void setSelectedItem(Item item) {
+        _selectedItem.setValue(item);
+    }
+
+    public void onMenuItemClicked(Item item) {
+        setSelectedItem(item); // Lưu lại item được chọn
+        _openMenuEvent.setValue(new Event<>(true)); // Bắn sự kiện để Fragment cha mở dialog
+    }
+
+    // Hàm này để lấy giá trị tức thời, có thể giữ lại nếu cần ở nơi khác
+    public Item getSelectedItem() {
+        return _selectedItem.getValue();
+    }
 
     @Inject
     public MyListingsViewModel(ItemRepository itemRepository, AuthRepository authRepository, TransactionRepository transactionRepository) {
@@ -77,59 +99,54 @@ public class MyListingsViewModel extends ViewModel {
         });
     }
 
-    public void setSelectedItem(Item item) {
-        this.selectedItem = item;
-    }
-
-    // << FIX: Thêm phương thức getter này >>
-    public Item getSelectedItem() {
-        return this.selectedItem;
-    }
-
     public void updateSelectedItemStatus(String newStatus) {
-        if (selectedItem == null) {
+        Item itemToUpdate = _selectedItem.getValue();
+        if (itemToUpdate == null) {
             _toastMessage.postValue(new Event<>("Please select an item first."));
             return;
         }
-        _state.setValue(new MyListingsState.Loading());
-        itemRepository.updateItemStatus(selectedItem.getItemId(), newStatus, new Callback<Void>() {
+        _state.setValue(new MyListingsState.Loading()); // Hiển thị loading
+        itemRepository.updateItemStatus(itemToUpdate.getItemId(), newStatus, new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 _toastMessage.postValue(new Event<>("Listing status updated!"));
-                loadMyListings();
+                loadMyListings(); // Tải lại toàn bộ danh sách để cập nhật giao diện
             }
             @Override
             public void onFailure(@NonNull Exception e) {
                 _toastMessage.postValue(new Event<>("Error updating status: " + e.getMessage()));
-                // Vẫn tải lại để thoát khỏi trạng thái loading và hiển thị lỗi
-                loadMyListings();
+                loadMyListings(); // Vẫn tải lại để thoát khỏi trạng thái loading
             }
         });
     }
 
     public void deleteSelectedItem() {
-        if (selectedItem == null) {
+        Item itemToDelete = _selectedItem.getValue();
+        if (itemToDelete == null) {
             _toastMessage.postValue(new Event<>("Please select an item first."));
             return;
         }
-        _state.setValue(new MyListingsState.Loading());
-        itemRepository.deleteItem(selectedItem.getItemId(), new Callback<Void>() {
+        _state.setValue(new MyListingsState.Loading()); // Hiển thị loading
+        itemRepository.deleteItem(itemToDelete.getItemId(), new Callback<Void>() {
             @Override
             public void onSuccess(Void data) {
                 _toastMessage.postValue(new Event<>("Listing deleted."));
-                loadMyListings();
+                loadMyListings(); // Tải lại
             }
             @Override
             public void onFailure(@NonNull Exception e) {
                 _toastMessage.postValue(new Event<>("Error deleting listing: " + e.getMessage()));
-                loadMyListings();
+                loadMyListings(); // Vẫn tải lại
             }
         });
     }
 
     public void onEditOptionClicked() {
-        if (selectedItem != null) {
-            _navigationEvent.setValue(new Event<>(new MyListingsNavigationEvent.ToEditItem(selectedItem.getItemId())));
+        Item item = _selectedItem.getValue();
+        if (item != null) {
+            _navigationEvent.setValue(new Event<>(new MyListingsNavigationEvent.ToEditItem(item.getItemId())));
+        } else {
+            _toastMessage.postValue(new Event<>("Cannot edit. Item data is missing."));
         }
     }
 

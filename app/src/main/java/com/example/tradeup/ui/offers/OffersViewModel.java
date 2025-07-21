@@ -20,6 +20,7 @@ import com.example.tradeup.data.repository.ItemRepository;
 import com.example.tradeup.data.repository.OfferRepository;
 import com.example.tradeup.data.repository.TransactionRepository;
 import com.example.tradeup.data.repository.NotificationRepository;
+import com.example.tradeup.ui.profile.TransactionViewData;
 import com.google.firebase.Timestamp;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FieldValue;
@@ -35,6 +36,9 @@ import retrofit2.Call;
 import retrofit2.Response;
 import java.util.concurrent.atomic.AtomicInteger;
 
+import com.example.tradeup.data.repository.UserRepository;     // *** THÊM IMPORT NÀY ***
+import com.example.tradeup.ui.profile.TransactionViewData;
+
 @HiltViewModel
 public class OffersViewModel extends ViewModel {
     private static final String TAG = "OffersViewModel";
@@ -45,8 +49,11 @@ public class OffersViewModel extends ViewModel {
     private final TransactionRepository transactionRepository;
     private final NotificationRepository notificationRepository;
     private final NotificationApiService notificationApiService;
+    private final UserRepository userRepository;
 
     private final String currentUserId;
+
+
 
     private final MutableLiveData<List<OfferViewData>> _receivedOffers = new MutableLiveData<>();
     public LiveData<List<OfferViewData>> getReceivedOffers() { return _receivedOffers; }
@@ -54,8 +61,8 @@ public class OffersViewModel extends ViewModel {
     private final MutableLiveData<List<OfferViewData>> _sentOffers = new MutableLiveData<>();
     public LiveData<List<OfferViewData>> getSentOffers() { return _sentOffers; }
 
-    private final MutableLiveData<List<Transaction>> _transactions = new MutableLiveData<>();
-    public LiveData<List<Transaction>> getTransactions() { return _transactions; }
+    private final MutableLiveData<List<TransactionViewData>> _transactions = new MutableLiveData<>();
+    public LiveData<List<TransactionViewData>> getTransactions() { return _transactions; }
 
     private final MutableLiveData<Event<Offer>> _openCounterOfferDialogEvent = new MutableLiveData<>();
     public LiveData<Event<Offer>> getOpenCounterOfferDialogEvent() { return _openCounterOfferDialogEvent; }
@@ -76,7 +83,8 @@ public class OffersViewModel extends ViewModel {
             ItemRepository itemRepository,
             TransactionRepository transactionRepository,
             NotificationRepository notificationRepository,
-            NotificationApiService notificationApiService
+            NotificationApiService notificationApiService,
+            UserRepository userRepository
     ) {
         this.offerRepository = offerRepository;
         this.authRepository = authRepository;
@@ -84,6 +92,7 @@ public class OffersViewModel extends ViewModel {
         this.transactionRepository = transactionRepository;
         this.notificationRepository = notificationRepository;
         this.notificationApiService = notificationApiService;
+        this.userRepository = userRepository;
 
         FirebaseUser user = authRepository.getCurrentUser();
         this.currentUserId = user != null ? user.getUid() : null;
@@ -95,18 +104,7 @@ public class OffersViewModel extends ViewModel {
         if (!validateOfferAction(offer)) return;
 
         _isLoading.setValue(true);
-
-        itemRepository.updateItemStatus(offer.getItemId(), "sold", new Callback<Void>() {
-            @Override
-            public void onSuccess(Void itemStatusData) {
-                updateOfferStatusAndCreateTransaction(offer);
-            }
-
-            @Override
-            public void onFailure(@NonNull Exception e) {
-                showError("Could not mark item as sold: " + e.getMessage());
-            }
-        });
+        updateOfferStatusAndCreateTransaction(offer);
     }
 
     private void processOffers(List<Offer> offers, MutableLiveData<List<OfferViewData>> targetLiveData) {
@@ -171,11 +169,13 @@ public class OffersViewModel extends ViewModel {
     }
 
     private void updateOfferStatusAndCreateTransaction(Offer offer) {
+        // Cập nhật trạng thái offer thành "accepted"
         offerRepository.updateOffer(offer.getOfferId(), "accepted", offer.getCurrentPrice(), "Offer accepted.", new Callback<Void>() {
             @Override
             public void onSuccess(Void offerStatusData) {
-                String receiverId = offer.getLastActionByUid();
-                sendOfferStatusNotification(offer, "offer_accepted", receiverId);
+                // Gửi thông báo cho người mua (logic này đã đúng)
+                sendOfferStatusNotification(offer, "offer_accepted", offer.getBuyerId()); // Sửa receiverId thành buyerId cho chắc chắn
+                // Tạo transaction
                 createTransactionFromOffer(offer);
             }
 
@@ -529,11 +529,7 @@ public class OffersViewModel extends ViewModel {
                 new Callback<List<Transaction>>() {
                     @Override
                     public void onSuccess(List<Transaction> transactions) {
-                        Collections.sort(transactions, (t1, t2) ->
-                                t2.getTransactionDate().compareTo(t1.getTransactionDate())
-                        );
-                        _transactions.postValue(transactions);
-                        _isLoading.postValue(false);
+                        processTransactionsIntoViewData(transactions);
                     }
                     @Override
                     public void onFailure(@NonNull Exception e) {
@@ -541,6 +537,39 @@ public class OffersViewModel extends ViewModel {
                     }
                 }
         );
+    }
+
+    private void processTransactionsIntoViewData(List<Transaction> transactions) {
+        if (transactions == null || transactions.isEmpty()) {
+            _transactions.postValue(Collections.emptyList()); // Đảm bảo post vào _transactions
+            _isLoading.postValue(false);
+            return;
+        }
+
+        final List<TransactionViewData> viewDataList = Collections.synchronizedList(new ArrayList<>());
+        final AtomicInteger counter = new AtomicInteger(transactions.size());
+        final String currentUserId = authRepository.getCurrentUser().getUid();
+
+        for (Transaction t : transactions) {
+            boolean isUserTheBuyer = t.getBuyerId().equals(currentUserId);
+            String partnerId = isUserTheBuyer ? t.getSellerId() : t.getBuyerId();
+
+            userRepository.getUserProfile(partnerId)
+                    .whenComplete((user, throwable) -> {
+                        String partnerName = (user != null) ? user.getDisplayName() : "A user";
+                        viewDataList.add(new TransactionViewData(t, partnerName));
+
+                        if (counter.decrementAndGet() == 0) {
+                            // Sắp xếp
+                            viewDataList.sort((o1, o2) -> {
+                                if (o1.transaction.getTransactionDate() == null || o2.transaction.getTransactionDate() == null) return 0;
+                                return o2.transaction.getTransactionDate().compareTo(o1.transaction.getTransactionDate());
+                            });
+                            _transactions.postValue(viewDataList); // Post đúng kiểu dữ liệu
+                            _isLoading.postValue(false);
+                        }
+                    });
+        }
     }
 
     public void selectPaymentMethod(String transactionId, String paymentMethod, @Nullable String deliveryAddress) {

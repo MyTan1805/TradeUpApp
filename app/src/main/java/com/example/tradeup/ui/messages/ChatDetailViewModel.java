@@ -103,10 +103,8 @@ public class ChatDetailViewModel extends ViewModel {
                     if (user != null) {
                         _otherUserAvatarUrl.postValue(user.getProfilePictureUrl());
                     }
-                    // Không cần xử lý lỗi ở đây, UI sẽ dùng ảnh placeholder
                 });
     }
-
     public void onViewProfileClicked() {
         if (otherUserId != null) {
             _navigateToUserProfileEvent.setValue(new Event<>(otherUserId));

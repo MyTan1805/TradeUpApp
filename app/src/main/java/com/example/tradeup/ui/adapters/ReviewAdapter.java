@@ -1,6 +1,7 @@
 // File: src/main/java/com/example/tradeup/ui/adapters/ReviewAdapter.java
 package com.example.tradeup.ui.adapters;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
 import androidx.annotation.NonNull;
@@ -14,8 +15,15 @@ import com.example.tradeup.databinding.ItemReviewCardBinding;
 
 public class ReviewAdapter extends ListAdapter<Rating, ReviewAdapter.ReviewViewHolder> {
 
-    public ReviewAdapter() {
+    public interface OnReviewActionListener {
+        void onReportReviewClicked(Rating rating);
+    }
+    private final OnReviewActionListener listener;
+
+    // *** SỬA CONSTRUCTOR ***
+    public ReviewAdapter(OnReviewActionListener listener) {
         super(DIFF_CALLBACK);
+        this.listener = listener;
     }
 
     private static final DiffUtil.ItemCallback<Rating> DIFF_CALLBACK = new DiffUtil.ItemCallback<Rating>() {
@@ -39,7 +47,7 @@ public class ReviewAdapter extends ListAdapter<Rating, ReviewAdapter.ReviewViewH
         ItemReviewCardBinding binding = ItemReviewCardBinding.inflate(
                 LayoutInflater.from(parent.getContext()), parent, false
         );
-        return new ReviewViewHolder(binding);
+        return new ReviewViewHolder(binding, listener);
     }
 
     @Override
@@ -52,10 +60,14 @@ public class ReviewAdapter extends ListAdapter<Rating, ReviewAdapter.ReviewViewH
 
     static class ReviewViewHolder extends RecyclerView.ViewHolder {
         private final ItemReviewCardBinding binding;
+        // *** THÊM BIẾN LISTENER ***
+        private final OnReviewActionListener listener;
 
-        public ReviewViewHolder(ItemReviewCardBinding binding) {
+        // *** SỬA CONSTRUCTOR CỦA VIEWHOLDER ***
+        public ReviewViewHolder(ItemReviewCardBinding binding, OnReviewActionListener listener) {
             super(binding.getRoot());
             this.binding = binding;
+            this.listener = listener;
         }
 
         public void bind(Rating rating) {
@@ -64,6 +76,14 @@ public class ReviewAdapter extends ListAdapter<Rating, ReviewAdapter.ReviewViewH
             binding.textViewReviewDate.setText(rating.getFormattedDate()); // Sử dụng hàm tiện ích mới
             binding.ratingBarReview.setRating((float) rating.getStars());
             binding.textViewFeedbackText.setText(rating.getFeedbackText());
+            binding.buttonMenu.setOnClickListener(v -> {
+                // *** THÊM DÒNG LOG NÀY VÀO ***
+                Log.d("DEBUG_REVIEW", "1. Click detected in Adapter for review: " + rating.getFeedbackText());
+
+                if (listener != null) {
+                    listener.onReportReviewClicked(rating);
+                }
+            });
 
             Glide.with(itemView.getContext())
                     .load(rating.getRaterProfilePictureUrl())
