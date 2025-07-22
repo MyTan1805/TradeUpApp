@@ -406,6 +406,8 @@
     <string name="views">Views</string>
     <string name="review_options">Review options</string>
 
+    <string name="default_notification_channel_id" translatable="false">tradeup_channel</string>
+
     <!-- For legacy string-array resources -->
     <string-array name="reply_entries">
         <item>Reply</item>

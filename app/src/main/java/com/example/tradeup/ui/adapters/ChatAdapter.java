@@ -77,27 +77,25 @@ public class ChatAdapter extends ListAdapter<ChatViewData, ChatAdapter.ChatViewH
                     .findFirst()
                     .orElse(null);
 
+            String otherUserName = "A user"; // Tên mặc định
+            String otherUserAvatarUrl = null; // Avatar mặc định
+
             if (otherUserId != null && chat.getParticipantInfo() != null) {
                 ParticipantInfoDetail otherUserInfo = chat.getParticipantInfo().get(otherUserId);
                 if (otherUserInfo != null) {
-                    binding.textViewUserName.setText(otherUserInfo.getDisplayName());
-                    Glide.with(itemView.getContext())
-                            .load(otherUserInfo.getProfilePictureUrl())
-                            .placeholder(R.drawable.ic_person)
-                            .into(binding.imageViewAvatar);
+                    otherUserName = otherUserInfo.getDisplayName();
+                    otherUserAvatarUrl = otherUserInfo.getProfilePictureUrl();
                 }
             }
 
-            binding.textViewLastMessage.setText(chat.getLastMessageText());
+            binding.textViewUserName.setText(otherUserName);
+            Glide.with(itemView.getContext())
+                    .load(otherUserAvatarUrl)
+                    .placeholder(R.drawable.ic_person) // Dùng placeholder chuẩn
+                    .error(R.drawable.ic_person)      // Dùng placeholder khi lỗi
+                    .into(binding.imageViewAvatar);
 
-            if (chat.getLastMessageTimestamp() != null) {
-                binding.textViewTimestamp.setText(
-                        DateUtils.getRelativeTimeSpanString(
-                                chat.getLastMessageTimestamp().toDate().getTime(),
-                                System.currentTimeMillis(),
-                                DateUtils.MINUTE_IN_MILLIS)
-                );
-            }
+            binding.textViewLastMessage.setText(chat.getLastMessageText());
 
             Map<String, Integer> unreadCountMap = chat.getUnreadCount();
             Integer unreadCount = (unreadCountMap != null) ? unreadCountMap.get(currentUserId) : null;
