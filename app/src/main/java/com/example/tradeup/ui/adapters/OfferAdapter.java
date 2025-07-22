@@ -74,7 +74,7 @@ public class OfferAdapter extends ListAdapter<OfferViewData, OfferAdapter.OfferV
             final Offer offer = data.offer;
             final Item item = data.relatedItem;
 
-            final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             final boolean isUserTheSeller = currentUserId.equals(offer.getSellerId());
 
             // Bind thông tin sản phẩm (nếu có)

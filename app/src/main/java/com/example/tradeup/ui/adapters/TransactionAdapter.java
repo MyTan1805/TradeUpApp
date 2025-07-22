@@ -80,7 +80,7 @@ public class TransactionAdapter extends ListAdapter<TransactionViewData, Transac
 
             // --- PHẦN 1: BIND DỮ LIỆU CƠ BẢN (KHÔNG ĐỔI) ---
             binding.textViewProductName.setText(transaction.getItemTitle());
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             binding.textViewPrice.setText(currencyFormat.format(transaction.getPriceSold()));
             if (transaction.getTransactionDate() != null) {
                 SimpleDateFormat sdf = new SimpleDateFormat("MMM dd, yyyy", Locale.getDefault());

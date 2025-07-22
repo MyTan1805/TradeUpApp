@@ -83,7 +83,7 @@ public class MakeOfferDialogFragment extends BottomSheetDialogFragment {
 
     private void setupUI() {
         binding.textViewProductName.setText(currentItem.getTitle());
-        String originalPrice = NumberFormat.getCurrencyInstance(new Locale("vi", "VN")).format(currentItem.getPrice());
+        String originalPrice = NumberFormat.getCurrencyInstance(Locale.US).format(currentItem.getPrice());
         binding.textViewOriginalPrice.setText("Original price: " + originalPrice);
 
         if (currentItem.getImageUrls() != null && !currentItem.getImageUrls().isEmpty()) {

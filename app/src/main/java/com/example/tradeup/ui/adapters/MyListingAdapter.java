@@ -79,7 +79,7 @@ public class MyListingAdapter extends ListAdapter<Item, MyListingAdapter.MyListi
         void bind(final Item item, final OnItemActionListener listener) {
             // --- 1. BIND DỮ LIỆU CƠ BẢN ---
             binding.textViewProductName.setText(item.getTitle());
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             binding.textViewProductPrice.setText(currencyFormat.format(item.getPrice()));
             binding.chipProductStatus.setText(item.getStatus());
 

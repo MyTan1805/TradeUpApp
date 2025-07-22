@@ -87,7 +87,7 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
         void bind(final Item item, boolean isSaved, final OnProductClickListener listener) {
             // Bind data (giữ nguyên)
             binding.textViewProductName.setText(item.getTitle());
-            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US);
             binding.textViewProductPrice.setText(currencyFormatter.format(item.getPrice()));
             binding.textViewProductLocation.setText(item.getAddressString() != null ? item.getAddressString() : "N/A");
 
@@ -118,7 +118,7 @@ public class ProductAdapter extends ListAdapter<Item, RecyclerView.ViewHolder> {
 
         void bind(final Item item, final OnProductClickListener listener) {
             binding.textViewFeaturedProductName.setText(item.getTitle());
-            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            NumberFormat currencyFormatter = NumberFormat.getCurrencyInstance(Locale.US);
             binding.textViewFeaturedProductPrice.setText(currencyFormatter.format(item.getPrice()));
 
             String imageUrl = (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) ? item.getImageUrls().get(0) : null;

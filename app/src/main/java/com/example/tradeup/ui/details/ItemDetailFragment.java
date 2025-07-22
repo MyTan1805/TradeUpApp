@@ -163,7 +163,7 @@ public class ItemDetailFragment extends Fragment {
         // Bind Item Info
         binding.toolbar.setTitle(item.getTitle());
         binding.textItemTitle.setText(item.getTitle());
-        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+        NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
         binding.textItemPrice.setText(currencyFormat.format(item.getPrice()));
         binding.textItemCondition.setText(conditionName);
         binding.textItemDescription.setText(item.getDescription());

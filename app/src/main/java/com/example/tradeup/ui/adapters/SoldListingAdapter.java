@@ -54,7 +54,7 @@ public class SoldListingAdapter extends ListAdapter<Transaction, SoldListingAdap
         void bind(final Transaction transaction, final OnTransactionActionListener listener) {
             binding.textViewProductName.setText(transaction.getItemTitle());
 
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             binding.textViewProductPrice.setText(currencyFormat.format(transaction.getPriceSold()));
             binding.chipProductStatus.setText("Sold");
 

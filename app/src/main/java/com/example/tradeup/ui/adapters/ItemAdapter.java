@@ -62,7 +62,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.ItemViewHolder
 
         public void bind(Item item) {
             titleTextView.setText(item.getTitle());
-            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("vi", "VN"));
+            NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(Locale.US);
             priceTextView.setText(currencyFormat.format(item.getPrice()));
             if (item.getImageUrls() != null && !item.getImageUrls().isEmpty()) {
                 Glide.with(itemView.getContext())

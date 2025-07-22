@@ -104,8 +104,22 @@ public class OffersViewModel extends ViewModel {
         if (!validateOfferAction(offer)) return;
 
         _isLoading.setValue(true);
-        updateOfferStatusAndCreateTransaction(offer);
+
+        // Bước 1: Cập nhật trạng thái Item thành "reserved"
+        itemRepository.updateItemStatus(offer.getItemId(), "reserved", new Callback<Void>() {
+            @Override
+            public void onSuccess(Void itemStatusData) {
+                // Bước 2: Cập nhật Offer và Tạo Transaction
+                updateOfferStatusAndCreateTransaction(offer);
+            }
+
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                showError("Could not reserve item: " + e.getMessage());
+            }
+        });
     }
+
 
     private void processOffers(List<Offer> offers, MutableLiveData<List<OfferViewData>> targetLiveData) {
         if (offers == null || offers.isEmpty()) {
@@ -174,13 +188,18 @@ public class OffersViewModel extends ViewModel {
             @Override
             public void onSuccess(Void offerStatusData) {
                 // Gửi thông báo cho người mua (logic này đã đúng)
-                sendOfferStatusNotification(offer, "offer_accepted", offer.getBuyerId()); // Sửa receiverId thành buyerId cho chắc chắn
+                sendOfferStatusNotification(offer, "offer_accepted", offer.getBuyerId());
                 // Tạo transaction
                 createTransactionFromOffer(offer);
             }
 
             @Override
             public void onFailure(@NonNull Exception e) {
+                // Nếu thất bại, nên trả lại trạng thái item về "available"
+                itemRepository.updateItemStatus(offer.getItemId(), "available", new Callback<Void>() {
+                    @Override public void onSuccess(Void data) {}
+                    @Override public void onFailure(@NonNull Exception e) {}
+                });
                 showError("Failed to update offer status: " + e.getMessage());
             }
         });
@@ -512,6 +531,8 @@ public class OffersViewModel extends ViewModel {
         transaction.setSellerId(item.getSellerId());
         transaction.setBuyerId(offer.getBuyerId());
         transaction.setPriceSold(offer.getCurrentPrice());
+        transaction.setPaymentStatus("awaiting_payment");
+        transaction.setShippingStatus("pending_selection");
         transaction.setPaymentStatus("pending");
         return transaction;
     }
